@@ -95,8 +95,12 @@ endif
 TARGET_ARCH := $(HOST_ARCH)
 TARGET_OS := $(HOST_OS)
 else
-TARGET_ARCH := arm
-TARGET_OS := linux
+ifeq ($(TARGET_ARCH),)
+$(error TARGET_ARCH is not set)
+endif
+ifeq ($(TARGET_OS),)
+$(error TARGET_OS is not set)
+endif
 endif
 
 # the target build type defaults to release

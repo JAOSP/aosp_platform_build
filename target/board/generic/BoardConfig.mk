@@ -4,6 +4,8 @@
 #
 
 # The generic product target doesn't have any hardware-specific pieces.
+TARGET_ARCH := arm
+TARGET_OS := linux
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_KERNEL := true
 TARGET_NO_RADIOIMAGE := true

@@ -334,25 +334,6 @@ subdir_makefiles += \
 	$(shell build/tools/findleaves.sh \
 	    --prune="./vendor" --prune="./out" $(subdirs) Android.mk)
 
-# Boards may be defined under $(SRC_TARGET_DIR)/board/$(TARGET_PRODUCT)
-# or under vendor/*/$(TARGET_PRODUCT).  Search in both places, but
-# make sure only one exists.
-# Real boards should always be associated with an OEM vendor.
-board_config_mk := \
-	$(strip $(wildcard \
-		$(SRC_TARGET_DIR)/board/$(TARGET_PRODUCT)/BoardConfig.mk \
-		vendor/*/$(TARGET_PRODUCT)/BoardConfig.mk \
-	))
-ifeq ($(board_config_mk),)
-  $(error No config file found for TARGET_PRODUCT $(TARGET_PRODUCT))
-endif
-ifneq ($(words $(board_config_mk)),1)
-  $(error Multiple board config files for TARGET_PRODUCT $(TARGET_PRODUCT): $(board_config_mk))
-endif
-include $(board_config_mk)
-TARGET_PRODUCT_DIR := $(patsubst %/,%,$(dir $(board_config_mk)))
-board_config_mk :=
-
 ifdef CUSTOM_PKG
 $(info ***************************************************************)
 $(info ***************************************************************)
