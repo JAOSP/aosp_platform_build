@@ -17,6 +17,8 @@ PRODUCT_PACKAGES := \
     SubscribedFeedsProvider \
     SyncProvider
 
+PRODUCT_COPY_FILES += development/data/etc/apns-conf_sdk.xml:system/etc/apns-conf.xml
+
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core.mk)
 
 # Overrides
