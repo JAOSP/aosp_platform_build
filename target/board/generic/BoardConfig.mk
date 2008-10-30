@@ -21,3 +21,5 @@ TARGET_GLOBAL_MACH_CFLAGS = \
 			-fstack-protector \
 			-D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ \
 			-D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__
+
+TARGET_CC_PREFETCH_LOOP_ARRAYS_FLAG := -fprefetch-loop-arrays
