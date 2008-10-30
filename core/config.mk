@@ -106,6 +106,17 @@ define select-android-config-h
 system/core/include/arch/$(1)/AndroidConfig.h
 endef
 
+# This allows the <combo>.mk file to correctly add the
+# system/core/include/arch/<combo> directory to the include
+# flags. This is a little bit ugly, and it would be much nicer
+# to have this wrapper up under the SRC_HEADERS variable, but
+# that is set up way before the combo is selected, and is also
+# used by the HOST as well as TARGET.
+# $(1): os/arch
+define select-system-core-arch-include-dir
+system/core/include/arch/$(1)/
+endef
+
 combo_target := HOST_
 include $(BUILD_SYSTEM)/combo/select.mk
 

@@ -1,6 +1,62 @@
 # Configuration for Linux on ARM.
 # Included by combo/select.make
 
+# You can set TARGET_ARCH_VERSION to use an arch version other
+# than ARMv5TE
+ifeq ($(strip $(TARGET_ARCH_VERSION)),)
+TARGET_ARCH_VERSION := armv5te
+endif
+
+# This set of if blocks sets makefile variables similar to preprocesser
+# defines in system/core/include/arch/<combo>/AndroidConfig.h. Their
+# purpose is to allow module Android.mk files to selctively compile
+# different versions of code based upon the funtionality and 
+# instructions available in a given architecture version.
+#
+# The blocks also define specific CPPDEFINES that define the
+# target, and set a DEFAULT_TARGET_CPU
+#
+# With two or three different versions this if block approach is
+# fine. If/when this becomes large, please change this to include
+# architecture versions specific Makefiles which define these
+# variables.
+# 
+ifeq ($(TARGET_ARCH_VERSION),armv5te)
+HAVE_THUMB_SUPPORT := true
+HAVE_FAST_INTERWORKING := true
+HAVE_64BIT_DATA := true
+HAVE_HALFWORD_MULTIPLY := true
+HAVE_CLZ := true
+HAVE_FFS := true
+
+DEFAULT_TARGET_CPU := xscale
+
+TARGET_ARCH_VERSION_CPPDEFINES := -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ \
+            -D__ARM_ARCH_5TE__
+else
+ifeq ($(TARGET_ARCH_VERSION),armv4)
+$(warning ARMv4 support is currently a work in progress. It does not work right now!)
+HAVE_THUMB_SUPPORT := false
+HAVE_THUMB_INTERWORKING := false
+HAVE_64BIT_DATA := false
+HAVE_HALFWORD_MULTIPLY := false
+HAVE_CLZ := false
+HAVE_FFS := false
+
+DEFAULT_TARGET_CPU := arm920
+
+TARGET_ARCH_VERSION_CPPDEFINES := -D__ARM_ARCH_4__
+else
+$(error Unknown ARM architecture version: $(TARGET_ARCH_VERSION))
+endif
+endif
+
+# You can set TARGET_CPU to get the compiler to produce better tuned
+# code. Each architecture version provides a default CPU.
+ifeq ($(strip $(TARGET_CPU)),)
+TARGET_CPU := $(DEFAULT_TARGET_CPU)
+endif
+
 # You can set TARGET_TOOLS_PREFIX to get gcc from somewhere else
 ifeq ($(strip $($(combo_target)TOOLS_PREFIX)),)
 $(combo_target)TOOLS_PREFIX := \
@@ -20,11 +76,19 @@ TARGET_arm_release_CFLAGS :=    -fomit-frame-pointer \
                                 -funswitch-loops     \
                                 -finline-limit=300
 
+# Modules can choose to compile some source as thumb. As 
+# non-thumb enabled targets are supported, this is treated
+# as a 'hint'. If thumb is not enabled, these files are just
+# compiled as ARM.
+ifeq ($(HAVE_THUMB_SUPPORT),true)
 TARGET_thumb_release_CFLAGS :=  -mthumb \
                                 -Os \
                                 -fomit-frame-pointer \
                                 -fno-strict-aliasing \
                                 -finline-limit=64
+else
+TARGET_thumb_release_CFLAGS := $(TARGET_arm_release_CFLAGS)
+endif
 
 # When building for debug, compile everything as arm.
 TARGET_arm_debug_CFLAGS := $(TARGET_arm_release_CFLAGS) -fno-omit-frame-pointer -fno-strict-aliasing
@@ -41,21 +105,25 @@ TARGET_thumb_debug_CFLAGS := $(TARGET_thumb_release_CFLAGS) -marm -fno-omit-fram
 ##TARGET_arm_release_CFLAGS := $(TARGET_arm_release_CFLAGS) -fno-omit-frame-pointer
 ##TARGET_thumb_release_CFLAGS := $(TARGET_thumb_release_CFLAGS) -marm -fno-omit-frame-pointer
 
-## on some hosts, the target cross-compiler is not available so do not run this command
-ifneq ($(wildcard $($(combo_target)CC)),)
-$(combo_target)LIBGCC := $(shell $($(combo_target)CC) -mthumb-interwork -print-libgcc-file-name)
-endif
-
 $(combo_target)GLOBAL_CFLAGS += \
-			-march=armv5te -mtune=xscale \
+			-march=$(TARGET_ARCH_VERSION) -mtune=$(TARGET_CPU) \
 			-msoft-float -fpic \
-			-mthumb-interwork \
 			-ffunction-sections \
 			-funwind-tables \
 			-fstack-protector \
-			-D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ \
-			-D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ \
-			-include $(call select-android-config-h,linux-arm)
+			$(TARGET_ARCH_VERSION_CPPDEFINES) \
+			-include $(call select-android-config-h,linux-arm) \
+			-I $(call select-system-core-arch-include-dir,linux-arm)
+
+# We only need thumb interworking in cases where thumb support
+# is available in the architecture, and just to be sure, (and
+# since somtimes thumb-interwork appears to be default), we
+# specifically disable when thumb support is unavailable.
+ifeq ($(HAVE_THUMB_SUPPORT),true)
+$(combo_target)GLOBAL_CFLAGS +=	-mthumb-interwork
+else
+$(combo_target)GLOBAL_CFLAGS +=	-mno-thumb-interwork
+endif
 
 $(combo_target)GLOBAL_CPPFLAGS += -fvisibility-inlines-hidden
 
@@ -73,6 +141,15 @@ libc_root := bionic/libc
 libm_root := bionic/libm
 libstdc++_root := bionic/libstdc++
 libthread_db_root := bionic/libthread_db
+
+
+## on some hosts, the target cross-compiler is not available so do not run this command
+ifneq ($(wildcard $($(combo_target)CC)),)
+# We compile with the global cflags to ensure that 
+# any flags which affect libgcc are correctly taken
+# into account.
+$(combo_target)LIBGCC := $(shell $($(combo_target)CC) $($(combo_target)GLOBAL_CFLAGS) -print-libgcc-file-name)
+endif
 
 # unless CUSTOM_KERNEL_HEADERS is defined, we're going to use
 # symlinks located in out/ to point to the appropriate kernel
