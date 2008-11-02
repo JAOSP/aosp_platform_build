@@ -26,6 +26,7 @@
 #
 
 PRODUCT_MAKEFILES := \
+    $(LOCAL_DIR)/freerunner.mk \
     $(LOCAL_DIR)/generic.mk \
     $(LOCAL_DIR)/sdk.mk \
     $(LOCAL_DIR)/sim.mk \

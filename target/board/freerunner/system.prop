@@ -1,0 +1,31 @@
+
+# RIL Interface
+rild.libpath=/system/lib/libmuxgsm-ril.so
+rild.libargs=-d /dev/s3c2410_serial0,115200
+
+# WiFi Interface
+wifi.interface=eth0
+wifi.module_name=N/A
+
+# Bluetooth Interface
+bluetooth.power_on=/sys/bus/platform/devices/neo1973-pm-bt.0/power_on
+
+# GPS Interface
+ro.kernel.android.gps=s3c2410_serial1
+
+# LEDs (vibrator is an led device)
+led.red=gta02-aux:red
+led.green=gta02-power:orange
+led.blue=gta02-power:blue
+led.vibrator=neo1973:vibrator
+
+# Backlights
+backlight.lcd=/sys/class/backlight/pcf50633-bl
+backlight.button=
+backlight.keyboard=
+
+# Headset switch
+headset.switch.name=headset
+
+# Use PacketVideo software codecs
+pv.codecs.software=1
