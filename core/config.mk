@@ -218,7 +218,11 @@ endif
 ifeq ($(HOST_OS),darwin)
 MD5SUM:=md5 -q
 else
+ifeq ($(HOST_OS),freebsd)
+MD5SUM:=md5 -q
+else
 MD5SUM:=md5sum
+endif
 endif
 
 # ###############################################################
