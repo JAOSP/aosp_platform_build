@@ -20,7 +20,6 @@
 ifneq ($(BUILD_TINY_ANDROID), true)
 
 .PHONY: checkapi
-
 # eval this to define a rule that runs apicheck.
 #
 # Args:

@@ -62,7 +62,6 @@ BUILD_KEY_CHAR_MAP := $(BUILD_SYSTEM)/key_char_map.mk
 # the kind of operation being done.
 SHOW_COMMANDS:= $(filter showcommands,$(MAKECMDGOALS))
 
-
 # ###############################################################
 # Set common values
 # ###############################################################
@@ -201,7 +200,11 @@ endif
 ifeq ($(HOST_OS),darwin)
 MD5SUM:=md5 -q
 else
+ifeq ($(HOST_OS),freebsd)
+MD5SUM:=md5 -q
+else
 MD5SUM:=md5sum
+endif
 endif
 
 # ###############################################################

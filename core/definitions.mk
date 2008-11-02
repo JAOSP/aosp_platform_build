@@ -1348,6 +1348,11 @@ define transform-prebuilt-to-target
 $(copy-file-to-target)
 endef
 
+ifeq ($(HOST_OS),freebsd)
+define apply-platform-patches
+@$(BUILD_SYSTEM)/apply-freebsd-patches $< $@
+endef
+endif
 
 ###########################################################
 ## On some platforms (MacOS), after copying a static

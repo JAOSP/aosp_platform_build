@@ -28,6 +28,7 @@ function get_abs_build_var()
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
+    echo "********************************"
     CALLED_FROM_SETUP=true \
       make --no-print-directory -C "$T" -f build/core/envsetup.mk dumpvar-abs-$1
 }
@@ -40,6 +41,7 @@ function get_build_var()
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
+    echo "2********************************"
     CALLED_FROM_SETUP=true \
       make --no-print-directory -C "$T" -f build/core/envsetup.mk dumpvar-$1
 }
@@ -418,6 +420,7 @@ function m()
 {
     T=$(gettop)
     if [ "$T" ]; then
+        echo "3********************************"
         make -C $T $@
     else
         echo "Couldn't locate the top of the tree.  Try setting TOP."
@@ -448,6 +451,7 @@ function mm()
 {
     # If we're sitting in the root of the build tree, just do a
     # normal make.
+    echo "4********************************"
     if [ -f build/core/envsetup.mk -a -f Makefile ]; then
         make $@
     else
@@ -459,6 +463,7 @@ function mm()
         elif [ ! "$M" ]; then
             echo "Couldn't locate a makefile from the current directory."
         else
+	    echo "5********************************"
             ONE_SHOT_MAKEFILE=$M make -C $T files $@
         fi
     fi

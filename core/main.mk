@@ -1,6 +1,15 @@
 
 # Use bash, not whatever shell somebody has installed as /bin/sh
+
+SYSNAME := $(shell uname)
 SHELL := /bin/bash
+
+ifeq "FreeBSD" "$(SYSNAME)"
+$(warning default shell changed to /usr/local/bin/bash (was: $(SHELL)))
+$(warning cause you are running $(SYSNAME))
+SHELL := /usr/local/bin/bash
+endif
+
 
 # this turns off the suffix rules built into make
 .SUFFIXES:
@@ -41,13 +50,11 @@ BUILD_SYSTEM := $(TOPDIR)build/core
 # Set up various standard variables based on configuration
 # and host information.
 include $(BUILD_SYSTEM)/config.mk
-
 # This allows us to force a clean build - included after the config.make
 # environment setup is done, but before we generate any dependencies.  This
 # file does the rm -rf inline so the deps which are all done below will
 # be generated correctly
 include $(BUILD_SYSTEM)/cleanbuild.mk
-
 ifneq ($(HOST_OS),windows)
 ifneq ($(HOST_OS)-$(HOST_ARCH),darwin-ppc)
 # check for a case sensitive file system
@@ -91,7 +98,6 @@ INTERNAL_MODIFIER_TARGETS := showcommands
 DEFAULT_TARGET := droid
 .PHONY: $(DEFAULT_TARGET)
 $(DEFAULT_TARGET):
-
 # Bring in standard build system definitions.
 include $(BUILD_SYSTEM)/definitions.mk
 
@@ -148,7 +154,6 @@ else # !enable_target_debugging
 endif # !enable_target_debugging
 
 ## tests ##
-
 ifneq ($(filter tests,$(MAKECMDGOALS)),)
 ifneq ($(words $(filter-out $(INTERNAL_MODIFIER_TARGETS),$(MAKECMDGOALS))),1)
 $(error The 'tests' target may not be specified with any other targets)
