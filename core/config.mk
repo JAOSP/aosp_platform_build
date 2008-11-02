@@ -6,7 +6,11 @@
 # Use bash, not whatever shell somebody has installed as /bin/sh
 # This is repeated from main.mk, since envsetup.sh runs this file
 # directly.
+ifeq ($(shell uname),FreeBSD)
+SHELL := /usr/local/bin/bash
+else
 SHELL := /bin/bash
+endif
 
 # Standard source directories.
 SRC_DOCS:= $(TOPDIR)docs
