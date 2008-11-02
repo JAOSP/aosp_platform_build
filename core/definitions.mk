@@ -1514,6 +1514,12 @@ define transform-prebuilt-to-target-strip-comments
 $(copy-file-to-target-strip-comments)
 endef
 
+# Apply FreeBSD-specific patches (e.g. /usr/local/bin/bash instead of /bin/bash)
+ifeq ($(HOST_OS),freebsd)
+define apply-platform-patches
+@$(BUILD_SYSTEM)/apply-freebsd-patches $< $@
+endef
+endif
 
 ###########################################################
 ## On some platforms (MacOS), after copying a static

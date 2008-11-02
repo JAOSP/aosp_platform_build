@@ -384,10 +384,12 @@ ifneq ($(LOCAL_ACP_UNAVAILABLE),true)
 $(LOCAL_INSTALLED_MODULE): $(LOCAL_BUILT_MODULE) | $(ACP)
 	@echo "Install: $@"
 	$(copy-file-to-target)
+	$(apply-platform-patches)
 else
 $(LOCAL_INSTALLED_MODULE): $(LOCAL_BUILT_MODULE)
 	@echo "Install: $@"
 	$(copy-file-to-target-with-cp)
+	$(apply-platform-patches)
 endif
 
 endif # !LOCAL_UNINSTALLABLE_MODULE
