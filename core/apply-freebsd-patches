@@ -1,0 +1,13 @@
+#!/usr/local/bin/bash
+
+FILENAME=$2
+FILEBOURNE=`file -b ${FILENAME} | grep Bourne`
+
+
+if [[ $? -eq 0 ]] ; then
+    echo "Patching (FreeBSD required): ${FILENAME}"
+    sed "s/bin\/bash/usr\/local\/bin\/bash/g" ${FILENAME} > tmp-sedout
+    chmod 777 ${FILENAME}
+    mv tmp-sedout ${FILENAME} 
+    chmod 755 ${FILENAME}
+fi

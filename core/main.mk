@@ -1,6 +1,14 @@
 
 # Use bash, not whatever shell somebody has installed as /bin/sh
+
+SYSNAME := $(shell uname)
 SHELL := /bin/bash
+
+ifeq ($(SYSNAME),FreeBSD)
+$(warning default shell changed to /usr/local/bin/bash (was: $(SHELL)))
+$(warning cause you are running $(SYSNAME))
+SHELL := /usr/local/bin/bash
+endif
 
 # this turns off the suffix rules built into make
 .SUFFIXES:
