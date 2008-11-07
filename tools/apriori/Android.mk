@@ -8,7 +8,12 @@ LOCAL_PATH:= $(call my-dir)
 ifneq ($(TARGET_SIMULATOR),true)
 include $(CLEAR_VARS)
 
+ifeq ($(HOST_OS),freebsd)
+# ignoring -ldl
+else
 LOCAL_LDLIBS += -ldl
+endif
+
 LOCAL_CFLAGS += -O2 -g
 LOCAL_CFLAGS += -fno-function-sections -fno-data-sections -fno-inline
 LOCAL_CFLAGS += -Wall -Wno-unused-function #-Werror
