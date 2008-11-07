@@ -1,4 +1,4 @@
-#!/bin/bash
+##!/bin/bash
 #
 # Copyright (C) 2008 The Android Open Source Project
 #
@@ -13,6 +13,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+
+#
+# XXX: she-bang is commented in order findeleaves.sh to be interpreted
+#     by /usr/local/bin/bash when called from makefiles  main.mk and
+#     definitions.mk, instead of executing /bin/bash, which is
+#     incorrect path on FreeBSD.
+#       If there is other way to make bash ignore she-bang while running
+#     this script, remove comment and fix bash invocation command stored
+#     at SHELL variable at build/core/main.mk:9
 #
 
 #
