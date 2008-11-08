@@ -8,7 +8,9 @@ LOCAL_PATH:= $(call my-dir)
 ifeq ($(TARGET_ARCH),arm)
 include $(CLEAR_VARS)
 
+ifneq ($(HOST_OS),freebsd)
 LOCAL_LDLIBS += -ldl
+endif
 LOCAL_CFLAGS += -O2 -g
 LOCAL_CFLAGS += -fno-function-sections -fno-data-sections -fno-inline
 LOCAL_CFLAGS += -Wall -Wno-unused-function #-Werror
