@@ -1,4 +1,4 @@
-##!/bin/bash
+####!/bin/bash (see XXX comment below for explanation)
 #
 # Copyright (C) 2008 The Android Open Source Project
 #
@@ -16,13 +16,10 @@
 #
 
 #
-# XXX: she-bang is commented in order findeleaves.sh to be interpreted
-#     by /usr/local/bin/bash when called from makefiles  main.mk and
-#     definitions.mk, instead of executing /bin/bash, which is
-#     incorrect path on FreeBSD.
-#       If there is other way to make bash ignore she-bang while running
-#     this script, remove comment and fix bash invocation command stored
-#     at SHELL variable at build/core/main.mk:9
+# XXX: the !/bin/bash invocation on the first line has been commented out
+# because it doesn't work on FreeBSD (which uses /usr/local/bin/bash, instead
+# of /bin/bash). Note that, with this comment, this script is invoked with the
+# right bash shell from build/core/main.mk 
 #
 
 #
