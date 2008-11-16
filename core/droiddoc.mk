@@ -116,6 +116,7 @@ $(full_target): $(full_src_files) $(droiddoc_templates) $(droiddoc) $(html_dir_f
 	$(hide) ( \
         \
             LD_LIBRARY_PATH=$(HOST_OUT_SHARED_LIBRARIES) \
+            JAVA_VERSION=$(COMMON_JAVAC_VERSION) \
             javadoc \
                 \@$(PRIVATE_SRC_LIST_FILE) \
                 -J-Xmx768m \
