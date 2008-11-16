@@ -15,6 +15,32 @@ else
     COMMON_JAVAC := javac -J-Xmx512M -target 1.5 -Xmaxerrs 9999999
 endif
 
+ifeq ($(HOST_OS), freebsd)
+#
+# set to choose exact JDK version.
+# currently works only on FreeBSD
+#
+COMMON_JAVAC_VERSION := 1.5+
+
+# XXX: this hack is to solve error while building target goal - sdk
+# ---
+# javadoc: error - In doclet class DroidDoc, method start has thrown an
+# exception java.lang.reflect.InvocationTargetException
+#   com.sun.tools.javac.code.Symbol$CompletionFailure:
+#   class file for sun.util.resources.OpenListResourceBundle not found
+# ---
+# Error seems to be related to bug 6550655:
+#   http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6550655
+# simpliest workaround is to select JDK 1.5 instead of JDK 1.6.
+#
+
+ifneq (,$(filter sdk,$(MAKECMDGOALS)))
+    $(warning forced usage of JDK 1.5, see build/core/javac.mk for details)
+    COMMON_JAVAC_VERSION := 1.5
+    COMMON_JAVAC := env JAVA_VERSION=$(COMMON_JAVAC_VERSION) $(COMMON_JAVAC)
+endif
+endif
+
 # Eclipse.
 ifeq ($(CUSTOM_JAVA_COMPILER), eclipse)
     COMMON_JAVAC := java -Xmx256m -jar prebuilt/common/ecj/ecj.jar -5 \

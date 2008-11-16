@@ -7,18 +7,25 @@ else
 	exit 1
     fi
 
-    # XXX: on FreeBSD javac is symlink to javawrapper.sh (javawm),
+    # XXX: on FreeBSD javac is symlink to javawrapper.sh (javavm),
     #   which setups environment for one of installed JRE/JDK.
-    #   it's possible to copy most of setJavaHome() function,
-    #   however most probably current JRE is first line in
-    #   /usr/local/etc/javavms
+    #   we request dryrun to get JAVA_HOME
     if [[ `uname` == FreeBSD ]]; then
-	if [[ ! -e /usr/local/etc/javavms ]] ; then
-	    echo "There is no such file, check JDK installation" > /dev/stderr
-	    exit 1
+	
+	JAVA_HOME=`env JAVAVM_DRYRUN=yes JAVA_VERSION=$1 /usr/local/bin/java | grep '^JAVA_HOME' | cut -c11-`
+	
+	if [ -z "$JAVA_HOME" ]; then
+		echo "ERROR: JDK is installed incorrectly" > /dev/stderr
+		exit 1
 	fi
-
-	JAVAC=$(cat /usr/local/etc/javavms | head -n 1)
+	    
+	if [ -e $JAVA_HOME/lib/tools.jar ]; then
+		echo $JAVA_HOME/lib/tools.jar
+		exit 0
+	fi
+	    
+	echo "ERROR: JAVA_HOME contains no lib/tools.jar file" > /dev/stderr
+	exit 1
     else
         while [ -L $JAVAC ] ; do
 	    LSLINE=$(ls -l $JAVAC)
