@@ -1,3 +1,13 @@
+#
+# all Makefiles in Android source tree are in GNU make format
+# on FreeBSD system GNU make has gmake name
+#
+function chooseMaker()
+{
+    [ `uname` = "FreeBSD" ] && ANDROID_MAKER=gmake
+    ANDROID_MAKER=${ANDROID_MAKER:-make}
+}
+	
 function help() {
 cat <<EOF
 Invoke ". envsetup.sh" from your shell to add the following functions to your environment:
@@ -29,7 +39,7 @@ function get_abs_build_var()
         return
     fi
     CALLED_FROM_SETUP=true \
-      make --no-print-directory -C "$T" -f build/core/envsetup.mk dumpvar-abs-$1
+      ${ANDROID_MAKER} --no-print-directory -C "$T" -f build/core/envsetup.mk dumpvar-abs-$1
 }
 
 # Get the exact value of a build variable.
@@ -41,7 +51,7 @@ function get_build_var()
         return
     fi
     CALLED_FROM_SETUP=true \
-      make --no-print-directory -C "$T" -f build/core/envsetup.mk dumpvar-$1
+      ${ANDROID_MAKER} --no-print-directory -C "$T" -f build/core/envsetup.mk dumpvar-$1
 }
 
 function setpaths()
@@ -101,6 +111,7 @@ function set_stuff_for_environment()
 {
     if [ "$TARGET_SIMULATOR" -a "$TARGET_PRODUCT" -a "$TARGET_BUILD_TYPE" ]
     then
+	chooseMaker
         settitle
         printconfig
         setpaths
@@ -418,7 +429,7 @@ function m()
 {
     T=$(gettop)
     if [ "$T" ]; then
-        make -C $T $@
+        ${ANDROID_MAKER} -C $T $@
     else
         echo "Couldn't locate the top of the tree.  Try setting TOP."
     fi
@@ -449,7 +460,7 @@ function mm()
     # If we're sitting in the root of the build tree, just do a
     # normal make.
     if [ -f build/core/envsetup.mk -a -f Makefile ]; then
-        make $@
+        ${ANDROID_MAKER} $@
     else
         # Find the closest Android.mk file.
         T=$(gettop)
@@ -459,7 +470,7 @@ function mm()
         elif [ ! "$M" ]; then
             echo "Couldn't locate a makefile from the current directory."
         else
-            ONE_SHOT_MAKEFILE=$M make -C $T files $@
+            ONE_SHOT_MAKEFILE=$M ${ANDROID_MAKER} -C $T files $@
         fi
     fi
 }
@@ -492,7 +503,7 @@ function mmm()
                 fi
             fi
         done
-        ONE_SHOT_MAKEFILE="$MAKEFILE" make -C $T files $ARGS
+        ONE_SHOT_MAKEFILE="$MAKEFILE" ${ANDROID_MAKER} -C $T files $ARGS
     else
         echo "Couldn't locate the top of the tree.  Try setting TOP."
     fi
@@ -563,7 +574,7 @@ function gdbclient()
        echo >>"$OUT_ROOT/gdbclient.cmds" ""
 
        arm-eabi-gdb -x "$OUT_ROOT/gdbclient.cmds" "$OUT_EXE_SYMBOLS/$EXE"
-  else
+   else
        echo "Unable to determine build system output dir."
    fi
 
@@ -575,13 +586,23 @@ case `uname -s` in
         {
             find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | xargs -0 grep --color -n "$@"
         }
-
+	
         ;;
+	
+    FreeBSD)
+        function sgrep()
+        {
+            find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | xargs -0 grep --color -n "$@"
+        }
+	
+	;;
+    
     *)
         function sgrep()
         {
             find . -type f -iregex '.*\.\(c\|h\|cpp\|S\|java\|xml\)' -print0 | xargs -0 grep --color -n "$@"
         }
+	
         ;;
 esac
 
@@ -613,6 +634,20 @@ case `uname -s` in
         }
 
         ;;
+	
+    FreeBSD)
+        function mgrep()
+        {
+            find -E . -type f -iregex '.*/(Makefile|Makefile\..*|.*\.make|.*\.mak|.*\.mk)' -print0 | xargs -0 grep --color -n "$@"
+        }
+
+        function treegrep()
+        {
+            find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | xargs -0 grep --color -n -i "$@"
+        }
+
+        ;;
+
     *)
         function mgrep()
         {
