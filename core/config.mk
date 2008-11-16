@@ -211,7 +211,7 @@ ifeq ($(HOST_OS),darwin)
 # leave this blank
 HOST_JDK_TOOLS_JAR :=
 else
-HOST_JDK_TOOLS_JAR:= $(shell $(BUILD_SYSTEM)/find-jdk-tools-jar.sh)
+HOST_JDK_TOOLS_JAR:= $(shell $(BUILD_SYSTEM)/find-jdk-tools-jar.sh $(COMMON_JAVAC_VERSION))
 endif
 
 # It's called md5 on Mac OS and md5sum on Linux
