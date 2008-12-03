@@ -1,13 +1,142 @@
 #
-# all Makefiles in Android source tree are in GNU make format
-# on FreeBSD system GNU make has gmake name
+# host OS
 #
-function chooseMaker()
+ANDROID_HOST_SYSTEM=`uname -s`
+
+#
+# which make program to use to build Android source tree
+#
+ANDROID_MAKER=${ANDROID_MAKER:-make}
+
+# ****************************************
+#  host dependent functions and variables
+# ****************************************
+
+function BSD_define_greps()
 {
-    [ `uname` = "FreeBSD" ] && ANDROID_MAKER=gmake
-    ANDROID_MAKER=${ANDROID_MAKER:-make}
+    function sgrep()
+    {
+        find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | \ 
+        xargs -0 grep --color -n "$@"
+    }
+
+    function mgrep()
+    {
+        find -E . -type f -iregex '.*/(Makefile|Makefile\..*|.*\.make|.*\.mak|.*\.mk)' -print0 | \
+        xargs -0 grep --color -n "$@"
+    }
+
+    function treegrep()
+    {
+        find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | \
+        xargs -0 grep --color -n -i "$@"
+    }
 }
+
+function other_define_choosesim()
+{
+        function choosesim()
+        {
+            echo "Only device builds are supported for" ${ANDROID_HOST_SYSTEM}
+            echo "     Forcing TARGET_SIMULATOR=false"
+            echo
+            echo -n "Press enter: "
+            read
+
+            export TARGET_SIMULATOR=false
+            set_stuff_for_environment
+        }
+}
+
+function Linux_define_greps()
+{
+    function sgrep()
+    {
+        find . -type f -iregex '.*\.\(c\|h\|cpp\|S\|java\|xml\)' -print0 | \
+        xargs -0 grep --color -n "$@"
+    }
+
+    function mgrep()
+    {
+        find . -regextype posix-egrep -type f -print0 \
+        -iregex '\(.*\/Makefile\|.*\/Makefile\..*\|.*\.make\|.*\.mak\|.*\.mk\)' | \
+        xargs -0 grep --color -n "$@"
+    }
+
+    function treegrep()
+    {
+        find . -regextype posix-egrep -type f -print0 \
+        -iregex '.*\.(c|h|cpp|S|java|xml)' | xargs -0 grep --color -n -i "$@"
+    }
+}
+
+function Linux_define_choosesim()
+{
+    function choosesim()
+    {
+        echo "Build for the simulator or the device?"
+        echo "     1. Device"
+        echo "     2. Simulator"
+        echo
+
+        export TARGET_SIMULATOR=$1
+        while [ -z $TARGET_SIMULATOR ];
+        do
+            echo -n "Which would you like? [1] "
+            read ANSWER
+            case $ANSWER in
+            "")
+                export TARGET_SIMULATOR=false
+                ;;
+            1)
+                export TARGET_SIMULATOR=false
+                ;;
+            2)
+                export TARGET_SIMULATOR=true
+                ;;
+            *)
+                echo
+                echo "I didn't understand your response.  Please try again."
+                echo
+                continue
+                ;;
+            esac
+        done
+
+        set_stuff_for_environment
+    }
+}
+
+case ${ANDROID_HOST_SYSTEM} in
+    FreeBSD)
+        #
+        # all Makefiles in Android source tree are in GNU make format
+        # on FreeBSD system GNU make has gmake name
+        #
+        ANDROID_MAKER=gmake
+	BSD_define_greps
+	other_define_choosesim
+	;;
 	
+    Darwin)
+        BSD_define_greps
+	other_define_choosesim
+	;;
+
+    Linux)
+        Linux_define_greps
+	Linux_define_choosesim
+	;;
+	
+    *)
+        echo "warning: no system dependent functions were set for your system"
+	;;
+esac
+
+# ****************************************
+#  considered to be host independent code
+# ****************************************
+
 function help() {
 cat <<EOF
 Invoke ". build/envsetup.sh" from your shell to add the following functions to your environment:
@@ -105,7 +234,7 @@ function setpaths()
     ##################################################################
 
     # out with the old
-    if [ -n $ANDROID_BUILD_PATHS ] ; then
+    if [ -n $ANDROID_BUILD_PATHS ]; then
         export PATH=${PATH/$ANDROID_BUILD_PATHS/}
     fi
 
@@ -144,6 +273,7 @@ function set_stuff_for_environment()
 {
     chooseMaker
     settitle
+    printconfig
     setpaths
     set_sequence_number
 
@@ -181,7 +311,7 @@ case `uname -s` in
             while [ -z $TARGET_SIMULATOR ]
             do
                 echo -n "Which would you like? [1] "
-                if [ -z "$1" ] ; then
+                if [ -z "$1" ]; then
                     read ANSWER
                 else
                     echo $1
@@ -209,7 +339,7 @@ case `uname -s` in
                     echo
                     ;;
                 esac
-                if [ -n "$1" ] ; then
+                if [ -n "$1" ]; then
                     break
                 fi
             done
@@ -243,7 +373,7 @@ function choosetype()
     echo
 
     local DEFAULT_NUM DEFAULT_VALUE
-    if [ $TARGET_SIMULATOR = "false" ] ; then
+    if [ $TARGET_SIMULATOR = "false" ]; then
         DEFAULT_NUM=1
         DEFAULT_VALUE=release
     else
@@ -256,7 +386,7 @@ function choosetype()
     while [ -z $TARGET_BUILD_TYPE ]
     do
         echo -n "Which would you like? ["$DEFAULT_NUM"] "
-        if [ -z "$1" ] ; then
+        if [ -z "$1" ]; then
             read ANSWER
         else
             echo $1
@@ -284,7 +414,7 @@ function choosetype()
             echo
             ;;
         esac
-        if [ -n "$1" ] ; then
+        if [ -n "$1" ]; then
             break
         fi
     done
@@ -300,10 +430,10 @@ function choosetype()
 #
 function chooseproduct()
 {
-    if [ "x$TARGET_PRODUCT" != x ] ; then
+    if [ "x$TARGET_PRODUCT" != x ]; then
         default_value=$TARGET_PRODUCT
     else
-        if [ "$TARGET_SIMULATOR" = true ] ; then
+        if [ "$TARGET_SIMULATOR" = true ]; then
             default_value=sim
         else
             default_value=generic
@@ -315,14 +445,14 @@ function chooseproduct()
     while [ -z "$TARGET_PRODUCT" ]
     do
         echo -n "Which product would you like? [$default_value] "
-        if [ -z "$1" ] ; then
+        if [ -z "$1" ]; then
             read ANSWER
         else
             echo $1
             ANSWER=$1
         fi
 
-        if [ -z "$ANSWER" ] ; then
+        if [ -z "$ANSWER" ]; then
             export TARGET_PRODUCT=$default_value
         else
             if check_product $ANSWER
@@ -332,7 +462,7 @@ function chooseproduct()
                 echo "** Not a valid product: $ANSWER"
             fi
         fi
-        if [ -n "$1" ] ; then
+        if [ -n "$1" ]; then
             break
         fi
     done
@@ -360,17 +490,17 @@ function choosevariant()
     while [ -z "$TARGET_BUILD_VARIANT" ]
     do
         echo -n "Which would you like? [$default_value] "
-        if [ -z "$1" ] ; then
+        if [ -z "$1" ]; then
             read ANSWER
         else
             echo $1
             ANSWER=$1
         fi
 
-        if [ -z "$ANSWER" ] ; then
+        if [ -z "$ANSWER" ]; then
             export TARGET_BUILD_VARIANT=$default_value
-        elif (echo -n $ANSWER | grep -q -e "^[0-9][0-9]*$") ; then
-            if [ "$ANSWER" -le "${#VARIANT_CHOICES[@]}" ] ; then
+        elif (echo -n $ANSWER | grep -q -e "^[0-9][0-9]*$"); then
+            if [ "$ANSWER" -le "${#VARIANT_CHOICES[@]}" ]; then
                 export TARGET_BUILD_VARIANT=${VARIANT_CHOICES[$(($ANSWER-$_arrayoffset))]}
             fi
         else
@@ -381,7 +511,7 @@ function choosevariant()
                 echo "** Not a valid variant: $ANSWER"
             fi
         fi
-        if [ -n "$1" ] ; then
+        if [ -n "$1" ]; then
             break
         fi
     done
@@ -421,7 +551,7 @@ function add_lunch_combo()
     local new_combo=$1
     local c
     for c in ${LUNCH_MENU_CHOICES[@]} ; do
-        if [ "$new_combo" = "$c" ] ; then
+        if [ "$new_combo" = "$c" ]; then
             return
         fi
     done
@@ -433,15 +563,15 @@ add_lunch_combo generic-eng
 
 # if we're on linux, add the simulator.  There is a special case
 # in lunch to deal with the simulator
-if [ "$(uname)" = "Linux" ] ; then
+if [ "$(uname)" = "Linux" ]; then
     add_lunch_combo simulator
 fi
 
 function print_lunch_menu()
 {
-    local uname=$(uname)
     echo
-    echo "You're building on" $uname
+    echo "You're building on" ${ANDROID_HOST_SYSTEM}
+
     echo
     echo ${LUNCH_MENU_CHOICES[@]}
     echo "Lunch menu... pick a combo:"
@@ -461,7 +591,7 @@ function lunch()
 {
     local answer
 
-    if [ "$1" ] ; then
+    if [ "$1" ]; then
         answer=$1
     else
         print_lunch_menu
@@ -544,10 +674,10 @@ function lunch()
 function gettop
 {
     local TOPFILE=build/core/envsetup.mk
-    if [ -n "$TOP" -a -f "$TOP/$TOPFILE" ] ; then
+    if [ -n "$TOP" -a -f "$TOP/$TOPFILE" ]; then
         echo $TOP
     else
-        if [ -f $TOPFILE ] ; then
+        if [ -f $TOPFILE ]; then
             echo $PWD
         else
             # We redirect cd to /dev/null in case it's aliased to
@@ -632,7 +762,7 @@ function mmm()
                 TO_CHOP=`echo $T | wc -c | tr -d ' '`
                 TO_CHOP=`expr $TO_CHOP + 1`
                 MFILE=`echo $PWD | cut -c${TO_CHOP}-`
-                if [ "$MFILE" = "" ] ; then
+                if [ "$MFILE" = "" ]; then
                     MFILE=$DIR/Android.mk
                 else
                     MFILE=$MFILE/$DIR/Android.mk
@@ -667,7 +797,7 @@ function croot()
 function pid()
 {
    local EXE="$1"
-   if [ "$EXE" ] ; then
+   if [ "$EXE" ]; then
        local PID=`adb shell ps | fgrep $1 | sed -e 's/[^ ]* *\([0-9]*\).*/\1/'`
        echo "$PID"
    else
@@ -684,14 +814,14 @@ function gdbclient()
    local PREBUILTS=$(get_abs_build_var ANDROID_PREBUILTS)
    if [ "$OUT_ROOT" -a "$PREBUILTS" ]; then
        local EXE="$1"
-       if [ "$EXE" ] ; then
+       if [ "$EXE" ]; then
            EXE=$1
        else
            EXE="app_process"
        fi
 
        local PORT="$2"
-       if [ "$PORT" ] ; then
+       if [ "$PORT" ]; then
            PORT=$2
        else
            PORT=":5039"
@@ -699,7 +829,7 @@ function gdbclient()
 
        local PID
        local PROG="$3"
-       if [ "$PROG" ] ; then
+       if [ "$PROG" ]; then
            PID=`pid $3`
            adb forward "tcp$PORT" "tcp$PORT"
            adb shell gdbserver $PORT --attach $PID &
@@ -708,7 +838,7 @@ function gdbclient()
                echo ""
                echo "If you haven't done so already, do this first on the device:"
                echo "    gdbserver $PORT /system/bin/$EXE"
-                   echo " or"
+               echo " or"
                echo "    gdbserver $PORT --attach $PID"
                echo ""
        fi
@@ -763,7 +893,9 @@ function cgrep()
 
 function resgrep()
 {
-    for dir in `find . -name res -type d`; do find $dir -type f -name '*\.xml' -print0 | xargs -0 grep --color -n "$@"; done;
+    for dir in `find . -name res -type d`; do
+        find $dir -type f -name '*\.xml' -print0 | xargs -0 grep --color -n "$@";
+    done;
 }
 
 case `uname -s` in
@@ -823,18 +955,18 @@ function tracedmdump()
     local KERNEL=$T/prebuilt/android-arm/kernel/vmlinux-qemu
 
     local TRACE=$1
-    if [ ! "$TRACE" ] ; then
+    if [ ! "$TRACE" ]; then
         echo "usage:  tracedmdump  tracename"
         return
     fi
 
-    if [ ! -r "$KERNEL" ] ; then
+    if [ ! -r "$KERNEL" ]; then
         echo "Error: cannot find kernel: '$KERNEL'"
         return
     fi
 
     local BASETRACE=$(basename $TRACE)
-    if [ "$BASETRACE" = "$TRACE" ] ; then
+    if [ "$BASETRACE" = "$TRACE" ]; then
         TRACE=$ANDROID_PRODUCT_OUT/traces/$TRACE
     fi
 
@@ -848,7 +980,11 @@ function tracedmdump()
         return
     fi
     echo "generating dexlist output..."
-    /bin/ls $ANDROID_PRODUCT_OUT/system/framework/*.jar $ANDROID_PRODUCT_OUT/system/app/*.apk $ANDROID_PRODUCT_OUT/data/app/*.apk 2>/dev/null | xargs dexlist > $TRACE/qtrace.dexlist
+    /bin/ls $ANDROID_PRODUCT_OUT/system/framework/*.jar \
+            $ANDROID_PRODUCT_OUT/system/app/*.apk \
+	    $ANDROID_PRODUCT_OUT/data/app/*.apk 2>/dev/null | \
+	    xargs dexlist > $TRACE/qtrace.dexlist
+	    
     echo "generating dmtrace data..."
     q2dm -r $ANDROID_PRODUCT_OUT/symbols $TRACE $KERNEL $TRACE/dmtrace || return
     echo "generating html file..."
