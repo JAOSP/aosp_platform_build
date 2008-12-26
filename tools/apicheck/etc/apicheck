@@ -37,8 +37,8 @@ cd "${oldwd}"
 libdir=`dirname $progdir`/framework
 
 javaOpts=""
-while expr "x$1" : 'x-J' >/dev/null; do
-    opt=`expr "$1" : '-J\(.*\)'`
+while expr -- "$1" : '-J' >/dev/null; do
+    opt=`expr -- "$1" : '-J\(.*\)'`
     javaOpts="${javaOpts} -${opt}"
     shift
 done
