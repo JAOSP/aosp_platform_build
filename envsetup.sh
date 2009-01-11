@@ -41,6 +41,11 @@ function other_define_choosesim()
             echo "     Forcing TARGET_SIMULATOR=false"
             echo
             echo -n "Press enter: "
+            if [ -z "$1" ]
+                then
+                echo -n "Press enter: "
+                read
+            fi
             read
 
             export TARGET_SIMULATOR=false
@@ -79,11 +84,19 @@ function Linux_define_choosesim()
         echo "     2. Simulator"
         echo
 
-        export TARGET_SIMULATOR=$1
+        export TARGET_SIMULATOR=
+	local ANSWER
+
         while [ -z $TARGET_SIMULATOR ];
         do
             echo -n "Which would you like? [1] "
-            read ANSWER
+            if [ -z "$1" ] ; then
+                read ANSWER
+            else
+                echo $1
+                ANSWER=$1
+            fi
+			 
             case $ANSWER in
             "")
                 export TARGET_SIMULATOR=false
@@ -91,16 +104,24 @@ function Linux_define_choosesim()
             1)
                 export TARGET_SIMULATOR=false
                 ;;
+            Device)
+                export TARGET_SIMULATOR=false
+                ;;
             2)
+                export TARGET_SIMULATOR=true
+                ;;
+            Simulator)
                 export TARGET_SIMULATOR=true
                 ;;
             *)
                 echo
                 echo "I didn't understand your response.  Please try again."
                 echo
-                continue
                 ;;
             esac
+            if [ -n "$1" ] ; then
+                break
+            fi
         done
 
         set_stuff_for_environment
@@ -114,18 +135,18 @@ case ${ANDROID_HOST_SYSTEM} in
         # on FreeBSD system GNU make has gmake name
         #
         ANDROID_MAKER=gmake
-	BSD_define_greps
-	other_define_choosesim
+        BSD_define_greps
+        other_define_choosesim
 	;;
 	
     Darwin)
         BSD_define_greps
-	other_define_choosesim
+        other_define_choosesim
 	;;
 
     Linux)
         Linux_define_greps
-	Linux_define_choosesim
+        Linux_define_choosesim
 	;;
 	
     *)
@@ -139,7 +160,7 @@ esac
 
 function help() {
 cat <<EOF
-Invoke ". envsetup.sh" from your shell to add the following functions to your environment:
+Invoke ". build/envsetup.sh" from your shell to add the following functions to your environment:
 - croot:   Changes directory to the top of the tree.
 - m:       Makes from the top of the tree.
 - mm:      Builds all of the modules in the current directory.
@@ -150,9 +171,8 @@ Invoke ". envsetup.sh" from your shell to add the following functions to your en
 
 Look at the source to view more functions. The complete list is:
 EOF
-    T=$(gettop)
-    local A
-    A=""
+    local T=$(gettop)
+    local A=""
     for i in `cat $T/build/envsetup.sh | sed -n "/^function /s/function \([a-z_]*\).*/\1/p" | sort`; do
       A="$A $i"
     done
@@ -162,30 +182,60 @@ EOF
 # Get the value of a build variable as an absolute path.
 function get_abs_build_var()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
-    CALLED_FROM_SETUP=true \
-      ${ANDROID_MAKER} --no-print-directory -C "$T" -f build/core/envsetup.mk dumpvar-abs-$1
+    CALLED_FROM_SETUP=true BUILD_SYSTEM=build/core \
+      ${ANDROID_MAKER} --no-print-directory -C "$T" -f build/core/config.mk dumpvar-abs-$1
 }
 
 # Get the exact value of a build variable.
 function get_build_var()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
-    CALLED_FROM_SETUP=true \
-      ${ANDROID_MAKER} --no-print-directory -C "$T" -f build/core/envsetup.mk dumpvar-$1
+    CALLED_FROM_SETUP=true BUILD_SYSTEM=build/core \
+      ${ANDROID_MAKER} --no-print-directory -C "$T" -f build/core/config.mk dumpvar-$1
+}
+
+# check to see if the supplied product is one we can build
+function check_product()
+{
+    local T=$(gettop)
+    if [ ! "$T" ]; then
+        echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
+        return
+    fi
+    CALLED_FROM_SETUP=true BUILD_SYSTEM=build/core \
+        TARGET_PRODUCT=$1 TARGET_BUILD_VARIANT= \
+        TARGET_SIMULATOR= TARGET_BUILD_TYPE= \
+        get_build_var TARGET_DEVICE > /dev/null
+    # hide successful answers, but allow the errors to show
+}
+
+VARIANT_CHOICES=(user userdebug eng)
+
+# check to see if the supplied variant is valid
+function check_variant()
+{
+    for v in ${VARIANT_CHOICES[@]}
+    do
+        if [ "$v" = "$1" ]
+        then
+            return 0
+        fi
+    done
+    return 1
 }
 
 function setpaths()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP."
         return
@@ -202,7 +252,6 @@ function setpaths()
     #                                                                #
     ##################################################################
 
-
     # out with the old
     if [ -n $ANDROID_BUILD_PATHS ]; then
         export PATH=${PATH/$ANDROID_BUILD_PATHS/}
@@ -211,58 +260,57 @@ function setpaths()
     # and in with the new
     CODE_REVIEWS=
     prebuiltdir=$(getprebuilt)
-    export ANDROID_EABI_TOOLCHAIN=$prebuiltdir/toolchain-eabi-4.2.1/bin
+    export ANDROID_EABI_TOOLCHAIN=$prebuiltdir/toolchain/arm-eabi-4.2.1/bin
     export ANDROID_TOOLCHAIN=$ANDROID_EABI_TOOLCHAIN
     export ANDROID_QTOOLS=$T/development/emulator/qtools
     export ANDROID_BUILD_PATHS=:$(get_build_var ANDROID_BUILD_PATHS):$ANDROID_QTOOLS:$ANDROID_TOOLCHAIN:$ANDROID_EABI_TOOLCHAIN$CODE_REVIEWS
     export PATH=$PATH$ANDROID_BUILD_PATHS
-    
+
+    unset ANDROID_PRODUCT_OUT
     export ANDROID_PRODUCT_OUT=$(get_abs_build_var PRODUCT_OUT)
     export OUT=$ANDROID_PRODUCT_OUT
 
-    # needed for building linux on MacOS    
+    # needed for building linux on MacOS
     # TODO: fix the path
     #export HOST_EXTRACFLAGS="-I "$T/system/kernel_headers/host_include
+
+    # needed for OProfile to post-process collected samples
+    export OPROFILE_EVENTS_DIR=$prebuiltdir/oprofile
 }
 
 function printconfig()
 {
-    echo "=============================================="
-    echo "Build System Configuration"
-    echo
-    echo "   TARGET_SIMULATOR:  " $TARGET_SIMULATOR
-    echo "   TARGET_BUILD_TYPE: " $TARGET_BUILD_TYPE
-    echo "   TARGET_PRODUCT:    " $TARGET_PRODUCT
-    echo "=============================================="
+    local T=$(gettop)
+    if [ ! "$T" ]; then
+        echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
+        return
+    fi
+    get_build_var report_config
 }
 
 function set_stuff_for_environment()
 {
-    if [ "$TARGET_SIMULATOR" -a "$TARGET_PRODUCT" -a "$TARGET_BUILD_TYPE" ]
-    then
-        settitle
-        printconfig
-        setpaths
-        set_sequence_number
+    settitle
+    setpaths
+    set_sequence_number
 
-        # Don't try to do preoptimization until it works better on OSX.
-        export DISABLE_DEXPREOPT=true
-
-        export ANDROID_BUILD_TOP=$(gettop)
-    fi
+    # Don't try to do preoptimization until it works better on OSX.
+    export DISABLE_DEXPREOPT=true
+    export ANDROID_BUILD_TOP=$(gettop)
 }
 
 function set_sequence_number()
 {
-    export BUILD_ENV_SEQUENCE_NUMBER=8
+    export BUILD_ENV_SEQUENCE_NUMBER=9
 }
 
 function settitle()
 {
-        if [ "$STAY_OFF_MY_LAWN" = "" ]; then
-                TARGET_PRODUCT=$(get_build_var TARGET_PRODUCT)
-                export PROMPT_COMMAND='echo -ne "\033]0;[${TARGET_PRODUCT}] ${USER}@${HOSTNAME}: ${PWD}\007"'
-        fi
+    if [ "$STAY_OFF_MY_LAWN" = "" ]; then
+        local product=$(get_build_var TARGET_PRODUCT)
+        local variant=$(get_build_var TARGET_BUILD_VARIANT)
+        export PROMPT_COMMAND="echo -ne \"\033]0;[${product}-${variant}] ${USER}@${HOSTNAME}: ${PWD}\007\""
+    fi
 }
 
 function choosetype()
@@ -272,7 +320,8 @@ function choosetype()
     echo "     2. debug"
     echo
 
-    if [ $TARGET_SIMULATOR = "false" ]; then
+    local DEFAULT_NUM DEFAULT_VALUE
+    if [ $TARGET_SIMULATOR = "false" ] ; then
         DEFAULT_NUM=1
         DEFAULT_VALUE=release
     else
@@ -280,11 +329,17 @@ function choosetype()
         DEFAULT_VALUE=debug
     fi
 
-    export TARGET_BUILD_TYPE=$1
+    export TARGET_BUILD_TYPE=
+    local ANSWER
     while [ -z $TARGET_BUILD_TYPE ]
     do
         echo -n "Which would you like? ["$DEFAULT_NUM"] "
-        read ANSWER
+        if [ -z "$1" ] ; then
+            read ANSWER
+        else
+            echo $1
+            ANSWER=$1
+        fi
         case $ANSWER in
         "")
             export TARGET_BUILD_TYPE=$DEFAULT_VALUE
@@ -292,36 +347,57 @@ function choosetype()
         1)
             export TARGET_BUILD_TYPE=release
             ;;
+        release)
+            export TARGET_BUILD_TYPE=release
+            ;;
         2)
+            export TARGET_BUILD_TYPE=debug
+            ;;
+        debug)
             export TARGET_BUILD_TYPE=debug
             ;;
         *)
             echo
             echo "I didn't understand your response.  Please try again."
             echo
-            continue
             ;;
         esac
+        if [ -n "$1" ] ; then
+            break
+        fi
     done
 
     set_stuff_for_environment
 }
 
+#
+# This function isn't really right:  It chooses a TARGET_PRODUCT
+# based on the list of boards.  Usually, that gets you something
+# that kinda works with a generic product, but really, you should
+# pick a product by name.
+#
 function chooseproduct()
 {
     # Find the makefiles that must exist for a product.
     # Send stderr to /dev/null in case partner isn't present.
+    local -a choices
     choices=(`/bin/ls build/target/board/*/BoardConfig.mk vendor/*/*/BoardConfig.mk 2> /dev/null`)
-    count=${#choices[@]}
-    index=0
-    echo "Product choices are:"
 
-    while [ "$index" -lt "$count" ]
+    local choice
+    local -a prodlist
+    for choice in ${choices[@]}
     do
         # The product name is the name of the directory containing
         # the makefile we found, above.
-        choices[$index]=`dirname ${choices[$index]} | xargs basename`
-        echo "     $index. ${choices[$index]}"
+        prodlist=(${prodlist[@]} `dirname ${choice} | xargs basename`)
+    done
+
+    local index=1
+    local p
+    echo "Product choices are:"
+    for p in ${prodlist[@]}
+    do
+        echo "     $index. $p"
         let "index = $index + 1"
     done
 
@@ -335,19 +411,89 @@ function chooseproduct()
         fi
     fi
 
-    export TARGET_PRODUCT=$1
+    export TARGET_PRODUCT=
+    local ANSWER
     while [ -z "$TARGET_PRODUCT" ]
     do
-        echo -n "which would you like? [$default_value] "
-        read ANSWER
+        echo "You can also type the name of a product if you know it."
+        echo -n "Which would you like? [$default_value] "
+        if [ -z "$1" ]; then
+            read ANSWER
+        else
+            echo $1
+            ANSWER=$1
+        fi
+
         if [ -z "$ANSWER" ]; then
             export TARGET_PRODUCT=$default_value
-        elif [ "$ANSWER" -lt "$count" ]; then
-            export TARGET_PRODUCT=${choices[$ANSWER]}
+        elif (echo -n $ANSWER | grep -q -e "^[0-9][0-9]*$") ; then
+            local poo=`echo -n $ANSWER`
+            if [ $poo -le ${#prodlist[@]} ] ; then
+                export TARGET_PRODUCT=${prodlist[$(($ANSWER-$_arrayoffset))]}
+            else
+                echo "** Bad product selection: $ANSWER"
+            fi
+        else
+            if check_product $ANSWER
+            then
+                export TARGET_PRODUCT=$ANSWER
+            else
+                echo "** Not a valid product: $ANSWER"
+            fi
+        fi
+        if [ -n "$1" ] ; then
+            break
         fi
     done
 
     set_stuff_for_environment
+}
+
+function choosevariant()
+{
+    echo "Variant choices are:"
+    local index=1
+    local v
+    for v in ${VARIANT_CHOICES[@]}
+    do
+        # The product name is the name of the directory containing
+        # the makefile we found, above.
+        echo "     $index. $v"
+        index=$(($index+1))
+    done
+
+    local default_value=eng
+    local ANSWER
+
+    export TARGET_BUILD_VARIANT=
+    while [ -z "$TARGET_BUILD_VARIANT" ]
+    do
+        echo -n "Which would you like? [$default_value] "
+        if [ -z "$1" ] ; then
+            read ANSWER
+        else
+            echo $1
+            ANSWER=$1
+        fi
+
+        if [ -z "$ANSWER" ] ; then
+            export TARGET_BUILD_VARIANT=$default_value
+        elif (echo -n $ANSWER | grep -q -e "^[0-9][0-9]*$") ; then
+            if [ "$ANSWER" -le "${#VARIANT_CHOICES[@]}" ] ; then
+                export TARGET_BUILD_VARIANT=${VARIANT_CHOICES[$(($ANSWER-$_arrayoffset))]}
+            fi
+        else
+            if check_variant $ANSWER
+            then
+                export TARGET_BUILD_VARIANT=$ANSWER
+            else
+                echo "** Not a valid variant: $ANSWER"
+            fi
+        fi
+        if [ -n "$1" ] ; then
+            break
+        fi
+    done
 }
 
 function tapas()
@@ -368,115 +514,144 @@ function choosecombo()
     chooseproduct $3
 
     echo
+    echo
+    choosevariant $4
+
+    echo
     set_stuff_for_environment
+    printconfig
 }
+
+# Clear this variable.  It will be built up again when the vendorsetup.sh
+# files are included at the end of this file.
+unset LUNCH_MENU_CHOICES
+function add_lunch_combo()
+{
+    local new_combo=$1
+    local c
+    for c in ${LUNCH_MENU_CHOICES[@]} ; do
+        if [ "$new_combo" = "$c" ] ; then
+            return
+        fi
+    done
+    LUNCH_MENU_CHOICES=(${LUNCH_MENU_CHOICES[@]} $new_combo)
+}
+
+# add the default one here
+add_lunch_combo generic-eng
+
+# if we're on linux, add the simulator.  There is a special case
+# in lunch to deal with the simulator
+if [ "${ANDROID_HOST_SYSTEM}" = "Linux" ] ; then
+    add_lunch_combo simulator
+fi
 
 function print_lunch_menu()
 {
     echo
     echo "You're building on" ${ANDROID_HOST_SYSTEM}
-
     echo
+    echo ${LUNCH_MENU_CHOICES[@]}
     echo "Lunch menu... pick a combo:"
-    echo "     1. device    release  generic"
-    if [ ${ANDROID_HOST_SYSTEM} = Linux ];
-    then
-        echo "     2. simulator debug    sim"
-    else
-        echo "     <no simulator on ${ANDROID_HOST_SYSTEM}>"
-    fi
+
+    local i=1
+    local choice
+    for choice in ${LUNCH_MENU_CHOICES[@]}
+    do
+        echo "     $i. $choice"
+        i=$(($i+1))
+    done
+
     echo
 }
 
 function lunch()
 {
-    if [ "$1" ]; then
-        ANSWER=$1
+    local answer
+
+    if [ "$1" ] ; then
+        answer=$1
     else
         print_lunch_menu
-        echo -n "Which would you like? "
-        read ANSWER
+        echo -n "Which would you like? [generic-eng] "
+        read answer
     fi
 
-    if [ $ANSWER -eq 2 -a ${ANDROID_HOST_SYSTEM} != Linux ];
+    local selection=
+
+    if [ -z "$answer" ]
     then
-        echo "Simulator builds are not supported on this platform"
-        ANSWER=0
+        selection=generic-eng
+    elif [ "$answer" = "simulator" ]
+    then
+        selection=simulator
+    elif (echo -n $answer | grep -q -e "^[0-9][0-9]*$")
+    then
+        if [ $answer -le ${#LUNCH_MENU_CHOICES[@]} ]
+        then
+            selection=${LUNCH_MENU_CHOICES[$(($answer-$_arrayoffset))]}
+        fi
+    elif (echo -n $answer | grep -q -e "^[^\-][^\-]*-[^\-][^\-]*$")
+    then
+        selection=$answer
     fi
 
-    case $ANSWER in
-    1)
-        export TARGET_SIMULATOR=false
-        export TARGET_BUILD_TYPE=release
-        export TARGET_PRODUCT=generic
-        ;;
-    2)
+    if [ -z "$selection" ]
+    then
+        echo
+        echo "Invalid lunch combo: $answer"
+        return 1
+    fi
+
+    # special case the simulator
+    if [ "$selection" = "simulator" ]
+    then
+        export TARGET_PRODUCT=sim
+        export TARGET_BUILD_VARIANT=eng
         export TARGET_SIMULATOR=true
         export TARGET_BUILD_TYPE=debug
-        export TARGET_PRODUCT=sim
-        ;;
-    *)
-        echo
-        if [ "$1" ] ; then
-            echo "I didn't understand your request.  Please try again"
-            print_lunch_menu
-        else
-            echo "I didn't understand your response.  Please try again."
+    else
+        local product=$(echo -n $selection | sed -e "s/-.*$//")
+        check_product $product
+        if [ $? -ne 0 ]
+        then
+            echo
+            echo "** Don't have a product spec for: '$product'"
+            echo "** Do you have the right repo manifest?"
+            product=
         fi
-        return
-        ;;
-    esac
+
+        local variant=$(echo -n $selection | sed -e "s/^[^\-]*-//")
+        check_variant $variant
+        if [ $? -ne 0 ]
+        then
+            echo
+            echo "** Invalid variant: '$variant'"
+            echo "** Must be one of ${VARIANT_CHOICES[@]}"
+            variant=
+        fi
+
+        if [ -z "$product" -o -z "$variant" ]
+        then
+            echo
+            return 1
+        fi
+
+        export TARGET_PRODUCT=$product
+        export TARGET_BUILD_VARIANT=$variant
+        export TARGET_SIMULATOR=false
+        export TARGET_BUILD_TYPE=release
+    fi # !simulator
 
     echo
+
     set_stuff_for_environment
+    printconfig
 }
 
-function partner_setup()
+function gettop()
 {
-   # Set up the various TARGET_ variables so that we can use
-   # the lunch helper functions to build the PATH.
-   #
-   if [ $# -lt 1 ]; then
-       export TARGET_PRODUCT=generic
-       echo "Usage: partner_setup <product-name>" >&2
-       echo "    Defaulting to product \"$TARGET_PRODUCT\"" >&2
-   else
-       export TARGET_PRODUCT=$1
-   fi
-   if [ $TARGET_PRODUCT = "sim" ]; then
-       export TARGET_SIMULATOR=true
-       export TARGET_BUILD_TYPE=debug
-   else
-       export TARGET_SIMULATOR=false
-       export TARGET_BUILD_TYPE=release
-   fi
-
-   # setpaths will fix up the PATH to point to the tools, and will also
-   # set ANDROID_PRODUCT_OUT.  set_sequence_number is necessary for
-   # certain consistency checks within the build system.
-   #
-   setpaths
-   set_sequence_number
-
-   # Clear the TARGET_ variables so that the build is based purely on
-   # buildspec.mk and the commandline, except for sim
-   #
-   if [ $TARGET_PRODUCT != sim ]; then
-       export TARGET_PRODUCT=
-       export TARGET_SIMULATOR=
-       export TARGET_BUILD_TYPE=
-   fi
-   export ANDROID_BUILD_TOP=$(gettop)
-   # Don't try to do preoptimization until it works better on OSX.
-   export DISABLE_DEXPREOPT=true
-
-   echo "   ANDROID_PRODUCT_OUT: $ANDROID_PRODUCT_OUT"
-   echo "   ANDROID_BUILD_TOP:   $ANDROID_BUILD_TOP"
-}
-
-function gettop
-{
-    TOPFILE=build/core/envsetup.mk
+    local TOPFILE=build/core/envsetup.mk
     if [ -n "$TOP" -a -f "$TOP/$TOPFILE" ]; then
         echo $TOP
     else
@@ -486,8 +661,8 @@ function gettop
             # We redirect cd to /dev/null in case it's aliased to
             # a command that prints something as a side-effect
             # (like pushd)
-            HERE=$PWD
-            T=
+            local HERE=$PWD
+	    local T=
             while [ \( ! \( -f $TOPFILE \) \) -a \( $PWD != "/" \) ]; do
                 cd .. > /dev/null
                 T=$PWD
@@ -502,7 +677,7 @@ function gettop
 
 function m()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ "$T" ]; then
         ${ANDROID_MAKER} -C $T $@
     else
@@ -516,8 +691,8 @@ function findmakefile()
     # We redirect cd to /dev/null in case it's aliased to
     # a command that prints something as a side-effect
     # (like pushd)
-    HERE=$PWD
-    T=
+    local HERE=$PWD
+    local T=
     while [ \( ! \( -f $TOPFILE \) \) -a \( $PWD != "/" \) ]; do
         T=$PWD
         if [ -f "$T/Android.mk" ]; then
@@ -538,8 +713,8 @@ function mm()
         ${ANDROID_MAKER} $@
     else
         # Find the closest Android.mk file.
-        T=$(gettop)
-        M=$(findmakefile)
+        local T=$(gettop)
+        local M=$(findmakefile)
         if [ ! "$T" ]; then
             echo "Couldn't locate the top of the tree.  Try setting TOP."
         elif [ ! "$M" ]; then
@@ -552,10 +727,11 @@ function mm()
 
 function mmm()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ "$T" ]; then
-        MAKEFILE=
-        ARGS=
+        local MAKEFILE=
+        local ARGS=
+        local DIR TO_CHOP
         for DIR in $@ ; do
             DIR=`echo $DIR | sed -e 's:/$::'`
             if [ -f $DIR/Android.mk ]; then
@@ -586,7 +762,7 @@ function mmm()
 
 function croot()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ "$T" ]; then
         cd $(gettop)
     else
@@ -607,11 +783,11 @@ function pid()
 
 function gdbclient()
 {
-   OUT_ROOT=$(get_abs_build_var PRODUCT_OUT)
-   OUT_SYMBOLS=$(get_abs_build_var TARGET_OUT_UNSTRIPPED)
-   OUT_SO_SYMBOLS=$(get_abs_build_var TARGET_OUT_SHARED_LIBRARIES_UNSTRIPPED)
-   OUT_EXE_SYMBOLS=$(get_abs_build_var TARGET_OUT_EXECUTABLES_UNSTRIPPED)
-   PREBUILTS=$(get_abs_build_var ANDROID_PREBUILTS)
+   local OUT_ROOT=$(get_abs_build_var PRODUCT_OUT)
+   local OUT_SYMBOLS=$(get_abs_build_var TARGET_OUT_UNSTRIPPED)
+   local OUT_SO_SYMBOLS=$(get_abs_build_var TARGET_OUT_SHARED_LIBRARIES_UNSTRIPPED)
+   local OUT_EXE_SYMBOLS=$(get_abs_build_var TARGET_OUT_EXECUTABLES_UNSTRIPPED)
+   local PREBUILTS=$(get_abs_build_var ANDROID_PREBUILTS)
    if [ "$OUT_ROOT" -a "$PREBUILTS" ]; then
        local EXE="$1"
        if [ "$EXE" ]; then
@@ -679,22 +855,22 @@ function getprebuilt
 
 function tracedmdump()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP."
         return
     fi
-    prebuiltdir=$(getprebuilt)
-    KERNEL=$T/prebuilt/android-arm/vmlinux-qemu
+    local prebuiltdir=$(getprebuilt)
+    local KERNEL=$T/prebuilt/android-arm/vmlinux-qemu
 
-    TRACE=$1
-    if [ ! "$TRACE" ]; then
+    local TRACE=$1
+    if [ ! "$TRACE" ] ; then
         echo "usage:  tracedmdump  tracename"
         return
     fi
 
-    BASETRACE=$(basename $TRACE)
-    if [ "$BASETRACE" = "$TRACE" ]; then
+    local BASETRACE=$(basename $TRACE)
+    if [ "$BASETRACE" = "$TRACE" ] ; then
         TRACE=$ANDROID_PRODUCT_OUT/traces/$TRACE
     fi
 
@@ -722,45 +898,66 @@ function tracedmdump()
     echo "    traceview $TRACE/dmtrace"
 }
 
+# communicate with a running device or emulator, set up necessary state,
+# and run the hat command.
 function runhat()
 {
-    targetPid=$1
-    outputFile=$2
+    # process standard adb options
+    local adbTarget=""
+    if [ $1 = "-d" -o $1 = "-e" ]; then
+        adbTarget=$1
+        shift 1
+    elif [ $1 = "-s" ]; then
+        adbTarget="$1 $2"
+        shift 2
+    fi
+    local adbOptions=${adbTarget}
+    echo adbOptions = ${adbOptions}
+
+    # runhat options
+    local targetPid=$1
+    local outputFile=$2
 
     if [ "$targetPid" = "" ]; then
-        echo "Usage: runhat target-pid [output-file]"
+        echo "Usage: runhat [ -d | -e | -s serial ] target-pid [output-file]"
         return
     fi
 
-    adb shell >/dev/null mkdir /data/misc
-    adb shell chmod 777 /data/misc
+    # confirm hat is available
+    if [ -z $(which hat) ]; then
+        echo "hat is not available in this configuration."
+        return
+    fi
+
+    adb ${adbOptions} shell >/dev/null mkdir /data/misc
+    adb ${adbOptions} shell chmod 777 /data/misc
 
     echo "Poking $targetPid and waiting for data..."
-    adb shell kill -10 $targetPid
+    adb ${adbOptions} shell kill -10 $targetPid
     echo "Press enter when logcat shows \"GC freed ## objects / ## bytes\""
     echo -n "> "
     read
 
-    availFiles=( $(adb shell ls /data/misc | grep '^heap-dump' | sed -e 's/.*heap-dump-/heap-dump-/' | sort -r | tr '[:space:][:cntrl:]' ' ') )
-    devHeadFile=/data/misc/${availFiles[0]}
-    devTailFile=/data/misc/${availFiles[1]}
+    local availFiles=( $(adb ${adbOptions} shell ls /data/misc | grep '^heap-dump' | sed -e 's/.*heap-dump-/heap-dump-/' | sort -r | tr '[:space:][:cntrl:]' ' ') )
+    local devHeadFile=/data/misc/${availFiles[0]}
+    local devTailFile=/data/misc/${availFiles[1]}
 
-    localHeadFile=/tmp/$$-hprof-head
-    localTailFile=/tmp/$$-hprof-tail
+    local localHeadFile=/tmp/$$-hprof-head
+    local localTailFile=/tmp/$$-hprof-tail
 
     echo "Retrieving file $devHeadFile..."
-    adb pull $devHeadFile $localHeadFile
+    adb ${adbOptions} pull $devHeadFile $localHeadFile
     echo "Retrieving file $devTailFile..."
-    adb pull $devTailFile $localTailFile
+    adb ${adbOptions} pull $devTailFile $localTailFile
 
-    combinedFile=$outputFile
+    local combinedFile=$outputFile
     if [ "$combinedFile" = "" ]; then
         combinedFile=/tmp/$$.hprof
     fi
 
     cat $localHeadFile $localTailFile >$combinedFile
-    adb shell rm $devHeadFile
-    adb shell rm $devTailFile
+    adb ${adbOptions} shell rm $devHeadFile
+    adb ${adbOptions} shell rm $devTailFile
     rm $localHeadFile
     rm $localTailFile
 
@@ -772,28 +969,25 @@ function runhat()
 
 function getbugreports()
 {
-    reports=(`adb shell ls /sdcard/bugreports | tr -d '\r'`)
+    local reports=(`adb shell ls /sdcard/bugreports | tr -d '\r'`)
 
     if [ ! "$reports" ]; then
         echo "Could not locate any bugreports."
         return
     fi
 
-    count=${#reports[@]}
-    index=0
-
-    while [ "$index" -lt "$count" ]
+    local report
+    for report in ${reports[@]}
     do
-        echo "/sdcard/bugreports/${reports[$index]}"
-        adb pull /sdcard/bugreports/${reports[$index]} ${reports[$index]}
-        gunzip ${reports[$index]}
-        let "index = $index + 1"
+        echo "/sdcard/bugreports/${report}"
+        adb pull /sdcard/bugreports/${report} ${report}
+        gunzip ${report}
     done
 }
 
 function startviewserver()
 {
-    port=4939
+    local port=4939
     if [ $# -gt 0 ]; then
             port=$1
     fi
@@ -816,7 +1010,7 @@ function smoketest()
         echo "Couldn't locate output files.  Try running 'lunch' first." >&2
         return
     fi
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
@@ -830,3 +1024,31 @@ function smoketest()
       adb shell am instrument -w com.android.smoketest.tests/android.test.InstrumentationTestRunner
 }
 
+# simple shortcut to the runtest command
+function runtest()
+{
+    local T=$(gettop)
+    if [ ! "$T" ]; then
+        echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
+        return
+    fi
+    (cd "$T" && development/tools/runtest $@)
+}
+
+# determine whether arrays are zero-based (bash) or one-based (zsh)
+_xarray=(a b c)
+if [ -z "${_xarray[${#_xarray[@]}]}" ]
+then
+    _arrayoffset=1
+else
+    _arrayoffset=0
+fi
+unset _xarray
+
+# Execute the contents of any vendorsetup.sh files we can find.
+for f in `/bin/ls vendor/*/vendorsetup.sh 2> /dev/null`
+do
+    echo "including $f"
+    . $f
+done
+unset f
