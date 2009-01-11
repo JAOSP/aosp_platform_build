@@ -41,6 +41,11 @@ function other_define_choosesim()
             echo "     Forcing TARGET_SIMULATOR=false"
             echo
             echo -n "Press enter: "
+            if [ -z "$1" ]
+                then
+                echo -n "Press enter: "
+                read
+            fi
             read
 
             export TARGET_SIMULATOR=false
@@ -79,11 +84,19 @@ function Linux_define_choosesim()
         echo "     2. Simulator"
         echo
 
-        export TARGET_SIMULATOR=$1
+        export TARGET_SIMULATOR=
+	local ANSWER
+
         while [ -z $TARGET_SIMULATOR ];
         do
             echo -n "Which would you like? [1] "
-            read ANSWER
+            if [ -z "$1" ] ; then
+                read ANSWER
+            else
+                echo $1
+                ANSWER=$1
+            fi
+			 
             case $ANSWER in
             "")
                 export TARGET_SIMULATOR=false
@@ -91,16 +104,24 @@ function Linux_define_choosesim()
             1)
                 export TARGET_SIMULATOR=false
                 ;;
+            Device)
+                export TARGET_SIMULATOR=false
+                ;;
             2)
+                export TARGET_SIMULATOR=true
+                ;;
+            Simulator)
                 export TARGET_SIMULATOR=true
                 ;;
             *)
                 echo
                 echo "I didn't understand your response.  Please try again."
                 echo
-                continue
                 ;;
             esac
+            if [ -n "$1" ] ; then
+                break
+            fi
         done
 
         set_stuff_for_environment
@@ -114,18 +135,18 @@ case ${ANDROID_HOST_SYSTEM} in
         # on FreeBSD system GNU make has gmake name
         #
         ANDROID_MAKER=gmake
-	BSD_define_greps
-	other_define_choosesim
+        BSD_define_greps
+        other_define_choosesim
 	;;
 	
     Darwin)
         BSD_define_greps
-	other_define_choosesim
+        other_define_choosesim
 	;;
 
     Linux)
         Linux_define_greps
-	Linux_define_choosesim
+        Linux_define_choosesim
 	;;
 	
     *)
@@ -151,9 +172,8 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 
 Look at the source to view more functions. The complete list is:
 EOF
-    T=$(gettop)
-    local A
-    A=""
+    local T=$(gettop)
+    local A=""
     for i in `cat $T/build/envsetup.sh | sed -n "/^function /s/function \([a-z_]*\).*/\1/p" | sort`; do
       A="$A $i"
     done
@@ -163,7 +183,7 @@ EOF
 # Get the value of a build variable as an absolute path.
 function get_abs_build_var()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
@@ -175,7 +195,7 @@ function get_abs_build_var()
 # Get the exact value of a build variable.
 function get_build_var()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
@@ -187,7 +207,7 @@ function get_build_var()
 # check to see if the supplied product is one we can build
 function check_product()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
@@ -216,7 +236,7 @@ function check_variant()
 
 function setpaths()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP."
         return
@@ -261,7 +281,7 @@ function setpaths()
 
 function printconfig()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
@@ -273,7 +293,6 @@ function set_stuff_for_environment()
 {
     chooseMaker
     settitle
-    printconfig
     setpaths
     set_sequence_number
 
@@ -430,6 +449,29 @@ function choosetype()
 #
 function chooseproduct()
 {
+    # Find the makefiles that must exist for a product.
+    # Send stderr to /dev/null in case partner isn't present.
+    local -a choices
+    choices=(`/bin/ls build/target/board/*/BoardConfig.mk vendor/*/*/BoardConfig.mk 2> /dev/null`)
+
+    local choice
+    local -a prodlist
+    for choice in ${choices[@]}
+    do
+        # The product name is the name of the directory containing
+        # the makefile we found, above.
+        prodlist=(${prodlist[@]} `dirname ${choice} | xargs basename`)
+    done
+
+    local index=1
+    local p
+    echo "Product choices are:"
+    for p in ${prodlist[@]}
+    do
+        echo "     $index. $p"
+        let "index = $index + 1"
+    done
+
     if [ "x$TARGET_PRODUCT" != x ]; then
         default_value=$TARGET_PRODUCT
     else
@@ -444,7 +486,8 @@ function chooseproduct()
     local ANSWER
     while [ -z "$TARGET_PRODUCT" ]
     do
-        echo -n "Which product would you like? [$default_value] "
+        echo "You can also type the name of a product if you know it."
+        echo -n "Which would you like? [$default_value] "
         if [ -z "$1" ]; then
             read ANSWER
         else
@@ -454,6 +497,13 @@ function chooseproduct()
 
         if [ -z "$ANSWER" ]; then
             export TARGET_PRODUCT=$default_value
+        elif (echo -n $ANSWER | grep -q -e "^[0-9][0-9]*$") ; then
+            local poo=`echo -n $ANSWER`
+            if [ $poo -le ${#prodlist[@]} ] ; then
+                export TARGET_PRODUCT=${prodlist[$(($ANSWER-$_arrayoffset))]}
+            else
+                echo "** Bad product selection: $ANSWER"
+            fi
         else
             if check_product $ANSWER
             then
@@ -550,7 +600,7 @@ function add_lunch_combo()
 {
     local new_combo=$1
     local c
-    for c in ${LUNCH_MENU_CHOICES[@]} ; do
+    for c in ${LUNCH_MENU_CHOICES[@]}; do
         if [ "$new_combo" = "$c" ]; then
             return
         fi
@@ -563,7 +613,7 @@ add_lunch_combo generic-eng
 
 # if we're on linux, add the simulator.  There is a special case
 # in lunch to deal with the simulator
-if [ "$(uname)" = "Linux" ]; then
+if [ "${ANDROID_HOST_SYSTEM}" = "Linux" ] ; then
     add_lunch_combo simulator
 fi
 
@@ -571,7 +621,6 @@ function print_lunch_menu()
 {
     echo
     echo "You're building on" ${ANDROID_HOST_SYSTEM}
-
     echo
     echo ${LUNCH_MENU_CHOICES[@]}
     echo "Lunch menu... pick a combo:"
@@ -671,7 +720,7 @@ function lunch()
     printconfig
 }
 
-function gettop
+function gettop()
 {
     local TOPFILE=build/core/envsetup.mk
     if [ -n "$TOP" -a -f "$TOP/$TOPFILE" ]; then
@@ -684,7 +733,7 @@ function gettop
             # a command that prints something as a side-effect
             # (like pushd)
             local HERE=$PWD
-            T=
+	    local T=
             while [ \( ! \( -f $TOPFILE \) \) -a \( $PWD != "/" \) ]; do
                 cd .. > /dev/null
                 T=$PWD
@@ -699,7 +748,7 @@ function gettop
 
 function m()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ "$T" ]; then
         ${ANDROID_MAKER} -C $T $@
     else
@@ -714,7 +763,7 @@ function findmakefile()
     # a command that prints something as a side-effect
     # (like pushd)
     local HERE=$PWD
-    T=
+    local T=
     while [ \( ! \( -f $TOPFILE \) \) -a \( $PWD != "/" \) ]; do
         T=$PWD
         if [ -f "$T/Android.mk" ]; then
@@ -735,7 +784,7 @@ function mm()
         ${ANDROID_MAKER} $@
     else
         # Find the closest Android.mk file.
-        T=$(gettop)
+        local T=$(gettop)
         local M=$(findmakefile)
         if [ ! "$T" ]; then
             echo "Couldn't locate the top of the tree.  Try setting TOP."
@@ -749,7 +798,7 @@ function mm()
 
 function mmm()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ "$T" ]; then
         local MAKEFILE=
         local ARGS=
@@ -786,7 +835,7 @@ function mmm()
 
 function croot()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ "$T" ]; then
         cd $(gettop)
     else
@@ -946,7 +995,7 @@ function getprebuilt
 
 function tracedmdump()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP."
         return
@@ -1036,13 +1085,27 @@ function runhat()
     read
 
     local availFiles=( $(adb ${adbOptions} shell ls /data/misc | grep '^heap-dump' | sed -e 's/.*heap-dump-/heap-dump-/' | sort -r | tr '[:space:][:cntrl:]' ' ') )
-    local devFile=/data/misc/${availFiles[0]}
-    local localFile=/tmp/$$-hprof
+    local devHeadFile=/data/misc/${availFiles[0]}
+    local devTailFile=/data/misc/${availFiles[1]}
 
-    echo "Retrieving file $devFile..."
-    adb ${adbOptions} pull $devFile $localFile
+    local localHeadFile=/tmp/$$-hprof-head
+    local localTailFile=/tmp/$$-hprof-tail
 
-    adb ${adbOptions} shell rm $devFile
+    echo "Retrieving file $devHeadFile..."
+    adb ${adbOptions} pull $devHeadFile $localHeadFile
+    echo "Retrieving file $devTailFile..."
+    adb ${adbOptions} pull $devTailFile $localTailFile
+
+    local combinedFile=$outputFile
+    if [ "$combinedFile" = "" ]; then
+        combinedFile=/tmp/$$.hprof
+    fi
+
+    cat $localHeadFile $localTailFile >$combinedFile
+    adb ${adbOptions} shell rm $devHeadFile
+    adb ${adbOptions} shell rm $devTailFile
+    rm $localHeadFile
+    rm $localTailFile
 
     echo "Running hat on $localFile"
     echo "View the output by pointing your browser at http://localhost:7000/"
@@ -1093,7 +1156,7 @@ function smoketest()
         echo "Couldn't locate output files.  Try running 'lunch' first." >&2
         return
     fi
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
@@ -1110,7 +1173,7 @@ function smoketest()
 # simple shortcut to the runtest command
 function runtest()
 {
-    T=$(gettop)
+    local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
