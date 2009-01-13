@@ -16,7 +16,7 @@ function BSD_define_greps()
 {
     function sgrep()
     {
-        find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | \ 
+        find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml|sh|mk)' -print0 | \ 
         xargs -0 grep --color -n "$@"
     }
 
@@ -90,7 +90,7 @@ function Linux_define_choosesim()
         while [ -z $TARGET_SIMULATOR ];
         do
             echo -n "Which would you like? [1] "
-            if [ -z "$1" ] ; then
+            if [ -z "$1" ]; then
                 read ANSWER
             else
                 echo $1
@@ -119,7 +119,7 @@ function Linux_define_choosesim()
                 echo
                 ;;
             esac
-            if [ -n "$1" ] ; then
+            if [ -n "$1" ]; then
                 break
             fi
         done
@@ -291,7 +291,6 @@ function printconfig()
 
 function set_stuff_for_environment()
 {
-    chooseMaker
     settitle
     setpaths
     set_sequence_number
@@ -316,7 +315,7 @@ function settitle()
     fi
 }
 
-case `uname -s` in
+case ${ANDROID_HOST_SYSTEM} in
     Linux)
         function choosesim()
         {
@@ -369,7 +368,7 @@ case `uname -s` in
     *)
         function choosesim()
         {
-            echo "Only device builds are supported for" `uname -s`
+            echo "Only device builds are supported for" ${ANDROID_HOST_SYSTEM}  
             echo "     Forcing TARGET_SIMULATOR=false"
             echo
             if [ -z "$1" ]
@@ -449,29 +448,6 @@ function choosetype()
 #
 function chooseproduct()
 {
-    # Find the makefiles that must exist for a product.
-    # Send stderr to /dev/null in case partner isn't present.
-    local -a choices
-    choices=(`/bin/ls build/target/board/*/BoardConfig.mk vendor/*/*/BoardConfig.mk 2> /dev/null`)
-
-    local choice
-    local -a prodlist
-    for choice in ${choices[@]}
-    do
-        # The product name is the name of the directory containing
-        # the makefile we found, above.
-        prodlist=(${prodlist[@]} `dirname ${choice} | xargs basename`)
-    done
-
-    local index=1
-    local p
-    echo "Product choices are:"
-    for p in ${prodlist[@]}
-    do
-        echo "     $index. $p"
-        let "index = $index + 1"
-    done
-
     if [ "x$TARGET_PRODUCT" != x ]; then
         default_value=$TARGET_PRODUCT
     else
@@ -486,8 +462,7 @@ function chooseproduct()
     local ANSWER
     while [ -z "$TARGET_PRODUCT" ]
     do
-        echo "You can also type the name of a product if you know it."
-        echo -n "Which would you like? [$default_value] "
+        echo -n "Which product would you like? [$default_value] "
         if [ -z "$1" ]; then
             read ANSWER
         else
@@ -497,13 +472,6 @@ function chooseproduct()
 
         if [ -z "$ANSWER" ]; then
             export TARGET_PRODUCT=$default_value
-        elif (echo -n $ANSWER | grep -q -e "^[0-9][0-9]*$") ; then
-            local poo=`echo -n $ANSWER`
-            if [ $poo -le ${#prodlist[@]} ] ; then
-                export TARGET_PRODUCT=${prodlist[$(($ANSWER-$_arrayoffset))]}
-            else
-                echo "** Bad product selection: $ANSWER"
-            fi
         else
             if check_product $ANSWER
             then
@@ -613,7 +581,7 @@ add_lunch_combo generic-eng
 
 # if we're on linux, add the simulator.  There is a special case
 # in lunch to deal with the simulator
-if [ "${ANDROID_HOST_SYSTEM}" = "Linux" ] ; then
+if [ "${ANDROID_HOST_SYSTEM}" = "Linux" ]; then
     add_lunch_combo simulator
 fi
 
@@ -904,32 +872,6 @@ function gdbclient()
 
 }
 
-case `uname -s` in
-    Darwin)
-        function sgrep()
-        {
-            find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml|sh|mk)' -print0 | xargs -0 grep --color -n "$@"
-        }
-	
-        ;;
-	
-    FreeBSD)
-        function sgrep()
-        {
-            find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | xargs -0 grep --color -n "$@"
-        }
-	
-	;;
-    
-    *)
-        function sgrep()
-        {
-            find . -type f -iregex '.*\.\(c\|h\|cpp\|S\|java\|xml\|sh\|mk\)' -print0 | xargs -0 grep --color -n "$@"
-        }
-	
-        ;;
-esac
-
 function jgrep()
 {
     find . -type f -name "*\.java" -print0 | xargs -0 grep --color -n "$@"
@@ -946,47 +888,6 @@ function resgrep()
         find $dir -type f -name '*\.xml' -print0 | xargs -0 grep --color -n "$@";
     done;
 }
-
-case `uname -s` in
-    Darwin)
-        function mgrep()
-        {
-            find -E . -type f -iregex '.*/(Makefile|Makefile\..*|.*\.make|.*\.mak|.*\.mk)' -print0 | xargs -0 grep --color -n "$@"
-        }
-
-        function treegrep()
-        {
-            find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | xargs -0 grep --color -n -i "$@"
-        }
-
-        ;;
-	
-    FreeBSD)
-        function mgrep()
-        {
-            find -E . -type f -iregex '.*/(Makefile|Makefile\..*|.*\.make|.*\.mak|.*\.mk)' -print0 | xargs -0 grep --color -n "$@"
-        }
-
-        function treegrep()
-        {
-            find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | xargs -0 grep --color -n -i "$@"
-        }
-
-        ;;
-
-    *)
-        function mgrep()
-        {
-            find . -regextype posix-egrep -iregex '(.*\/Makefile|.*\/Makefile\..*|.*\.make|.*\.mak|.*\.mk)' -type f -print0 | xargs -0 grep --color -n "$@"
-        }
-
-        function treegrep()
-        {
-            find . -regextype posix-egrep -iregex '.*\.(c|h|cpp|S|java|xml)' -type f -print0 | xargs -0 grep --color -n -i "$@"
-        }
-
-        ;;
-esac
 
 function getprebuilt
 {
@@ -1085,27 +986,13 @@ function runhat()
     read
 
     local availFiles=( $(adb ${adbOptions} shell ls /data/misc | grep '^heap-dump' | sed -e 's/.*heap-dump-/heap-dump-/' | sort -r | tr '[:space:][:cntrl:]' ' ') )
-    local devHeadFile=/data/misc/${availFiles[0]}
-    local devTailFile=/data/misc/${availFiles[1]}
+    local devFile=/data/misc/${availFiles[0]}
+    local localFile=/tmp/$$-hprof
 
-    local localHeadFile=/tmp/$$-hprof-head
-    local localTailFile=/tmp/$$-hprof-tail
+    echo "Retrieving file $devFile..."
+    adb ${adbOptions} pull $devFile $localFile
 
-    echo "Retrieving file $devHeadFile..."
-    adb ${adbOptions} pull $devHeadFile $localHeadFile
-    echo "Retrieving file $devTailFile..."
-    adb ${adbOptions} pull $devTailFile $localTailFile
-
-    local combinedFile=$outputFile
-    if [ "$combinedFile" = "" ]; then
-        combinedFile=/tmp/$$.hprof
-    fi
-
-    cat $localHeadFile $localTailFile >$combinedFile
-    adb ${adbOptions} shell rm $devHeadFile
-    adb ${adbOptions} shell rm $devTailFile
-    rm $localHeadFile
-    rm $localTailFile
+    adb ${adbOptions} shell rm $devFile
 
     echo "Running hat on $localFile"
     echo "View the output by pointing your browser at http://localhost:7000/"
