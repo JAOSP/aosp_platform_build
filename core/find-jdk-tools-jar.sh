@@ -1,4 +1,4 @@
-if [[ "x$ANDROID_JAVA_HOME" != x && -e $ANDROID_JAVA_HOME/lib/tools.jar ]] ; then
+if [ "x$ANDROID_JAVA_HOME" != "x" -a -e $ANDROID_JAVA_HOME/lib/tools.jar ] ; then
     echo $ANDROID_JAVA_HOME/lib/tools.jar
 else
     JAVAC=$(which javac)
@@ -10,7 +10,7 @@ else
     # XXX: on FreeBSD javac is symlink to javawrapper.sh (javavm),
     #   which setups environment for one of installed JRE/JDK.
     #   we request dryrun to get JAVA_HOME
-    if [[ `uname` == FreeBSD ]]; then
+    if [ `uname -s` = "FreeBSD" ]; then
 	
 	JAVA_HOME=`env JAVAVM_DRYRUN=yes JAVA_VERSION=$1 /usr/local/bin/java | grep '^JAVA_HOME' | cut -c11-`
 	
