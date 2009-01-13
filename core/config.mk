@@ -297,9 +297,9 @@ TARGET_AVAILABLE_SDK_VERSIONS := current \
         $(shell \
             function sgrax() { \
                 while [ -n "$$1" ] ; do echo $$1 ; shift ; done \
-	    } ; \
+            } ; \
             ( sgrax $(patsubst $(SRC_API_DIR)/%.xml,%, \
-               $(filter-out $(SRC_API_DIR)/current.xml, \
+                $(filter-out $(SRC_API_DIR)/current.xml, \
                 $(shell find $(SRC_API_DIR) -name "*.xml"))) | sort -g ) )
 
 

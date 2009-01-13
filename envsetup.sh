@@ -296,6 +296,7 @@ function set_stuff_for_environment()
 
     # Don't try to do preoptimization until it works better on OSX.
     export DISABLE_DEXPREOPT=true
+
     export ANDROID_BUILD_TOP=$(gettop)
 }
 
@@ -401,7 +402,7 @@ function chooseproduct()
         let "index = $index + 1"
     done
 
-    if [ "x$TARGET_PRODUCT" != x ]; then
+    if [ "x$TARGET_PRODUCT" != x ] ; then
         default_value=$TARGET_PRODUCT
     else
         if [ "$TARGET_SIMULATOR" = true ]; then
