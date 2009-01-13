@@ -6,8 +6,18 @@
 # Use bash, not whatever shell somebody has installed as /bin/sh
 # This is repeated from main.mk, since envsetup.sh runs this file
 # directly.
+SYSNAME := $(shell uname)
 SHELL := /bin/bash
 
+ifeq ($(SYSNAME),FreeBSD)
+ifneq ($(CALLED_FROM_SETUP),true)
+$(warning default shell changed to /usr/local/bin/bash (was: $(SHELL)))
+$(warning cause you are running $(SYSNAME))
+endif
+SHELL := /usr/local/bin/bash
+endif
+#
+#
 # Standard source directories.
 SRC_DOCS:= $(TOPDIR)docs
 # TODO: Enforce some kind of layering; only add include paths
@@ -269,7 +279,6 @@ TARGET_PRELINK_MODULE := true
 
 PREBUILT_IS_PRESENT := $(if $(wildcard prebuilt/Android.mk),true)
 
-
 # ###############################################################
 # Collect a list of the SDK versions that we could compile against
 # For use with the LOCAL_SDK_VERSION variable for include $(BUILD_PACKAGE)
@@ -285,7 +294,8 @@ PREBUILT_IS_PRESENT := $(if $(wildcard prebuilt/Android.mk),true)
 #           on each line for sort to process.
 # sort -g   is a numeric sort, so 1 2 3 10 instead of 1 10 2 3.
 TARGET_AVAILABLE_SDK_VERSIONS := current \
-        $(shell function sgrax() { \
+        $(shell \
+            function sgrax() { \
                 while [ -n "$$1" ] ; do echo $$1 ; shift ; done \
             } ; \
             ( sgrax $(patsubst $(SRC_API_DIR)/%.xml,%, \
@@ -294,6 +304,4 @@ TARGET_AVAILABLE_SDK_VERSIONS := current \
 
 
 INTERNAL_PLATFORM_API_FILE := $(TARGET_OUT_COMMON_INTERMEDIATES)/PACKAGING/public_api.xml
-
-
 
