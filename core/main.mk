@@ -679,7 +679,7 @@ installclean: dataclean
 modules:
 	@echo "Available sub-modules:"
 	@echo "$(call module-names-for-tag-list,$(ALL_MODULE_TAGS))" | \
-	      sed -e 's/  */\n/g' | sort -u | $(COLUMN)
+	      tr "  *" "\n" | sort -u | $(COLUMN)
 
 .PHONY: showcommands
 showcommands:
