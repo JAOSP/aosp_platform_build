@@ -27,6 +27,10 @@ TARGET_PRODUCT := generic
 endif
 endif
 
+ifneq (,$(filter kvm_img,$(MAKECMDGOALS)))
+# For the kvm_img goal, set the TARGET_PRODUCT=generic
+TARGET_PRODUCT := generic
+endif
 
 # the variant -- the set of files that are included for a build
 ifeq ($(strip $(TARGET_BUILD_VARIANT)),)
