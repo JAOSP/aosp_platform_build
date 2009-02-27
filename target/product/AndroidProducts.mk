@@ -27,6 +27,7 @@
 
 PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/generic.mk \
+    $(LOCAL_DIR)/generic_x86.mk \
     $(LOCAL_DIR)/min_dev.mk \
     $(LOCAL_DIR)/sdk.mk \
     $(LOCAL_DIR)/sim.mk \
