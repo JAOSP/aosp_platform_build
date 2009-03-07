@@ -75,6 +75,9 @@ $(INSTALLED_BUILD_PROP_TARGET): PRIVATE_BUILD_DESC := $(build_desc)
 ifeq (,$(strip $(BUILD_FINGERPRINT)))
   BUILD_FINGERPRINT := $(PRODUCT_BRAND)/$(TARGET_PRODUCT)/$(TARGET_DEVICE)/$(TARGET_BOOTLOADER_BOARD_NAME):$(PLATFORM_VERSION)/$(BUILD_ID)/$(BUILD_NUMBER):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
 endif
+ifneq ($(words $(BUILD_FINGERPRINT)),1)
+  $(error BUILD_FINGERPRINT cannot contain spaces: "$(BUILD_FINGERPRINT)")
+endif
 
 # Selects the first locale in the list given as the argument,
 # and splits it into language and region, which each may be
@@ -112,6 +115,7 @@ $(INSTALLED_BUILD_PROP_TARGET): $(BUILDINFO_SH) $(INTERNAL_BUILD_ID_MAKEFILE)
 			BUILD_VERSION_TAGS="$(BUILD_VERSION_TAGS)" \
 			TARGET_BOOTLOADER_BOARD_NAME="$(TARGET_BOOTLOADER_BOARD_NAME)" \
 			BUILD_FINGERPRINT="$(BUILD_FINGERPRINT)" \
+			TARGET_BOARD_PLATFORM="$(TARGET_BOARD_PLATFORM)" \
 	        bash $(BUILDINFO_SH) > $@
 	$(hide) if [ -f $(TARGET_DEVICE_DIR)/system.prop ]; then \
 	          cat $(TARGET_DEVICE_DIR)/system.prop >> $@; \
@@ -399,6 +403,7 @@ endef
 
 target_notice_file_txt := $(TARGET_OUT_INTERMEDIATES)/NOTICE.txt
 target_notice_file_html := $(TARGET_OUT_INTERMEDIATES)/NOTICE.html
+target_notice_file_html_gz := $(TARGET_OUT_INTERMEDIATES)/NOTICE.html.gz
 tools_notice_file_txt := $(HOST_OUT_INTERMEDIATES)/NOTICE.txt
 tools_notice_file_html := $(HOST_OUT_INTERMEDIATES)/NOTICE.html
 
@@ -418,15 +423,17 @@ $(eval $(call combine-notice-files, \
 			$(HOST_OUT_NOTICE_FILES), \
 			$(ALL_DEFAULT_INSTALLED_MODULES)))
 
-# Install the html file at /system/NOTICE.html.
+# Install the html file at /system/etc/NOTICE.html.gz.
 # This is not ideal, but this is very late in the game, after a lot of
 # the module processing has already been done -- in fact, we used the
 # fact that all that has been done to get the list of modules that we
 # need notice files for.
-installed_notice_html := $(TARGET_OUT)/etc/NOTICE.html
-$(installed_notice_html): $(target_notice_file_html) | $(ACP)
+$(target_notice_file_html_gz): $(target_notice_file_html)
+	gzip -c $< > $@
+installed_notice_html_gz := $(TARGET_OUT)/etc/NOTICE.html.gz
+$(installed_notice_html_gz): $(target_notice_file_html_gz) | $(ACP)
 	$(copy-file-to-target)
-ALL_DEFAULT_INSTALLED_MODULES += $(installed_notice_html)
+ALL_DEFAULT_INSTALLED_MODULES += $(installed_notice_html_gz)
 
 # The kernel isn't really a module, so to get its module file in there, we
 # make the target NOTICE files depend on this particular file too, which will
@@ -805,6 +812,11 @@ define package_files-copy-root
   fi
 endef
 
+built_ota_tools := \
+ 	$(call intermediates-dir-for,EXECUTABLES,applypatch)/applypatch \
+	$(call intermediates-dir-for,EXECUTABLES,check_prereq)/check_prereq
+$(BUILT_TARGET_FILES_PACKAGE): PRIVATE_OTA_TOOLS := $(built_ota_tools)
+
 # Depending on the various images guarantees that the underlying
 # directories are up-to-date.
 $(BUILT_TARGET_FILES_PACKAGE): \
@@ -816,6 +828,7 @@ $(BUILT_TARGET_FILES_PACKAGE): \
 		$(INSTALLED_USERDATAIMAGE_TARGET) \
 		$(INSTALLED_ANDROID_INFO_TXT_TARGET) \
 		$(INTERNAL_OTA_SCRIPT_TARGET) \
+		$(built_ota_tools) \
 		$(APKCERTS_FILE) \
 		| $(ACP)
 	@echo "Package target files: $@"
@@ -861,10 +874,11 @@ endif
 	$(hide) $(call package_files-copy-root, \
 		$(TARGET_OUT_DATA),$(zip_root)/DATA)
 	@# Extra contents of the OTA package
-	$(hide) mkdir -p $(zip_root)/OTA
+	$(hide) mkdir -p $(zip_root)/OTA/bin
 	$(hide) $(call package_files-copy-root, \
 		$(INTERNAL_OTA_INTERMEDIATES_DIR),$(zip_root)/OTA)
 	$(hide) $(ACP) $(INSTALLED_ANDROID_INFO_TXT_TARGET) $(zip_root)/OTA/
+	$(hide) $(ACP) $(PRIVATE_OTA_TOOLS) $(zip_root)/OTA/bin/
 	@# Files that don't end up in any images, but are necessary to
 	@# build them.
 	$(hide) mkdir -p $(zip_root)/META
