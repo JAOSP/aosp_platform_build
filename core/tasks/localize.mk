@@ -20,14 +20,12 @@
 # all resources in directories called values or values-something, where
 # one of the - separated segments is not two characters long -- those are the
 # language directories, and we don't want those.
-all_resource_files := $(foreach pkg, \
+values_resource_files := $(foreach pkg, \
         $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_PACKAGES), \
-        $(PACKAGES.$(pkg).RESOURCE_FILES))
-values_resource_files := $(shell echo $(all_resource_files) | \
-		tr -s / | \
-		tr " " "\n" | \
-		grep -E "\/values[^/]*/(strings.xml|arrays.xml)$$" | \
-		grep -v -E -e "-[a-zA-Z]{2}[/\-]")
+        $(shell echo $(PACKAGES.$(pkg).RESOURCE_FILES) | \
+		tr -s " " "\n" | \
+		grep -E "\/values[^/]*/(strings|arrays).xml$$" | \
+		grep -v -E -e "-[a-zA-Z]{2}[/\-]"))
 
 xlb_target := $(PRODUCT_OUT)/strings.xlb
 
