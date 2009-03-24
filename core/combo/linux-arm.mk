@@ -36,8 +36,8 @@ ARCH_ARM_HAVE_FFS := true
 arch_version_cflags := -march=armv5te -mtune=xscale  -D__ARM_ARCH_5__ \
 	-D__ARM_ARCH_5T__ -D__ARM_ARCH_5TE__
 else
-ifeq ($(TARGET_ARCH_VERSION),armv4)
-$(warning ARMv4 support is currently a work in progress. It does not work right now!)
+ifeq ($(TARGET_ARCH_VERSION),armv4t)
+$(warning ARMv4t support is currently a work in progress. It does not work right now!)
 ARCH_ARM_HAVE_THUMB_SUPPORT := false
 ARCH_ARM_HAVE_THUMB_INTERWORKING := false
 ARCH_ARM_HAVE_64BIT_DATA := false
@@ -45,9 +45,9 @@ ARCH_ARM_HAVE_HALFWORD_MULTIPLY := false
 ARCH_ARM_HAVE_CLZ := false
 ARCH_ARM_HAVE_FFS := false
 
-DEFAULT_TARGET_CPU := arm920
+DEFAULT_TARGET_CPU := arm920t
 
-arch_version_cflags := -march=armv4 -mtune=arm920 -D__ARM_ARCH_4__
+arch_version_cflags := -march=armv4t -mtune=arm920t -D__ARM_ARCH_4T__
 else
 $(error Unknown ARM architecture version: $(TARGET_ARCH_VERSION))
 endif
