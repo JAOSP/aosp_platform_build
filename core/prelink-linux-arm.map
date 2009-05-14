@@ -9,6 +9,20 @@
 # 0x10000000 - 0x3FFFFFFF Thread Stacks
 # 0x00000000 - 0x0FFFFFFF .text / .data / heap
 
+
+# TI SYSTEM LIBRARIES AVOIDING BIONIC LIBRARY LINKER BUG ISSUE 2042 ( "Android-discuss")
+# Donot exceed 0xBFFFFFFF
+
+# 100 kbytes
+libOMX.TI.WBAMR.encode.so         0xAFFE1000  
+libOMX.TI.WMA.decode.so           0xAFFC8000      
+
+libskiahw.so                      0xAFFAF000 
+overlay.zoom2.so                  0xAFF96000        
+libbridge.so                      0xAFF7D000  
+libLCML.so                        0xAFF64000
+libOMX_Core.so                    0xAFF4B000
+
 # core system libraries
 libdl.so                0xAFF00000
 libc.so                 0xAFE00000
@@ -103,6 +117,27 @@ libOmxMpeg4Dec.so             0xA6FC0000
 libOmxH264Dec.so              0xA6F90000
 libOmxVidEnc.so               0xA6F60000
 libopencorehw.so              0xA6F50000
+
+
+# T I --libraries for specific apps or temporary libraries
+
+
+# 300 Kbytes
+libOMX.TI.Video.Decoder.so        0x9F177000    
+
+# 200Kbytes
+libOMX.TI.Video.encoder.so        0x9F12C000     
+libOMX.TI.JPEG.Decoder.so         0x9F0FA000  
+libOMX.TI.JPEG.Encoder.so         0x9F0C8000  
+
+libOMX.TI.AAC.decode.so           0x9F096000
+libOMX.TI.AAC.encode.so           0x9F07D000
+libOMX.TI.AMR.decode.so           0x9F064000
+libOMX.TI.AMR.encode.so           0x9F04B000
+libOMX.TI.MP3.decode.so           0x9F032000
+libOMX.TI.WBAMR.decode.so         0x9F019000
+
+
 
 # libraries for specific apps or temporary libraries
 libcam_ipl.so           0x9F000000
