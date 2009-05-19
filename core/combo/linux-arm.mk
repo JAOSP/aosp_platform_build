@@ -94,8 +94,14 @@ TARGET_thumb_release_CFLAGS := $(TARGET_arm_release_CFLAGS)
 endif
 
 # When building for debug, compile everything as arm.
-TARGET_arm_debug_CFLAGS := $(TARGET_arm_release_CFLAGS) -fno-omit-frame-pointer -fno-strict-aliasing
-TARGET_thumb_debug_CFLAGS := $(TARGET_thumb_release_CFLAGS) -marm -fno-omit-frame-pointer
+TARGET_arm_debug_CFLAGS :=      -fomit-frame-pointer \
+                                -fstrict-aliasing    \
+                                -funswitch-loops     \
+				-fno-omit-frame-pointer -fno-strict-aliasing
+TARGET_thumb_debug_CFLAGS :=    -fomit-frame-pointer \
+                                -fno-strict-aliasing \
+                                -finline-limit=64    \
+				-marm -fno-omit-frame-pointer
 
 # NOTE: if you try to build a debug build with thumb, several
 # of the libraries (libpv, libwebcore, libkjs) need to be built

@@ -48,7 +48,10 @@ $(combo_target)SHLIB_SUFFIX := .so
 $(combo_target)JNILIB_SUFFIX := $($(combo_target)SHLIB_SUFFIX)
 $(combo_target)STATIC_LIB_SUFFIX := .a
 
+$(combo_target)PRELINKER_MAP := $(BUILD_SYSTEM)/prelink-$(combo_os_arch)-$($(combo_target)BUILD_TYPE).map
+ifeq ($(wildcard  $($(combo_target)PRELINKER_MAP)),)
 $(combo_target)PRELINKER_MAP := $(BUILD_SYSTEM)/prelink-$(combo_os_arch).map
+endif
 
 # We try to find a target or host specific file for the os/arch specified, and
 # default to just looking for the os/arch one. This will allow us to define
