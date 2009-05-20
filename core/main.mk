@@ -427,11 +427,6 @@ endif	# !BUILD_TINY_ANDROID
 
 endif	# !SDK_ONLY
 
-# Can't use first-makefiles-under here because
-# --mindepth=2 makes the prunes not work.
-subdir_makefiles += \
-	$(shell build/tools/findleaves.sh --prune="./out" $(subdirs) Android.mk)
-
 # Boards may be defined under $(SRC_TARGET_DIR)/board/$(TARGET_DEVICE)
 # or under vendor/*/$(TARGET_DEVICE).  Search in both places, but
 # make sure only one exists.
@@ -479,6 +474,11 @@ INTERNAL_DEFAULT_DOCS_TARGETS :=
 NOTICE-HOST-%: ;
 NOTICE-TARGET-%: ;
 else
+# Can't use first-makefiles-under here because
+# --mindepth=2 makes the prunes not work.
+subdir_makefiles += \
+	$(shell build/tools/findleaves.sh --prune="./out" $(subdirs) Android.mk)
+
 include $(subdir_makefiles)
 endif
 # -------------------------------------------------------------------
