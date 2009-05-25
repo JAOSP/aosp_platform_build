@@ -59,6 +59,7 @@ BUILD_HOST_JAVA_LIBRARY:= $(BUILD_SYSTEM)/host_java_library.mk
 BUILD_DROIDDOC:= $(BUILD_SYSTEM)/droiddoc.mk
 BUILD_COPY_HEADERS := $(BUILD_SYSTEM)/copy_headers.mk
 BUILD_KEY_CHAR_MAP := $(BUILD_SYSTEM)/key_char_map.mk
+BUILD_AUTOCONF :=  $(BUILD_SYSTEM)/autoconf.mk
 
 # ###############################################################
 # Parse out any modifier targets.
