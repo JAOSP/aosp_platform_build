@@ -84,6 +84,12 @@ LOCAL_CERTIFICATE:=
 LOCAL_SDK_VERSION:=
 LOCAL_NO_EMMA_INSTRUMENT:=
 LOCAL_NO_EMMA_COMPILE:=
+# Used by autoconf.mk
+LOCAL_CONFIG_ARGS:=
+LOCAL_PKG_BINARIES:=
+LOCAL_PKG_SHARED_LIBRARIES:=
+LOCAL_PKG_DATA_FILES:=
+LOCAL_CONFIG_ENV:=
 
 # Trim MAKEFILE_LIST so that $(call my-dir) doesn't need to
 # iterate over thousands of entries every time.

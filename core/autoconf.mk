@@ -1,13 +1,15 @@
 ##
 # LOCAL_MODULE
-# CONFIG_ARGS
-# PKG_BINARIES
-# PKG_SHARED_LIBRARIES
-# PKG_DATA_FILES
+# LOCAL_CONFIG_ARGS
+# LOCAL_PKG_BINARIES
+# LOCAL_PKG_SHARED_LIBRARIES
+# LOCAL_PKG_DATA_FILES
+# LOCAL_CONFIG_ENV
 
 TOPDIR:=$(shell pwd)/
 
-_ac_outputs := $(PKG_BINARIES) $(PKG_SHARED_LIBRARIES) $(PKG_DATA_FILES)
+_ac_outputs := $(LOCAL_PKG_BINARIES) $(LOCAL_PKG_SHARED_LIBRARIES) \
+	$(LOCAL_PKG_DATA_FILES)
 _ac_outputs :=$(strip $(_ac_outputs))
 _my_prefix := $(LOCAL_MODULE)_
 
@@ -36,8 +38,11 @@ $(linked_module): $(_ac_work)/make_done
 
 endef
 
-$(eval $(foreach mod,$(PKG_BINARIES),$(call _ac_init_module,$(mod),EXECUTABLES)))
-$(eval $(foreach mod,$(PKG_SHARED_LIBRARIES),$(call _ac_init_module,$(mod),SHARED_LIBRARIES)))
+$(eval $(foreach mod,$(LOCAL_PKG_BINARIES), \
+	$(call _ac_init_module,$(mod),EXECUTABLES)))
+
+$(eval $(foreach mod,$(LOCAL_PKG_SHARED_LIBRARIES), \
+	$(call _ac_init_module,$(mod),SHARED_LIBRARIES)))
 
 _ac_mk:= $(_ac_work)/Makefile
 
@@ -46,4 +51,4 @@ $(_ac_work)/make_done: $(_ac_mk)
 
 $(_ac_mk): $(_ac_configure)
 	$(hide) mkdir -p $(_ac_work); cd $(_ac_work); \
-	$(TOPDIR)$(_ac_configure) $(CONFIG_ARGS)
+	$(LOCAL_CONFIG_ENV) $(TOPDIR)$(_ac_configure) $(LOCAL_CONFIG_ARGS)
