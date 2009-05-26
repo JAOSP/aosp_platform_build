@@ -17,6 +17,12 @@ _ac_configure := $(LOCAL_PATH)/configure
 
 _ac_first_module := $(word 1,$(_ac_outputs))
 
+_saved_LOCAL_CONFIG_ARGS:=$(LOCAL_CONFIG_ARGS)
+_saved_LOCAL_PKG_BINARIES:=$(LOCAL_PKG_BINARIES)
+_saved_LOCAL_PKG_SHARED_LIBRARIES:=$(LOCAL_PKG_SHARED_LIBRARIES)
+_saved_LOCAL_PKG_DATA_FILES:=$(LOCAL_PKG_DATA_FILES)
+_saved_LOCAL_CONFIG_ENV:=$(LOCAL_CONFIG_ENV)
+
 # $(1): binary name
 # $(2): class
 define _ac_init_module
@@ -38,10 +44,10 @@ $(linked_module): $(_ac_work)/make_done
 
 endef
 
-$(eval $(foreach mod,$(LOCAL_PKG_BINARIES), \
+$(eval $(foreach mod,$(_saved_LOCAL_PKG_BINARIES), \
 	$(call _ac_init_module,$(mod),EXECUTABLES)))
 
-$(eval $(foreach mod,$(LOCAL_PKG_SHARED_LIBRARIES), \
+$(eval $(foreach mod,$(_saved_LOCAL_PKG_SHARED_LIBRARIES), \
 	$(call _ac_init_module,$(mod),SHARED_LIBRARIES)))
 
 _ac_mk:= $(_ac_work)/Makefile
@@ -51,4 +57,5 @@ $(_ac_work)/make_done: $(_ac_mk)
 
 $(_ac_mk): $(_ac_configure)
 	$(hide) mkdir -p $(_ac_work); cd $(_ac_work); \
-	$(LOCAL_CONFIG_ENV) $(TOPDIR)$(_ac_configure) $(LOCAL_CONFIG_ARGS)
+	$(_saved_LOCAL_CONFIG_ENV) $(TOPDIR)$(_ac_configure) \
+	$(_saved_LOCAL_CONFIG_ARGS)
