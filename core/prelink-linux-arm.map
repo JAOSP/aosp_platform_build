@@ -91,10 +91,12 @@ libcamera.so            0xA9680000
 libqcamera.so           0xA9400000
 
 # pv opencore libraries
-libopencore_author.so   0xA7B00000
-libopencore_player.so   0xA7800000
-libopencore_common.so   0xA7300000
-libopencore_2way.so     0xA7000000
+libandroid_opencore_author.so  0xA7D50000
+libandroid_opencore_player.so  0xA7D00000
+libopencore_author.so          0xA7B00000
+libopencore_player.so          0xA7800000
+libopencore_common.so          0xA7300000
+libopencore_2way.so            0xA7000000
 
 # opencore hardware support
 libmm-adspsvc.so              0xA6FFD000
