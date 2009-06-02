@@ -70,7 +70,7 @@ $(_ac_work)/mkdone: $(_ac_configure) $(LOCAL_PATH)/Android.mk
 	$(hide) mkdir -p $(_ac_work); cd $(_ac_work); \
 	$(_saved_LOCAL_CONFIG_ENV) $(TOPDIR)$(_ac_configure) \
 	$(_saved_LOCAL_CONFIG_ARGS)
-	$(hide) cd $(_ac_work); make; touch mkdone
+	$(hide) cd $(_ac_work)&& make&& touch mkdone
 endef
 $(eval $(_ac_mkdone))
 
