@@ -8,14 +8,14 @@
 
 TOPDIR:=$(shell pwd)/
 
-_ac_outputs := $(LOCAL_PKG_BINARIES) $(LOCAL_PKG_SHARED_LIBRARIES) \
+_ac_outputs:= $(LOCAL_PKG_BINARIES) $(LOCAL_PKG_SHARED_LIBRARIES) \
 	$(LOCAL_PKG_DATA_FILES)
-_ac_outputs :=$(strip $(_ac_outputs))
-_my_prefix := $(LOCAL_MODULE)_
+_ac_outputs:=$(strip $(_ac_outputs))
+_my_prefix:=$(LOCAL_MODULE)_
 
-_ac_configure := $(LOCAL_PATH)/configure
+_ac_configure:=$(LOCAL_PATH)/configure
 
-_ac_first_module := $(word 1,$(_ac_outputs))
+_ac_first_module:= $(word 1,$(_ac_outputs))
 
 _saved_LOCAL_CONFIG_ARGS:=$(LOCAL_CONFIG_ARGS)
 _saved_LOCAL_PKG_BINARIES:=$(LOCAL_PKG_BINARIES)
@@ -65,11 +65,25 @@ $(eval $(foreach mod,$(_saved_LOCAL_PKG_SHARED_LIBRARIES), \
 
 _ac_mk:= $(_ac_work)/Makefile
 
-$(_ac_work)/mkdone: $(_ac_mk)
-	$(hide) cd $(_ac_work); make; touch mkdone
-
-$(_ac_mk): $(_ac_configure) $(LOCAL_PATH)/Android.mk
+define _ac_mkdone
+$(_ac_work)/mkdone: $(_ac_configure) $(LOCAL_PATH)/Android.mk
 	$(hide) mkdir -p $(_ac_work); cd $(_ac_work); \
 	$(_saved_LOCAL_CONFIG_ENV) $(TOPDIR)$(_ac_configure) \
 	$(_saved_LOCAL_CONFIG_ARGS)
-	$(hide) touch $(_ac_mk)
+	$(hide) cd $(_ac_work); make; touch mkdone
+endef
+$(eval $(_ac_mkdone))
+
+
+_ac_outputs:=
+_ac_outputs:=
+_my_prefix:=
+_ac_configure:=
+_ac_first_module:=
+_saved_LOCAL_CONFIG_ARGS:=
+_saved_LOCAL_PKG_BINARIES:=
+_saved_LOCAL_PKG_SHARED_LIBRARIES:=
+_saved_LOCAL_PKG_DATA_FILES:=
+_saved_LOCAL_CONFIG_ENV:=
+_saved_LOCAL_REQUIRED_MODULES:=
+
