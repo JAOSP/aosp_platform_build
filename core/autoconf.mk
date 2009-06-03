@@ -29,7 +29,7 @@ _saved_LOCAL_REQUIRED_MODULES:=$(LOCAL_REQUIRED_MODULES)
 define _ac_init_module
 $(eval include $(CLEAR_VARS))
 $(eval _mod_bin:=$(strip $(1)))
-$(eval _mod_name:=$(_my_prefix)$(subst -,_,$(subst .,_,$(_mod_bin))))
+$(eval _mod_name:=$(_my_prefix)$(subst -,_,$(subst .,_,$(notdir $(_mod_bin)))))
 $(eval LOCAL_MODULE:=$(_mod_name))
 $(eval LOCAL_MODULE_CLASS:=$(2))
 $(eval LOCAL_MODULE_STEM:=$(notdir $(_mod_bin)))
