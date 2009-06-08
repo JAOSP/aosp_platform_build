@@ -49,6 +49,40 @@ $(strip \
  )
 endef
 
+# TODO: push this into the combo files; unfortunately, we don't even
+# know HOST_OS at this point.
+trysed := $(shell echo a | sed -E -e 's/a/b/' 2>/dev/null)
+ifeq ($(trysed),b)
+  SED_EXTENDED := sed -E
+else
+  trysed := $(shell echo c | sed -r -e 's/c/d/' 2>/dev/null)
+  ifeq ($(trysed),d)
+    SED_EXTENDED := sed -r
+  else
+    $(error Unknown sed version)
+  endif
+endif
+
+###########################################################
+## List all of the files in a subdirectory in a format
+## suitable for PRODUCT_COPY_FILES and
+## PRODUCT_SDK_ADDON_COPY_FILES
+##
+## $(1): Glob to match file name
+## $(2): Source directory
+## $(3): Target base directory
+###########################################################
+
+define find-copy-subdir-files
+$(shell find $(2) -name "$(1)" | $(SED_EXTENDED) "s:($(2)/?(.*)):\\1\\:$(3)/\\2:" | sed "s://:/:g")
+endef
+
+# ---------------------------------------------------------------
+
+# These are the valid values of TARGET_BUILD_VARIANT.  Also, if anything else is passed
+# as the variant in the PRODUCT-$TARGET_BUILD_PRODUCT-$TARGET_BUILD_VARIANT form,
+# it will be treated as a goal, and the eng variant will be used.
+INTERNAL_VALID_VARIANTS := user userdebug eng tests
 
 # ---------------------------------------------------------------
 # Provide "PRODUCT-<prodname>-<goal>" targets, which lets you build
@@ -75,17 +109,15 @@ ifdef product_goals
   # The variant they want
   TARGET_BUILD_VARIANT := $(word 2,$(product_goals))
 
-  # HACK HACK HACK
   # The build server wants to do make PRODUCT-dream-installclean
   # which really means TARGET_PRODUCT=dream make installclean.  
-  ifneq ($(filter-out eng user userdebug tests,$(TARGET_BUILD_VARIANT)),)
+  ifneq ($(filter-out $(INTERNAL_VALID_VARIANTS),$(TARGET_BUILD_VARIANT)),)
 	MAKECMDGOALS := $(MAKECMDGOALS) $(TARGET_BUILD_VARIANT)
 	TARGET_BUILD_VARIANT := eng
     default_goal_substitution := 
   else
     default_goal_substitution := $(DEFAULT_GOAL)
   endif
-  # HACK HACK HACK
 
   # Hack to make the linux build servers use dexpreopt.
   # OSX is still a little flaky.  Most engineers don't use this
@@ -149,6 +181,15 @@ TARGET_DEVICE := $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_DEVICE)
 PRODUCT_LOCALES := $(strip $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_LOCALES))
 # TODO: also keep track of things like "port", "land" in product files.
 
+# If CUSTOM_LOCALES contains any locales not already included
+# in PRODUCT_LOCALES, add them to PRODUCT_LOCALES.
+extra_locales := $(filter-out $(PRODUCT_LOCALES),$(CUSTOM_LOCALES))
+ifneq (,$(extra_locales))
+  $(info Adding CUSTOM_LOCALES [$(extra_locales)] to PRODUCT_LOCALES [$(PRODUCT_LOCALES)])
+  PRODUCT_LOCALES += $(extra_locales)
+  extra_locales :=
+endif
+
 # Assemble the list of options.
 PRODUCT_AAPT_CONFIG := $(PRODUCT_LOCALES)
 
@@ -181,6 +222,10 @@ PRODUCT_POLICY := $(strip $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_POLICY))
 PRODUCT_COPY_FILES := \
 	$(strip $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_COPY_FILES))
 
+# The HTML file containing the contributors to the project.
+PRODUCT_CONTRIBUTORS_FILE := \
+	$(strip $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_CONTRIBUTORS_FILE))
+
 # A list of property assignments, like "key = value", with zero or more
 # whitespace characters on either side of the '='.
 PRODUCT_PROPERTY_OVERRIDES := \
@@ -189,6 +234,11 @@ PRODUCT_PROPERTY_OVERRIDES := \
 # Should we use the default resources or add any product specific overlays
 PRODUCT_PACKAGE_OVERLAYS := \
 	$(strip $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_PACKAGE_OVERLAYS))
+DEVICE_PACKAGE_OVERLAYS := \
+        $(strip $(PRODUCTS.$(INTERNAL_PRODUCT).DEVICE_PACKAGE_OVERLAYS))
+
+# An list of whitespace-separated words.
+PRODUCT_TAGS := $(strip $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_TAGS))
 
 # Add the product-defined properties to the build properties.
 ADDITIONAL_BUILD_PROPERTIES := \

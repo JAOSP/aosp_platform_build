@@ -96,6 +96,17 @@ $(foreach var,$(1), \
 endef
 
 ###########################################################
+## Evaluates to true if the string contains the word true,
+## and empty otherwise
+## $(1): a var to test
+###########################################################
+
+define true-or-empty
+$(filter true, $(1))
+endef
+
+
+###########################################################
 ## Retrieve the directory of the current makefile
 ###########################################################
 
@@ -406,6 +417,31 @@ $(foreach module,$(1),$(ALL_MODULES.$(module).INSTALLED))
 endef
 
 ###########################################################
+## Convert a list of short modules names (e.g., "framework", "Browser")
+## into the list of files that should be used when linking
+## against that module as a public API.
+## TODO: Allow this for more than JAVA_LIBRARIES modules
+## NOTE: this won't return reliable results until after all
+## sub-makefiles have been included.
+## $(1): target list
+###########################################################
+
+define module-stubs-files
+$(foreach module,$(1),$(ALL_MODULES.$(module).STUBS))
+endef
+
+###########################################################
+## Evaluates to the timestamp file for a doc module, which
+## is the dependency that should be used.
+## $(1): doc module
+###########################################################
+
+define doc-timestamp-for
+$(OUT_DOCS)/$(strip $(1))-timestamp
+endef
+
+
+###########################################################
 ## Convert "framework framework-res ext" to "out/.../javalib.jar ..."
 ## This lets us treat framework-res as a normal library.
 ## $(1): library list
@@ -465,6 +501,21 @@ $(subst $(space),:,$(strip $(1)))
 endef
 
 ###########################################################
+## Read the word out of a colon-separated list of words.
+## This has the same behavior as the built-in function
+## $(word n,str).
+##
+## The individual words may not contain spaces.
+##
+## $(1): 1 based index
+## $(2): value of the form a:b:c...
+###########################################################
+
+define word-colon
+$(word $(1),$(subst :,$(space),$(2)))
+endef
+
+###########################################################
 ## Convert "a=b c= d e = f" into "a=b c=d e=f"
 ##
 ## $(1): list to collapse
@@ -477,7 +528,6 @@ $(eval _cpSEP := $(strip $(if $(2),$(2),=)))\
 $(subst $(space)$(_cpSEP)$(space),$(_cpSEP),$(strip \
     $(subst $(_cpSEP), $(_cpSEP) ,$(1))))
 endef
-
 
 ###########################################################
 ## MODULE_TAG set operations
@@ -508,6 +558,18 @@ define get-tagged-modules
 $(filter-out \
 	$(call modules-for-tag-list,$(2)), \
 	    $(call modules-for-tag-list,$(1)))
+endef
+
+###########################################################
+## Append a leaf to a base path.  Properly deals with
+## base paths ending in /.
+##
+## $(1): base path
+## $(2): leaf path
+###########################################################
+
+define append-path
+$(subst //,/,$(1)/$(2))
 endef
 
 
@@ -558,7 +620,7 @@ hide := @
 else
 define pretty
 endef
-hide := 
+hide :=
 endif
 
 ###########################################################
@@ -984,7 +1046,7 @@ endef
 ###########################################################
 ## Commands for running gcc to link a statically linked
 ## executable.  In practice, we only use this on arm, so
-## the other platforms don't have the 
+## the other platforms don't have the
 ## transform-o-to-static-executable defined
 ###########################################################
 
@@ -1033,7 +1095,7 @@ endef
 
 
 ###########################################################
-## Commands for running javac to make .class files 
+## Commands for running javac to make .class files
 ###########################################################
 
 #@echo "Source intermediates dir: $(PRIVATE_SOURCE_INTERMEDIATES_DIR)"
@@ -1064,9 +1126,9 @@ $(hide) $(AAPT) package $(PRIVATE_AAPT_FLAGS) -m -z \
 endef
 
 ifeq ($(HOST_OS),windows)
-xlint_unchecked := 
+xlint_unchecked :=
 else
-#xlint_unchecked := -Xlint:unchecked 
+#xlint_unchecked := -Xlint:unchecked
 endif
 
 # emit-line, <word list>, <output file>
@@ -1102,7 +1164,7 @@ endef
 
 # For a list of jar files, unzip them to a specified directory,
 # but make sure that no META-INF files come along for the ride.
-# 
+#
 # $(1): files to unzip
 # $(2): destination directory
 define unzip-jar-files
@@ -1117,17 +1179,18 @@ define unzip-jar-files
   done
 endef
 
-# below we write the list of java files to java-source-list to avoid argument list length problems with Cygwin
-# we filter out duplicate java file names because eclipse's compiler doesn't like them.
+# below we write the list of java files to java-source-list to avoid argument
+# list length problems with Cygwin we filter out duplicate java file names
+# because eclipse's compiler doesn't like them.
 define transform-java-to-classes.jar
 @echo "target Java: $(PRIVATE_MODULE) ($(PRIVATE_CLASS_INTERMEDIATES_DIR))"
-@rm -f $@
-@rm -rf $(PRIVATE_CLASS_INTERMEDIATES_DIR)
-@mkdir -p $(PRIVATE_CLASS_INTERMEDIATES_DIR)
+$(hide) rm -f $@
+$(hide) rm -rf $(PRIVATE_CLASS_INTERMEDIATES_DIR)
+$(hide) mkdir -p $(PRIVATE_CLASS_INTERMEDIATES_DIR)
 $(call unzip-jar-files,$(PRIVATE_STATIC_JAVA_LIBRARIES), \
     $(PRIVATE_CLASS_INTERMEDIATES_DIR))
 $(call dump-words-to-file,$(PRIVATE_JAVA_SOURCES),$(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list)
-@if [ -d "$(PRIVATE_SOURCE_INTERMEDIATES_DIR)" ]; then \
+$(hide) if [ -d "$(PRIVATE_SOURCE_INTERMEDIATES_DIR)" ]; then \
 	    find $(PRIVATE_SOURCE_INTERMEDIATES_DIR) -name '*.java' >> $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list; \
 fi
 $(hide) tr ' ' '\n' < $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list \
@@ -1139,12 +1202,12 @@ $(hide) $(TARGET_JAVAC) -encoding ascii $(PRIVATE_BOOTCLASSPATH) \
     -extdirs "" -d $(PRIVATE_CLASS_INTERMEDIATES_DIR) \
     \@$(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq \
     || ( rm -rf $(PRIVATE_CLASS_INTERMEDIATES_DIR) ; exit 41 )
-@ rm -f $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list
-@ rm -f $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq
-@mkdir -p $(dir $@)
+$(hide) rm -f $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list
+$(hide) rm -f $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq
+$(hide) mkdir -p $(dir $@)
 $(hide) jar $(if $(strip $(PRIVATE_JAR_MANIFEST)),-cfm,-cf) \
     $@ $(PRIVATE_JAR_MANIFEST) -C $(PRIVATE_CLASS_INTERMEDIATES_DIR) .
-@rm -rf $(PRIVATE_CLASS_INTERMEDIATES_DIR)
+$(hide) rm -rf $(PRIVATE_CLASS_INTERMEDIATES_DIR)
 endef
 
 define transform-classes.jar-to-emma
@@ -1250,7 +1313,7 @@ $(hide) if [ -f "$(PRIVATE_INTERMEDIATES_DIR)/classes.lst" ]; then \
 endef
 
 # TODO(joeo): If we can ever upgrade to post 3.81 make and get the
-# new prebuilt rules to work, we should change this to copy the 
+# new prebuilt rules to work, we should change this to copy the
 # resources to the out directory and then copy the resources.
 
 # Note: not using aapt tool for this because we aren't making
@@ -1263,11 +1326,15 @@ define transform-host-java-to-package
 @mkdir -p $(PRIVATE_CLASS_INTERMEDIATES_DIR)
 $(call unzip-jar-files,$(PRIVATE_STATIC_JAVA_LIBRARIES), \
     $(PRIVATE_CLASS_INTERMEDIATES_DIR))
+$(call dump-words-to-file,$(sort\
+	$(PRIVATE_JAVA_SOURCES)),\
+	$(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq)
 $(hide) $(HOST_JAVAC) -encoding ascii -g \
 	$(xlint_unchecked) \
 	$(addprefix -classpath ,$(strip \
 		$(call normalize-path-list,$(PRIVATE_ALL_JAVA_LIBRARIES)))) \
-	-extdirs "" -d $(PRIVATE_CLASS_INTERMEDIATES_DIR) $(PRIVATE_JAVA_SOURCES) || \
+	-extdirs "" -d $(PRIVATE_CLASS_INTERMEDIATES_DIR)\
+        \@$(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq || \
 	( rm -rf $(PRIVATE_CLASS_INTERMEDIATES_DIR) ; exit 41 )
 $(hide) jar $(if $(strip $(PRIVATE_JAR_MANIFEST)),-cfm,-cf) \
     $@ $(PRIVATE_JAR_MANIFEST) $(PRIVATE_EXTRA_JAR_ARGS) \
@@ -1487,4 +1554,3 @@ include $(BUILD_SYSTEM)/distdir.mk
 #	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 #	      -e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
 #	  rm -f $*.d
-

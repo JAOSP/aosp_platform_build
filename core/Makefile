@@ -15,9 +15,9 @@ endif
 # <dest file> is relative to $(PRODUCT_OUT), so it should look like,
 # e.g., "system/etc/file.xml".
 $(foreach cf,$(PRODUCT_COPY_FILES), \
-  $(eval _w := $(subst :,$(space),$(cf))) \
-  $(eval _src := $(word 1,$(_w))) \
-  $(eval _dest := $(subst //,/,$(PRODUCT_OUT)/$(word 2,$(_w)))) \
+  $(eval _src := $(call word-colon,1,$(cf))) \
+  $(eval _dest := $(call \
+          append-path,$(PRODUCT_OUT),$(call word-colon,2,$(cf)))) \
   $(eval $(call copy-one-file,$(_src),$(_dest))) \
   $(eval ALL_DEFAULT_INSTALLED_MODULES += $(_dest)) \
  )
@@ -79,6 +79,22 @@ ifneq ($(words $(BUILD_FINGERPRINT)),1)
   $(error BUILD_FINGERPRINT cannot contain spaces: "$(BUILD_FINGERPRINT)")
 endif
 
+# Display parameters shown under Settings -> About Phone
+ifeq ($(TARGET_BUILD_VARIANT),user)
+  # User builds should show:
+  # release build number or branch.buld_number non-release builds
+
+  # Dev. branches should have DISPLAY_BUILD_NUMBER set
+  ifeq "true" "$(DISPLAY_BUILD_NUMBER)"
+    BUILD_DISPLAY_ID := $(BUILD_ID).$(BUILD_NUMBER)
+  else
+    BUILD_DISPLAY_ID := $(BUILD_ID)
+  endif
+else
+  # Non-user builds should show detailed build information
+  BUILD_DISPLAY_ID := $(build_desc)
+endif
+
 # Selects the first locale in the list given as the argument,
 # and splits it into language and region, which each may be
 # empty.
@@ -109,6 +125,7 @@ $(INSTALLED_BUILD_PROP_TARGET): $(BUILDINFO_SH) $(INTERNAL_BUILD_ID_MAKEFILE)
 			PRODUCT_MANUFACTURER="$(PRODUCT_MANUFACTURER)" \
 			PRIVATE_BUILD_DESC="$(PRIVATE_BUILD_DESC)" \
 			BUILD_ID="$(BUILD_ID)" \
+			BUILD_DISPLAY_ID="$(BUILD_DISPLAY_ID)" \
 			BUILD_NUMBER="$(BUILD_NUMBER)" \
 			PLATFORM_VERSION="$(PLATFORM_VERSION)" \
 			PLATFORM_SDK_VERSION="$(PLATFORM_SDK_VERSION)" \
@@ -197,20 +214,6 @@ $(APKCERTS_FILE): $(all_built_packages)
 apkcerts-list: $(APKCERTS_FILE)
 
 # -----------------------------------------------------------------
-# installed file list
-INSTALLED_FILES_FILE := $(PRODUCT_OUT)/installed-files.txt
-$(INSTALLED_FILES_FILE): $(ALL_DEFAULT_INSTALLED_MODULES)
-	@echo Installed file list: $@
-	@mkdir -p $(dir $@)
-	@rm -f $@
-	$(hide) (cd $(PRODUCT_OUT) && \
-	         find system data -type f -printf 'name="%p" size=%s\n') | \
-		sort > $@
-
-.PHONY: installed-file-list
-installed-file-list: $(INSTALLED_FILES_FILE)
-
-# -----------------------------------------------------------------
 # module info file
 ifdef CREATE_MODULE_INFO_FILE
   MODULE_INFO_FILE := $(PRODUCT_OUT)/module-info.txt
@@ -243,7 +246,10 @@ INTERNAL_RAMDISK_FILES := $(filter $(TARGET_ROOT_OUT)/%, \
 	$(ALL_GENERATED_SOURCES) \
 	$(ALL_DEFAULT_INSTALLED_MODULES))
 
-INSTALLED_RAMDISK_TARGET := $(PRODUCT_OUT)/ramdisk.img
+BUILT_RAMDISK_TARGET := $(PRODUCT_OUT)/ramdisk.img
+
+# We just build this directly to the install location.
+INSTALLED_RAMDISK_TARGET := $(BUILT_RAMDISK_TARGET)
 $(INSTALLED_RAMDISK_TARGET): $(MKBOOTFS) $(INTERNAL_RAMDISK_FILES)
 	$(call pretty,"Target ram disk: $@")
 	$(hide) $(MKBOOTFS) $(TARGET_ROOT_OUT) | gzip > $@
@@ -559,6 +565,7 @@ ifeq ($(TARGET_USERIMAGES_USE_EXT2),true)
 ## Generate an ext2 image
 define build-userdataimage-target
     $(call pretty,"Target userdata fs image: $(INSTALLED_USERDATAIMAGE_TARGET)")
+    @mkdir -p $(TARGET_OUT_DATA)
     $(call build-userimage-ext2-target,$(TARGET_OUT_DATA),$(INSTALLED_USERDATAIMAGE_TARGET),userdata,)
     $(hide) $(call assert-max-file-size,$(INSTALLED_USERDATAIMAGE_TARGET),$(BOARD_USERDATAIMAGE_MAX_SIZE))
 endef
@@ -568,12 +575,16 @@ else # TARGET_USERIMAGES_USE_EXT2 != true
 ## Generate a yaffs2 image
 define build-userdataimage-target
     $(call pretty,"Target userdata fs image: $(INSTALLED_USERDATAIMAGE_TARGET)")
+    @mkdir -p $(TARGET_OUT_DATA)
     $(hide) $(MKYAFFS2) -f $(TARGET_OUT_DATA) $(INSTALLED_USERDATAIMAGE_TARGET)
     $(hide) $(call assert-max-file-size,$(INSTALLED_USERDATAIMAGE_TARGET),$(BOARD_USERDATAIMAGE_MAX_SIZE))
 endef
 endif # TARGET_USERIMAGES_USE_EXT2
 
-INSTALLED_USERDATAIMAGE_TARGET := $(PRODUCT_OUT)/userdata.img
+BUILT_USERDATAIMAGE_TARGET := $(PRODUCT_OUT)/userdata.img
+
+# We just build this directly to the install location.
+INSTALLED_USERDATAIMAGE_TARGET := $(BUILT_USERDATAIMAGE_TARGET)
 $(INSTALLED_USERDATAIMAGE_TARGET): $(INTERNAL_MKUSERFS) \
                                    $(INTERNAL_USERDATAIMAGE_FILES)
 	$(build-userdataimage-target)
@@ -615,7 +626,14 @@ recovery_kernel := $(INSTALLED_KERNEL_TARGET) # same as a non-recovery system
 recovery_ramdisk := $(PRODUCT_OUT)/ramdisk-recovery.img
 recovery_build_prop := $(INSTALLED_BUILD_PROP_TARGET)
 recovery_binary := $(call intermediates-dir-for,EXECUTABLES,recovery)/recovery
-recovery_resources := $(call include-path-for, recovery)/res
+recovery_resources_common := $(call include-path-for, recovery)/res
+recovery_resources_private := $(strip $(wildcard $(TARGET_DEVICE_DIR)/recovery/res))
+recovery_resource_deps := $(shell find $(recovery_resources_common) \
+  $(recovery_resources_private) -type f)
+
+ifeq ($(recovery_resources_private),)
+  $(info No private recovery resources for TARGET_DEVICE $(TARGET_DEVICE))
+endif
 
 INTERNAL_RECOVERYIMAGE_ARGS := \
 	$(addprefix --second ,$(INSTALLED_2NDBOOTLOADER_TARGET)) \
@@ -633,7 +651,7 @@ $(INSTALLED_RECOVERYIMAGE_TARGET): $(MKBOOTFS) $(MKBOOTIMG) \
 		$(recovery_binary) \
 		$(recovery_initrc) $(recovery_kernel) \
 		$(INSTALLED_2NDBOOTLOADER_TARGET) \
-		$(recovery_build_prop)
+		$(recovery_build_prop) $(recovery_resource_deps)
 	@echo ----- Making recovery image ------
 	rm -rf $(TARGET_RECOVERY_OUT)
 	mkdir -p $(TARGET_RECOVERY_OUT)
@@ -645,7 +663,9 @@ $(INSTALLED_RECOVERYIMAGE_TARGET): $(MKBOOTFS) $(MKBOOTIMG) \
 	echo Modifying ramdisk contents...
 	cp -f $(recovery_initrc) $(TARGET_RECOVERY_ROOT_OUT)/
 	cp -f $(recovery_binary) $(TARGET_RECOVERY_ROOT_OUT)/sbin/
-	cp -rf $(recovery_resources) $(TARGET_RECOVERY_ROOT_OUT)/
+	cp -rf $(recovery_resources_common) $(TARGET_RECOVERY_ROOT_OUT)/
+	$(foreach item,$(recovery_resources_private), \
+	  cp -rf $(item) $(TARGET_RECOVERY_ROOT_OUT)/)
 	cat $(INSTALLED_DEFAULT_PROP_TARGET) $(recovery_build_prop) \
 	        > $(TARGET_RECOVERY_ROOT_OUT)/default.prop
 	$(MKBOOTFS) $(TARGET_RECOVERY_ROOT_OUT) | gzip > $(recovery_ramdisk)
@@ -889,6 +909,22 @@ endif
 target-files-package: $(BUILT_TARGET_FILES_PACKAGE)
 
 # -----------------------------------------------------------------
+# installed file list
+# Depending on $(INSTALLED_SYSTEMIMAGE) ensures that it
+# gets the DexOpt one if we're doing that.
+INSTALLED_FILES_FILE := $(PRODUCT_OUT)/installed-files.txt
+$(INSTALLED_FILES_FILE): $(INSTALLED_SYSTEMIMAGE)
+	@echo Installed file list: $@
+	@mkdir -p $(dir $@)
+	@rm -f $@
+	$(hide) build/tools/fileslist.py $(TARGET_OUT) $(TARGET_OUT_DATA) > $@
+
+.PHONY: installed-file-list
+installed-file-list: $(INSTALLED_FILES_FILE)
+$(call dist-for-goals, sdk, $(INSTALLED_FILES_FILE))
+$(call dist-for-goals, sdk_addon, $(INSTALLED_FILES_FILE))
+
+# -----------------------------------------------------------------
 # A zip of the tests that are built when running "make tests".
 # This is very similar to BUILT_TARGET_FILES_PACKAGE, but we
 # only grab SYSTEM and DATA, and it's called "*-tests-*.zip".
@@ -1043,14 +1079,14 @@ sdk_dir := $(HOST_OUT)/sdk
 #
 sdk_name := android-sdk_$(FILE_NAME_TAG)
 ifeq ($(HOST_OS),darwin)
-  sdk_host_os := mac
+  INTERNAL_SDK_HOST_OS_NAME := mac
 else
-  sdk_host_os := $(HOST_OS)
+  INTERNAL_SDK_HOST_OS_NAME := $(HOST_OS)
 endif
 ifneq ($(HOST_OS),windows)
-  sdk_host_os := $(sdk_host_os)-$(HOST_ARCH)
+  INTERNAL_SDK_HOST_OS_NAME := $(INTERNAL_SDK_HOST_OS_NAME)-$(HOST_ARCH)
 endif
-sdk_name := $(sdk_name)_$(sdk_host_os)
+sdk_name := $(sdk_name)_$(INTERNAL_SDK_HOST_OS_NAME)
 
 sdk_dep_file := $(sdk_dir)/sdk_deps.mk
 

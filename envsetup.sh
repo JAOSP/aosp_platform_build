@@ -16,7 +16,7 @@ function BSD_define_greps()
 {
     function sgrep()
     {
-        find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | \ 
+        find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml|sh|mk)' -print0 | \ 
         xargs -0 grep --color -n "$@"
     }
 
@@ -57,7 +57,7 @@ function Linux_define_greps()
 {
     function sgrep()
     {
-        find . -type f -iregex '.*\.\(c\|h\|cpp\|S\|java\|xml\)' -print0 | \
+        find . -type f -iregex '.*\.\(c\|h\|cpp\|S\|java\|xml\|sh\|mk\)' -print0 | \
         xargs -0 grep --color -n "$@"
     }
 
@@ -168,6 +168,7 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 - cgrep:   Greps on all local C/C++ files.
 - jgrep:   Greps on all local Java files.
 - resgrep: Greps on all local res/*.xml files.
+- godir:   Go to the directory containing a file.
 
 Look at the source to view more functions. The complete list is:
 EOF
@@ -733,7 +734,9 @@ function mmm()
         local MAKEFILE=
         local ARGS=
         local DIR TO_CHOP
-        for DIR in $@ ; do
+        local DASH_ARGS=$(echo "$@" | awk -v RS=" " -v ORS=" " '/^-.*$/')
+        local DIRS=$(echo "$@" | awk -v RS=" " -v ORS=" " '/^[^-].*$/')
+        for DIR in $DIRS ; do
             DIR=`echo $DIR | sed -e 's:/$::'`
             if [ -f $DIR/Android.mk ]; then
                 TO_CHOP=`echo $T | wc -c | tr -d ' '`
@@ -755,7 +758,7 @@ function mmm()
                 fi
             fi
         done
-        ONE_SHOT_MAKEFILE="$MAKEFILE" ${ANDROID_MAKER} -C $T files $ARGS
+        ONE_SHOT_MAKEFILE="$MAKEFILE" ${ANDROID_MAKER} -C $T $DASH_ARGS files $ARGS
     else
         echo "Couldn't locate the top of the tree.  Try setting TOP."
     fi
@@ -862,11 +865,16 @@ function tracedmdump()
         return
     fi
     local prebuiltdir=$(getprebuilt)
-    local KERNEL=$T/prebuilt/android-arm/vmlinux-qemu
+    local KERNEL=$T/prebuilt/android-arm/kernel/vmlinux-qemu
 
     local TRACE=$1
     if [ ! "$TRACE" ] ; then
         echo "usage:  tracedmdump  tracename"
+        return
+    fi
+
+    if [ ! -r "$KERNEL" ] ; then
+        echo "Error: cannot find kernel: '$KERNEL'"
         return
     fi
 
@@ -933,39 +941,26 @@ function runhat()
     adb ${adbOptions} shell >/dev/null mkdir /data/misc
     adb ${adbOptions} shell chmod 777 /data/misc
 
+    # send a SIGUSR1 to cause the hprof dump
     echo "Poking $targetPid and waiting for data..."
     adb ${adbOptions} shell kill -10 $targetPid
-    echo "Press enter when logcat shows \"GC freed ## objects / ## bytes\""
+    echo "Press enter when logcat shows \"hprof: heap dump completed\""
     echo -n "> "
     read
 
     local availFiles=( $(adb ${adbOptions} shell ls /data/misc | grep '^heap-dump' | sed -e 's/.*heap-dump-/heap-dump-/' | sort -r | tr '[:space:][:cntrl:]' ' ') )
-    local devHeadFile=/data/misc/${availFiles[0]}
-    local devTailFile=/data/misc/${availFiles[1]}
+    local devFile=/data/misc/${availFiles[0]}
+    local localFile=/tmp/$$-hprof
 
-    local localHeadFile=/tmp/$$-hprof-head
-    local localTailFile=/tmp/$$-hprof-tail
+    echo "Retrieving file $devFile..."
+    adb ${adbOptions} pull $devFile $localFile
 
-    echo "Retrieving file $devHeadFile..."
-    adb ${adbOptions} pull $devHeadFile $localHeadFile
-    echo "Retrieving file $devTailFile..."
-    adb ${adbOptions} pull $devTailFile $localTailFile
+    adb ${adbOptions} shell rm $devFile
 
-    local combinedFile=$outputFile
-    if [ "$combinedFile" = "" ]; then
-        combinedFile=/tmp/$$.hprof
-    fi
-
-    cat $localHeadFile $localTailFile >$combinedFile
-    adb ${adbOptions} shell rm $devHeadFile
-    adb ${adbOptions} shell rm $devTailFile
-    rm $localHeadFile
-    rm $localTailFile
-
-    echo "Running hat on $combinedFile"
+    echo "Running hat on $localFile"
     echo "View the output by pointing your browser at http://localhost:7000/"
     echo ""
-    hat $combinedFile
+    hat $localFile
 }
 
 function getbugreports()
@@ -1034,6 +1029,61 @@ function runtest()
         return
     fi
     (cd "$T" && development/tools/runtest $@)
+}
+
+# simple shortcut to the runtest.py command
+function runtest_py()
+{
+    T=$(gettop)
+    if [ ! "$T" ]; then
+        echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
+        return
+    fi
+    (cd "$T" && development/testrunner/runtest.py $@)
+}
+
+function godir () {
+    if [[ -z "$1" ]]; then
+        echo "Usage: godir <regex>"
+        return
+    fi
+    if [[ ! -f $T/filelist ]]; then
+        echo -n "Creating index..."
+        (cd $T; find . -wholename ./out -prune -o -type f > filelist)
+        echo " Done"
+        echo ""
+    fi
+    local lines
+    lines=($(grep "$1" $T/filelist | sed -e 's/\/[^/]*$//' | sort | uniq)) 
+    if [[ ${#lines[@]} = 0 ]]; then
+        echo "Not found"
+        return
+    fi
+    local pathname
+    local choice
+    if [[ ${#lines[@]} > 1 ]]; then
+        while [[ -z "$pathname" ]]; do
+            local index=1
+            local line
+            for line in ${lines[@]}; do
+                printf "%6s %s\n" "[$index]" $line
+                index=$(($index + 1)) 
+            done
+            echo
+            echo -n "Select one: "
+            unset choice
+            read choice
+            if [[ $choice -gt ${#lines[@]} || $choice -lt 1 ]]; then
+                echo "Invalid choice"
+                continue
+            fi
+            pathname=${lines[$(($choice-$_arrayoffset))]}
+        done
+    else
+        # even though zsh arrays are 1-based, $foo[0] is an alias for $foo[1]
+        pathname=${lines[0]}
+    fi
+    cd $T/$pathname
 }
 
 # determine whether arrays are zero-based (bash) or one-based (zsh)
