@@ -82,6 +82,10 @@ compress_output := $(compress_input)
 endif
 
 
+define so-basename
+$(if $(filter %.so,$1),$1,$(call so-basename,$(basename $1)))
+endef
+
 ###########################################################
 ## Pre-link
 ###########################################################
@@ -94,6 +98,9 @@ prelink_output := $(LOCAL_UNSTRIPPED_PATH)/$(LOCAL_MODULE_SUBDIR)$(LOCAL_BUILT_M
 ifeq ($(LOCAL_PRELINK_MODULE),true)
 $(prelink_output): $(prelink_input) $(TARGET_PRELINKER_MAP) $(APRIORI)
 	$(transform-to-prelinked)
+ifneq ($(subst .so., ,$(prelink_output)),$(prelink_output))
+	$(hide) cd $(dir $@); ln -sf $(notdir $@) $(call so-basename,$(notdir $@))
+endif
 else
 # Don't prelink the binary, just copy it.  We can't skip this step
 # because people always expect a copy of the binary to appear
@@ -105,10 +112,16 @@ ifneq ($(LOCAL_ACP_UNAVAILABLE),true)
 $(prelink_output): $(prelink_input) | $(ACP)
 	@echo "target Non-prelinked: $(PRIVATE_MODULE) ($@)"
 	$(copy-file-to-target)
+ifneq ($(subst .so., ,$(prelink_output)),$(prelink_output))
+	$(hide) cd $(dir $@); ln -sf $(notdir $@) $(call so-basename,$(notdir $@))
+endif
 else
 $(prelink_output): $(prelink_input)
 	@echo "target Non-prelinked: $(PRIVATE_MODULE) ($@)"
 	$(copy-file-to-target-with-cp)
+ifneq ($(subst .so., ,$(prelink_output)),$(prelink_output))
+	$(hide) cd $(dir $@); ln -sf $(notdir $@) $(call so-basename,$(notdir $@))
+endif
 endif
 endif
 
@@ -127,6 +140,9 @@ ifeq ($(LOCAL_STRIP_MODULE),true)
 # Strip the binary
 $(strip_output): $(strip_input) | $(SOSLIM)
 	$(transform-to-stripped)
+ifneq ($(subst .so., ,$(strip_output)),$(strip_output))
+	$(hide) cd $(dir $@); ln -sf $(notdir $@) $(call so-basename,$(notdir $@))
+endif
 else
 # Don't strip the binary, just copy it.  We can't skip this step
 # because a copy of the binary must appear at LOCAL_BUILT_MODULE.
@@ -137,10 +153,16 @@ ifneq ($(LOCAL_ACP_UNAVAILABLE),true)
 $(strip_output): $(strip_input) | $(ACP)
 	@echo "target Unstripped: $(PRIVATE_MODULE) ($@)"
 	$(copy-file-to-target)
+ifneq ($(subst .so., ,$(strip_output)),$(strip_output))
+	$(hide) cd $(dir $@); ln -sf $(notdir $@) $(call so-basename,$(notdir $@))
+endif
 else
 $(strip_output): $(strip_input)
 	@echo "target Unstripped: $(PRIVATE_MODULE) ($@)"
 	$(copy-file-to-target-with-cp)
+ifneq ($(subst .so., ,$(strip_output)),$(strip_output))
+	$(hide) cd $(dir $@); ln -sf $(notdir $@) $(call so-basename,$(notdir $@))
+endif
 endif
 endif # LOCAL_STRIP_MODULE
 
