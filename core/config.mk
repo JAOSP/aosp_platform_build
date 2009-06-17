@@ -276,7 +276,11 @@ endif
 
 # TODO: do symbol compression
 TARGET_COMPRESS_MODULE_SYMBOLS := false
+ifneq ($(TARGET_ARCH),sh)
 TARGET_PRELINK_MODULE := true
+else
+TARGET_PRELINK_MODULE := false
+endif
 
 PREBUILT_IS_PRESENT := $(if $(wildcard prebuilt/Android.mk),true)
 
