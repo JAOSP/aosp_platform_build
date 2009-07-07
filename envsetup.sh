@@ -120,6 +120,12 @@ function setpaths()
     export OPROFILE_EVENTS_DIR=$prebuiltdir/oprofile
 }
 
+function vendor_printconfig()
+{
+    # vendorsetup.sh would override this method
+    local noop
+}
+
 function printconfig()
 {
     T=$(gettop)
@@ -128,6 +134,7 @@ function printconfig()
         return
     fi
     get_build_var report_config
+    vendor_printconfig
 }
 
 function set_stuff_for_environment()
@@ -446,6 +453,12 @@ function print_lunch_menu()
     echo
 }
 
+function vendor_lunch()
+{
+    # vendorsetup.sh would override this method
+    local noop
+}
+
 function lunch()
 {
     local answer
@@ -527,6 +540,7 @@ function lunch()
     echo
 
     set_stuff_for_environment
+    vendor_lunch
     printconfig
 }
 
