@@ -1,16 +1,3 @@
-# Use bash, not whatever shell somebody has installed as /bin/sh
-# This is repeated in config.mk, since envsetup.sh runs that file
-# directly.
-
-SYSNAME := $(shell uname)
-SHELL := /bin/bash
-
-ifeq ($(SYSNAME),FreeBSD)
-$(warning default shell changed to /usr/local/bin/bash (was: $(SHELL)))
-$(warning cause you are running $(SYSNAME))
-SHELL := /usr/local/bin/bash
-endif
-
 # this turns off the suffix rules built into make
 .SUFFIXES:
 
@@ -96,8 +83,15 @@ endif
 # The windows build server currently uses 1.6.  This will be fixed.
 ifneq ($(HOST_OS),windows)
 
+# FreeBSD java version is choosed in combo/javac.mk
+# by COMMON_JAVAC_VERSION parameter if several JDK/JRE are installed
+ifneq ($(HOST_OS),freebsd)
 # Check for the correct version of java
 java_version := $(shell java -version 2>&1 | head -n 1 | grep '[ "]1\.5[\. "$$]')
+else
+java_version := $(COMMON_JAVAC_VERSION)
+endif
+
 ifeq ($(strip $(java_version)),)
 $(info ************************************************************)
 $(info You are attempting to build with the incorrect version)
@@ -112,8 +106,13 @@ $(info ************************************************************)
 $(error stop)
 endif
 
+ifneq ($(HOST_OS),freebsd)
 # Check for the correct version of javac
 javac_version := $(shell javac -version 2>&1 | head -n 1 | grep '[ "]1\.5[\. "$$]')
+else
+javac_version := $(COMMON_JAVAC_VERSION)
+endif
+
 ifeq ($(strip $(javac_version)),)
 $(info ************************************************************)
 $(info You are attempting to build with the incorrect version)
