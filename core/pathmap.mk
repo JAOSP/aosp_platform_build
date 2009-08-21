@@ -87,6 +87,7 @@ FRAMEWORKS_BASE_SUBDIRS := \
 	    opengl \
 	    sax \
 	    telephony \
+	    ethernet \
 	    wifi \
 	    vpn \
 	    keystore \
