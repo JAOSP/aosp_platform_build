@@ -16,7 +16,7 @@ function BSD_define_greps()
 {
     function sgrep()
     {
-        find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | \ 
+        find -E . -type f -iregex '.*\.(c|h|cpp|cc|S|java|xml|sh|mk)' -print0 | \ 
         xargs -0 grep --color -n "$@"
     }
 
@@ -28,7 +28,7 @@ function BSD_define_greps()
 
     function treegrep()
     {
-        find -E . -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | \
+        find -E . -type f -iregex '.*\.(c|h|cpp|cc|S|java|xml)' -print0 | \
         xargs -0 grep --color -n -i "$@"
     }
 }
@@ -57,21 +57,21 @@ function Linux_define_greps()
 {
     function sgrep()
     {
-        find . -type f -iregex '.*\.\(c\|h\|cpp\|S\|java\|xml\)' -print0 | \
+        find . -type f -iregex '.*\.\(c\|h\|cpp\|cc\|S\|java\|xml\|sh\|mk\)' -print0 | \
         xargs -0 grep --color -n "$@"
     }
 
     function mgrep()
     {
         find . -regextype posix-egrep -type f -print0 \
-        -iregex '\(.*\/Makefile\|.*\/Makefile\..*\|.*\.make\|.*\.mak\|.*\.mk\)' | \
+        -iregex '(.*\/Makefile|.*\/Makefile\..*|.*\.make|.*\.mak|.*\.mk)' | \
         xargs -0 grep --color -n "$@"
     }
 
     function treegrep()
     {
         find . -regextype posix-egrep -type f -print0 \
-        -iregex '.*\.(c|h|cpp|S|java|xml)' | xargs -0 grep --color -n -i "$@"
+        -iregex '.*\.(c|h|cpp|S|java|xml|cc)' | xargs -0 grep --color -n -i "$@"
     }
 }
 
@@ -291,7 +291,6 @@ function printconfig()
 
 function set_stuff_for_environment()
 {
-    chooseMaker
     settitle
     setpaths
     set_sequence_number
@@ -316,7 +315,7 @@ function settitle()
     fi
 }
 
-case `uname -s` in
+case ${ANDROID_HOST_SYSTEM} in
     Linux)
         function choosesim()
         {
@@ -369,7 +368,7 @@ case `uname -s` in
     *)
         function choosesim()
         {
-            echo "Only device builds are supported for" `uname -s`
+            echo "Only device builds are supported for" ${ANDROID_HOST_SYSTEM}  
             echo "     Forcing TARGET_SIMULATOR=false"
             echo
             if [ -z "$1" ]
