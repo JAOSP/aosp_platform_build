@@ -426,10 +426,6 @@ else	# !BUILD_TINY_ANDROID
 #
 INTERNAL_DEFAULT_DOCS_TARGETS := offline-sdk-docs
 subdirs := $(TOP)
-# Only include Android.mk files directly under vendor/*, not
-# *all* Android.mk files under vendor (which is what would happen
-# if we didn't prune vendor in the findleaves call).
-subdir_makefiles += $(wildcard vendor/*/Android.mk)
 
 FULL_BUILD := true
 
@@ -701,6 +697,7 @@ droid tests: droidcore
 
 $(call dist-for-goals, droid, \
 	$(INTERNAL_UPDATE_PACKAGE_TARGET) \
+	$(INTERNAL_OTA_PACKAGE_TARGET) \
 	$(SYMBOLS_ZIP) \
 	$(APPS_ZIP) \
 	$(INTERNAL_EMULATOR_PACKAGE_TARGET) \
