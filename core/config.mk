@@ -89,6 +89,10 @@ COMMON_ANDROID_PACKAGE_SUFFIX := .apk
 # list of flags to turn specific warnings in to errors
 TARGET_ERROR_FLAGS := -Werror=return-type
 
+# TODO: do symbol compression
+TARGET_COMPRESS_MODULE_SYMBOLS := false
+TARGET_PRELINK_MODULE := true
+
 # ###############################################################
 # Include sub-configuration files
 # ###############################################################
@@ -258,10 +262,6 @@ HOST_GLOBAL_CPPFLAGS += $(HOST_RELEASE_CPPFLAGS)
 
 TARGET_GLOBAL_CFLAGS += $(TARGET_RELEASE_CFLAGS)
 TARGET_GLOBAL_CPPFLAGS += $(TARGET_RELEASE_CPPFLAGS)
-
-# TODO: do symbol compression
-TARGET_COMPRESS_MODULE_SYMBOLS := false
-TARGET_PRELINK_MODULE := true
 
 PREBUILT_IS_PRESENT := $(if $(wildcard prebuilt/Android.mk),true)
 

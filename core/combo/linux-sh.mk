@@ -1,6 +1,9 @@
 # Configuration for Linux on SuperH.
 # Included by combo/select.make
 
+# Disable prelink as apriori does not convert .so for SuperH architecture
+TARGET_PRELINK_MODULE := false
+
 # You can set TARGET_TOOLS_PREFIX to get gcc from somewhere else
 ifeq ($(strip $($(combo_target)TOOLS_PREFIX)),)
 $(combo_target)TOOLS_PREFIX := \
