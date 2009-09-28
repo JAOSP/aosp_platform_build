@@ -95,6 +95,10 @@ TARGET_COMPRESS_MODULE_SYMBOLS := false
 # Default is to prelink modules.
 TARGET_PRELINK_MODULE := true
 
+# TODO: do symbol compression
+TARGET_COMPRESS_MODULE_SYMBOLS := false
+TARGET_PRELINK_MODULE := true
+
 # ###############################################################
 # Include sub-configuration files
 # ###############################################################
