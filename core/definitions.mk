@@ -1048,6 +1048,8 @@ define transform-to-stripped
 @mkdir -p $(dir $@)
 @echo "target Strip: $(PRIVATE_MODULE) ($@)"
 $(hide) $(SOSLIM) --strip --shady --quiet $< --outfile $@
+@echo "target Retouch: $(PRIVATE_MODULE) ($@)"
+$(hide) $(RETOUCH) $<.retouch $@
 endef
 
 define transform-to-prelinked
@@ -1056,7 +1058,7 @@ define transform-to-prelinked
 $(hide) $(APRIORI) \
 		--prelinkmap $(TARGET_PRELINKER_MAP) \
 		--locals-only \
-		--quiet \
+ 		--quiet \
 		$< \
 		--output $@
 endef
