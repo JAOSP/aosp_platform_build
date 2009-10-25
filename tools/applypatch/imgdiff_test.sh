@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A script for testing imgdiff/applypatch.  It takes two full OTA
 # packages as arguments.  It generates (on the host) patches for all
