@@ -6,7 +6,7 @@
 # Use bash, not whatever shell somebody has installed as /bin/sh
 # This is repeated from main.mk, since envsetup.sh runs this file
 # directly.
-SHELL := /bin/bash
+SHELL := /usr/bin/env bash
 
 # Standard source directories.
 SRC_DOCS:= $(TOPDIR)docs
@@ -214,8 +214,8 @@ else
 HOST_JDK_TOOLS_JAR:= $(shell $(BUILD_SYSTEM)/find-jdk-tools-jar.sh)
 endif
 
-# It's called md5 on Mac OS and md5sum on Linux
-ifeq ($(HOST_OS),darwin)
+# It's called md5 on Mac OS and FreeBSD and md5sum on Linux
+ifneq ($(strip $(filter $(HOST_OS),darwin freebsd)),)
 MD5SUM:=md5 -q
 else
 MD5SUM:=md5sum

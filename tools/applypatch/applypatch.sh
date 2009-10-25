@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A test suite for applypatch.  Run in a client where you have done
 # envsetup, choosecombo, etc.
