@@ -133,6 +133,26 @@ ifneq ($(wildcard $($(combo_target)CC)),)
 # any flags which affect libgcc are correctly taken
 # into account.
 $(combo_target)LIBGCC := $(shell $($(combo_target)CC) $($(combo_target)GLOBAL_CFLAGS) -print-libgcc-file-name)
+ifeq ($(HOST_OS),freebsd)
+ifeq ($(combo_target),TARGET_)
+
+define existed-libc
+  $(shell if [ -e $(TARGET_OUT_INTERMEDIATES)/STATIC_LIBRARIES/libc_intermediates/libc.a ]; then echo 'YES'; fi)
+endef
+
+define append-static-libc
+ $(if $(STATIC_LIBC_PATH), $(strip $(STATIC_LIBC_PATH)),
+   $(if $(strip $(existed-libc)), $(eval
+STATIC_LIBC_PATH:= \
+	$(TARGET_OUT_INTERMEDIATES)/STATIC_LIBRARIES/libc_intermediates/libc.a
+     )
+     $(TARGET_OUT_INTERMEDIATES)/STATIC_LIBRARIES/libc_intermediates/libc.a
+    ))
+endef
+
+$(combo_target)LIBGCC += $(strip $(append-static-libc))
+endif
+endif
 endif
 
 # unless CUSTOM_KERNEL_HEADERS is defined, we're going to use
