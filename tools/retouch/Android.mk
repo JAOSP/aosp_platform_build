@@ -3,18 +3,22 @@
 # Android.mk for retouch
 #
 
+ifneq ($(TARGET_SIMULATOR),true)
+
 LOCAL_PATH:= $(call my-dir)
 
-ifneq ($(TARGET_SIMULATOR),true)
+# First part: build the host executable, "retouch-prepare".
+#
+# On the host, we scan relocation lists produced by Apriori,
+# and output file offset+value pairs, ready for retouching.
+
 include $(CLEAR_VARS)
 
 LOCAL_LDLIBS += -ldl
 LOCAL_CFLAGS += -O2 -g
 LOCAL_CFLAGS += -fno-function-sections -fno-data-sections -fno-inline
 LOCAL_CFLAGS += -Wall -Wno-unused-function #-Werror
-LOCAL_CFLAGS += -DSUPPORT_ANDROID_PRELINK_TAGS
 LOCAL_CFLAGS += -DDEBUG
-LOCAL_CFLAGS += -DADJUST_ELF=1
 
 ifeq ($(TARGET_ARCH),arm)
 LOCAL_CFLAGS += -DARM_SPECIFIC_HACKS
@@ -30,7 +34,7 @@ LOCAL_LDLIBS += -lintl
 endif
 
 LOCAL_SRC_FILES := \
-	retouch.c
+	retouch-prepare.c
 
 LOCAL_C_INCLUDES:= \
 	$(LOCAL_PATH)/ \
@@ -45,7 +49,38 @@ ifeq ($(TARGET_ARCH),arm)
 LOCAL_STATIC_LIBRARIES += libebl_arm
 endif
 
-LOCAL_MODULE := retouch
+LOCAL_MODULE := retouch-prepare
 
 include $(BUILD_HOST_EXECUTABLE)
+
+# Second part: build the target (phone) executables.
+#
+# On the target, we simply go down the list and add a random offset
+# (retouch-apply *.retouch), or go down the list and apply as-is 
+# (retouch-apply -u *.retouch). Both of these operations can be run any 
+# number of times and will finish successfully.
+
+include $(CLEAR_VARS)
+
+LOCAL_LDLIBS += -ldl
+LOCAL_CFLAGS += -O2 -g
+LOCAL_CFLAGS += -fno-function-sections -fno-data-sections -fno-inline
+LOCAL_CFLAGS += -Wall -Wno-unused-function #-Werror
+LOCAL_CFLAGS += -DDEBUG
+
+ifeq ($(TARGET_ARCH),arm)
+LOCAL_CFLAGS += -DARM_SPECIFIC_HACKS
+LOCAL_CFLAGS += -DBIG_ENDIAN=1
+endif
+
+LOCAL_SRC_FILES := \
+	retouch-apply.c
+
+LOCAL_C_INCLUDES:= \
+	$(LOCAL_PATH)/
+
+LOCAL_MODULE := retouch-apply
+
+include $(BUILD_EXECUTABLE)
+
 endif # TARGET_SIMULATOR != true

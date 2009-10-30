@@ -4,7 +4,7 @@
 #include <libebl.h>
 #ifdef ARM_SPECIFIC_HACKS
 #include <libebl_arm.h>
-#endif/*ARM_SPECIFIC_HACKS*/
+#endif /*ARM_SPECIFIC_HACKS*/
 #include <elf.h>
 #include <gelf.h>
 #include <string.h>
@@ -15,12 +15,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <libgen.h>
-
-#ifndef ADJUST_ELF
-#error "ADJUST_ELF must be defined!"
-#endif
-
-#define ELF_STRPTR_IS_BROKEN     (1)
 
 #define MAX_FULL_NAME 1024
 
@@ -80,75 +74,57 @@ int check_prelinked(int fd) {
   return prelinked;
 }
 
-void change_prelink_info(int fd, int elf_little, int delta) {
+void output_prelink_info(FILE *f_out, 
+			 int fd_lib, int elf_little) {
   int nr = sizeof(prelink_info_t);
   FAILIF(nr != 8, "Unexpected sizeof(prelink_info_t) == %d!\n", nr);
 
-  off_t end = lseek(fd, 0, SEEK_END);  
-  off_t sz = lseek(fd, -nr, SEEK_CUR);
+  off_t end = lseek(fd_lib, 0, SEEK_END);  
+  off_t sz = lseek(fd_lib, -nr, SEEK_CUR);
   FAILIF((long)(end - sz) != (long)nr,
 	 "Bad offset after lseek\n");
   FAILIF(sz == (off_t)-1, 
 	 "lseek(%d, 0, SEEK_END): %s (%d)!\n", 
-	 fd, strerror(errno), errno);
+	 fd_lib, strerror(errno), errno);
   
   prelink_info_t info;
-  int num_read = read(fd, &info, nr);
+  int num_read = read(fd_lib, &info, nr);
   FAILIF(num_read < 0, 
 	 "read(%d, &info, sizeof(prelink_info_t)): %s (%d)!\n",
-	 fd, strerror(errno), errno);
+	 fd_lib, strerror(errno), errno);
   FAILIF(num_read != sizeof(info),
 	 "read(%d, &info, sizeof(prelink_info_t)): did not read %d bytes as "
 	 "expected (read %d)!\n",
-	 fd, sizeof(info), num_read);
+	 fd_lib, sizeof(info), num_read);
 
   if (!(elf_little ^ is_host_little())) {
     /* Same endianness */
-    info.mmap_addr += delta;
+    fprintf(f_out, "-1 %lu\n", info.mmap_addr);
   } else {
     /* Different endianness */
-    info.mmap_addr = switch_endianness(switch_endianness(info.mmap_addr)+
-				       delta);
+    fprintf(f_out, "-1 %lu\n", switch_endianness(info.mmap_addr));
   }
-  strncpy(info.tag, "PRE ", 4);
-  
-  end = lseek(fd, 0, SEEK_END);  
-  sz = lseek(fd, -nr, SEEK_CUR);
-  FAILIF((long)(end - sz) != (long)nr,
-	 "Bad offset after lseek\n");
-  FAILIF(sz == (off_t)-1, 
-	 "lseek(%d, 0, SEEK_END): %s (%d)!\n", 
-	 fd, strerror(errno), errno);
-
-  int num_written = write(fd, &info, sizeof(info));
-  FAILIF(num_written < 0, 
-	 "write(%d, &info, sizeof(info)): %s (%d)\n",
-	 fd, strerror(errno), errno);
-  FAILIF(sizeof(info) != num_written, 
-	 "Could not write %d bytes (wrote only %d bytes) as expected!\n",
-	 sizeof(info), num_written);
 }
 
-// XXX magic number galore.. XXX
-// XXX use the ELF class instead? 32b vs. 64b XXX
-void change_relocation(int fd, int64_t offset, int delta) {
+void output_relocation(FILE *f_out, 
+		       int fd_lib, int elf_little, 
+		       int32_t offset) {
   uint32_t retouch_contents;
 
-  FAILIF(lseek(fd, offset, SEEK_SET) != offset,
+  FAILIF(lseek(fd_lib, offset, SEEK_SET) != offset,
 	 "Could not seek for reading!\n");
-  FAILIF(read(fd, &retouch_contents, 4) != 4,
+  FAILIF(read(fd_lib, &retouch_contents, 4) != 4,
          "Could not read retouch bytes!\n");
-  retouch_contents += delta;
-  FAILIF(lseek(fd, offset, SEEK_SET) != offset,
-         "Could not seek for writing!\n");
-  FAILIF(write(fd, &retouch_contents, 4) != 4,
-	 "Could not write after retouch!\n");
+  fprintf(f_out, "%ld %lu\n", offset, 
+	  (!(elf_little ^ is_host_little()))?
+	  retouch_contents:
+	  switch_endianness(retouch_contents));
 }
 
 int main(int argc, char **argv) {
-  int fd_elf_rw = -1, fd_elf_ro = -1;
+  int fd_elf_ro = -1;
   uint32_t shstrndx;
-  FILE *file_retouch = NULL;
+  FILE *file_apriori = NULL, *file_retouch = NULL;
   char current_lib_full_name[MAX_FULL_NAME];
   size_t shnum;
   Elf *e = NULL;
@@ -160,8 +136,9 @@ int main(int argc, char **argv) {
   char retouch_libname[MAX_FULL_NAME];
   char retouch_sname[MAX_FULL_NAME];
 
-  FAILIF(argc != 3,
-	 "Usage: %s library-retouch-file library-file\n", 
+  FAILIF(argc != 4,
+	 "Usage: %s <apriori-relo-file> "
+	 "<library-file> <retouch-file>\n", 
 	 argv[0]);
   FAILIF(elf_version(EV_CURRENT) == EV_NONE,
 	 "ELF library initialization failed: %s\n",
@@ -169,9 +146,6 @@ int main(int argc, char **argv) {
 
   // open the library (object) itself
   FAILIF((fd_elf_ro = open(argv[2], O_RDONLY, 0)) < 0,
-	 "open(\"%s\") failed\n", 
-	 argv[2]);
-  FAILIF((fd_elf_rw = open(argv[2], O_RDWR, 0)) < 0,
 	 "open(\"%s\") failed\n", 
 	 argv[2]);
   FAILIF((e = elf_begin(fd_elf_ro, ELF_C_READ, NULL)) == NULL,
@@ -202,20 +176,23 @@ int main(int argc, char **argv) {
     goto out;
   }
 
-  // open the relocation list for retouching
-  FAILIF((file_retouch = fopen(argv[1], "r")) == NULL,  
+  // open the relocation list for retouching, and the output file
+  FAILIF((file_apriori = fopen(argv[1], "r")) == NULL,  
 	 "Could not fopen(\"%s\")\n", 
 	 argv[1]);
+  FAILIF((file_retouch = fopen(argv[3], "w")) == NULL,  
+	 "Could not fopen(\"%s\")\n", 
+	 argv[3]);
 
   // loop over all touch-up entries
   line_count = 0;
   current_lib_full_name[0] = 0;
-  while (!feof(file_retouch)) {
+  while (!feof(file_apriori)) {
     char one_line[MAX_FULL_NAME];
 
     // read one touch-up entry
     one_line[0]=0;
-    fgets(one_line, MAX_FULL_NAME, file_retouch);
+    fgets(one_line, MAX_FULL_NAME, file_apriori);
     if (sscanf(one_line,
 	       "%s %s %llu",
 	       retouch_libname,
@@ -225,9 +202,6 @@ int main(int argc, char **argv) {
       break;
     }
     line_count++;
-
-    // printf("Processing '%s':'%s':0x%llx\n", 
-    //	      retouch_libname, retouch_sname, retouch_offset);
 
     // find the section and fix at the specified offset
     uint32_t sectIx;
@@ -254,7 +228,9 @@ int main(int argc, char **argv) {
 
 	// fix contents, and we are done
 	uint64_t file_offset = shdr.sh_offset + retouch_offset;
-	change_relocation(fd_elf_rw, file_offset, 0x2000);
+	output_relocation(file_retouch, 
+			  fd_elf_ro, ehdr.e_ident[EI_DATA] == ELFDATA2LSB, 
+			  file_offset);
 	break;
       }
     }
@@ -264,15 +240,15 @@ int main(int argc, char **argv) {
   }
 
   // now fix the "PRE "+offset at the end of the library
-  change_prelink_info(fd_elf_rw, 
-  		      ehdr.e_ident[EI_DATA] == ELFDATA2LSB, 
-  		      0x2000);
+  output_prelink_info(file_retouch,
+		      fd_elf_ro, 
+  		      ehdr.e_ident[EI_DATA] == ELFDATA2LSB);
 
  out:
   // clean up
   if (e) elf_end(e);
   if (fd_elf_ro >= 0) close(fd_elf_ro);
-  if (fd_elf_rw >= 0) close(fd_elf_rw);
+  if (file_apriori) fclose(file_apriori);
   if (file_retouch) fclose(file_retouch);
 
   return 0;

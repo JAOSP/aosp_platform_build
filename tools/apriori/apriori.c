@@ -327,7 +327,7 @@ static Elf * init_elf(source_t *source, bool create_new_sections)
 
 	{
 	  char relo_out[1024];
-	  snprintf(relo_out, 1024, "%s.retouch", source->output);
+	  snprintf(relo_out, 1024, "%s.apriori-relocations", source->output);
 	  source->newelf_relo_fd = open(relo_out, O_RDWR | O_CREAT, 0666);
 	  FAILIF(source->newelf_relo_fd < 0, "open(%s): %s (%d)\n",
 		 relo_out,

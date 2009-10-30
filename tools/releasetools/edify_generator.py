@@ -209,6 +209,11 @@ class EdifyGenerator(object):
              ",\0".join(['"' + i + '"' for i in sorted(links)]) + ");")
       self.script.append(self._WordWrap(cmd))
 
+  def RetouchLibraries(self):
+    """Execute the retouch instructions in '/system/lib/*.retouch'."""
+    cmd = ('retouch_libraries();')
+    self.script.append(self._WordWrap(cmd))
+
   def AppendExtra(self, extra):
     """Append text verbatim to the output script."""
     self.script.append(extra)
