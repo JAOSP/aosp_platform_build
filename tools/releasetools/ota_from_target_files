@@ -238,17 +238,21 @@ def CopySystemFiles(input_zip, output_zip=None,
                     substitute=None):
   """Copies files underneath system/ in the input zip to the output
   zip.  Populates the Item class with their metadata, and returns a
-  list of symlinks.  output_zip may be None, in which case the copy is
-  skipped (but the other side effects still happen).  substitute is an
-  optional dict of {output filename: contents} to be output instead of
-  certain input files.
+  list of symlinks as well as a list of files that will be retouched.  
+  output_zip may be None, in which case the copy is skipped (but the 
+  other side effects still happen).  substitute is an optional dict 
+  of {output filename: contents} to be output instead of certain input 
+  files.
   """
 
   symlinks = []
+  retouch_files = []
 
   for info in input_zip.infolist():
     if info.filename.startswith("SYSTEM/"):
       basefilename = info.filename[7:]
+      if info.filename.endswith(".retouch"):
+        retouch_files.append("/system/" + basefilename)
       if IsSymlink(info):
         symlinks.append((input_zip.read(info.filename),
                          "/system/" + basefilename))
@@ -269,7 +273,7 @@ def CopySystemFiles(input_zip, output_zip=None,
           Item.Get(fn, dir=False)
 
   symlinks.sort()
-  return symlinks
+  return (symlinks, retouch_files)
 
 
 def SignOutput(temp_zip_name, output_zip_name):
@@ -361,9 +365,9 @@ def WriteFullOTAPackage(input_zip, output_zip):
   script.UnpackPackageDir("recovery", "/system")
   script.UnpackPackageDir("system", "/system")
 
-  symlinks = CopySystemFiles(input_zip, output_zip)
+  (symlinks, retouch_files) = CopySystemFiles(input_zip, output_zip)
   script.MakeSymlinks(symlinks)
-  script.RetouchLibraries()
+  script.RetouchLibraries(retouch_files)
 
   boot_img = File("boot.img", common.BuildBootableImage(
       os.path.join(OPTIONS.input_tmp, "BOOT")))
@@ -418,12 +422,16 @@ def LoadSystemFiles(z):
   """Load all the files from SYSTEM/... in a given target-files
   ZipFile, and return a dict of {filename: File object}."""
   out = {}
+  retouch_files = []
   for info in z.infolist():
     if info.filename.startswith("SYSTEM/") and not IsSymlink(info):
-      fn = "system/" + info.filename[7:]
+      basefilename = info.filename[7:]
+      if info.filename.endswith(".retouch"):
+        retouch_files.append("/system/" + basefilename);
+      fn = "system/" + basefilename
       data = z.read(info.filename)
       out[fn] = File(fn, data)
-  return out
+  return (out, retouch_files)
 
 
 DIFF_PROGRAM_BY_EXT = {
@@ -586,9 +594,9 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
       script=script)
 
   print "Loading target..."
-  target_data = LoadSystemFiles(target_zip)
+  (target_data, target_retouch_files) = LoadSystemFiles(target_zip)
   print "Loading source..."
-  source_data = LoadSystemFiles(source_zip)
+  (source_data, source_retouch_files) = LoadSystemFiles(source_zip)
 
   verbatim_targets = []
   patch_list = []
@@ -630,6 +638,7 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   target_fp = GetBuildProp("ro.build.fingerprint", target_zip)
 
   script.Mount("MTD", "system", "/system")
+  script.UndoRetouchLibraries(source_retouch_files)
   script.AssertSomeFingerprint(source_fp, target_fp)
 
   source_boot = File("/tmp/boot.img",
@@ -754,7 +763,7 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
 
   script.ShowProgress(0.1, 10)
 
-  target_symlinks = CopySystemFiles(target_zip, None)
+  (target_symlinks, target_retouch_files) = CopySystemFiles(target_zip, None)
 
   target_symlinks_d = dict([(i[1], i[0]) for i in target_symlinks])
   temp_script = script.MakeTemporary()
@@ -767,7 +776,7 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
 
   # Note that this call will mess up the tree of Items, so make sure
   # we're done with it.
-  source_symlinks = CopySystemFiles(source_zip, None)
+  (source_symlinks, source_retouch_files) = CopySystemFiles(source_zip, None)
   source_symlinks_d = dict([(i[1], i[0]) for i in source_symlinks])
 
   # Delete all the symlinks in source that aren't in target.  This
@@ -797,6 +806,7 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
       to_create.append((dest, link))
   script.DeleteFiles([i[1] for i in to_create])
   script.MakeSymlinks(to_create)
+  script.RetouchLibraries(target_retouch_files)
 
   # Now that the symlinks are created, we can set all the
   # permissions.

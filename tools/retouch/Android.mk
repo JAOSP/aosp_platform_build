@@ -53,34 +53,4 @@ LOCAL_MODULE := retouch-prepare
 
 include $(BUILD_HOST_EXECUTABLE)
 
-# Second part: build the target (phone) executables.
-#
-# On the target, we simply go down the list and add a random offset
-# (retouch-apply *.retouch), or go down the list and apply as-is 
-# (retouch-apply -u *.retouch). Both of these operations can be run any 
-# number of times and will finish successfully.
-
-include $(CLEAR_VARS)
-
-LOCAL_LDLIBS += -ldl
-LOCAL_CFLAGS += -O2 -g
-LOCAL_CFLAGS += -fno-function-sections -fno-data-sections -fno-inline
-LOCAL_CFLAGS += -Wall -Wno-unused-function #-Werror
-LOCAL_CFLAGS += -DDEBUG
-
-ifeq ($(TARGET_ARCH),arm)
-LOCAL_CFLAGS += -DARM_SPECIFIC_HACKS
-LOCAL_CFLAGS += -DBIG_ENDIAN=1
-endif
-
-LOCAL_SRC_FILES := \
-	retouch-apply.c
-
-LOCAL_C_INCLUDES:= \
-	$(LOCAL_PATH)/
-
-LOCAL_MODULE := retouch-apply
-
-include $(BUILD_EXECUTABLE)
-
 endif # TARGET_SIMULATOR != true
