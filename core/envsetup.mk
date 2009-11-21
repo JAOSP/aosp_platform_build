@@ -68,6 +68,9 @@ endif
 ifneq (,$(findstring CYGWIN,$(UNAME)))
 	HOST_OS := windows
 endif
+ifneq (,$(findstring FreeBSD,$(UNAME)))
+	HOST_OS := freebsd
+endif
 ifneq ($(USE_MINGW),)
 	HOST_OS := windows
 endif
