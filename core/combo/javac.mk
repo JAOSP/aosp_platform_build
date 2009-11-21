@@ -15,6 +15,24 @@ else
     COMMON_JAVAC := javac -J-Xmx512M -target 1.5 -Xmaxerrs 9999999
 endif
 
+ifeq ($(HOST_OS), freebsd)
+#
+# set to choose exact JDK version.
+# currently works only on FreeBSD
+#
+COMMON_JAVAC_VERSION := 1.5+
+
+#
+# XXX: this hack is to select 1.5 while building target goal - sdk
+#
+
+ifneq (,$(filter sdk,$(MAKECMDGOALS)))
+    $(warning forced usage of JDK 1.5)
+    COMMON_JAVAC_VERSION := 1.5
+    COMMON_JAVAC := env JAVA_VERSION=$(COMMON_JAVAC_VERSION) $(COMMON_JAVAC)
+endif
+endif
+
 # Eclipse.
 ifeq ($(CUSTOM_JAVA_COMPILER), eclipse)
     COMMON_JAVAC := java -Xmx256m -jar prebuilt/common/ecj/ecj.jar -5 \
