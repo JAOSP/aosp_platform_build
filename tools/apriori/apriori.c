@@ -1241,8 +1241,11 @@ static int do_prelink(source_t *source,
 		       rel->r_offset,
 		       found_sym->st_value,
 		       sym_source->base);
-                  if (!dry_run)
-                    *dest = found_sym->st_value + sym_source->base;
+                  if (!dry_run) {
+		    PRINT("WARNING: Relocation type not supported "
+			  "for retouching!");
+		    *dest = found_sym->st_value + sym_source->base;
+		  }
                 }
               num_relocations++; 
              break;
@@ -1387,15 +1390,21 @@ static int do_prelink(source_t *source,
                             ASSERT(data->d_buf != NULL);
                             ASSERT(data->d_size >= rel->r_offset -
                                    shdr_mem.sh_addr);
-                            if (!dry_run)
+                            if (!dry_run) {
+			      PRINT("WARNING: Relocation type not supported "
+				    "for retouching!");
                               memcpy(dest, src, found_sym->st_size);
+			    }
                           }
                         else {
                           ASSERT(src == NULL);
                           ASSERT(elf_ndxscn(src_scn) ==
                                  elf_ndxscn(sym_source->bss.scn));
-                          if (!dry_run)
+                          if (!dry_run) {
+			    PRINT("WARNING: Relocation type not supported "
+				  "for retouching!");
                             memset(dest, 0, found_sym->st_size);
+			  }
                         }
                       }
                     }
