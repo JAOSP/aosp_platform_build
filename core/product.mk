@@ -169,3 +169,10 @@ endef
 define resolve-short-product-name
 $(strip $(call _resolve-short-product-name,$(1)))
 endef
+
+#
+# Return 1 if $(1) is inherited from $(2), else return empty
+#
+define is_inherited_from
+$(if $(1),$(if $(findstring $(2),$(1)),1,$(call $(0),$(strip $(PRODUCTS.$(1).INHERITS_FROM)),$(2))))
+endef
