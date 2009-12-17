@@ -264,6 +264,14 @@ ifneq ($(filter dalvik.gc.type-precise,$(PRODUCT_TAGS)),)
   ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.dexopt-flags=m=y
 endif
 
+# Install a vold.conf file is one's not already being installed.
+ifeq (,$(filter %:system/etc/vold.conf, $(PRODUCT_COPY_FILES)))
+PRODUCT_COPY_FILES += development/data/etc/vold.conf:system/etc/vold.conf
+ifeq ($(filter eng tests,$(TARGET_BUILD_VARIANT)),)
+$(warning implicitly installing vold.conf)
+endif
+endif
+
 # Install an apns-conf.xml file if one's not already being installed.
 ifeq (,$(filter %:system/etc/apns-conf.xml, $(PRODUCT_COPY_FILES)))
   PRODUCT_COPY_FILES += \
