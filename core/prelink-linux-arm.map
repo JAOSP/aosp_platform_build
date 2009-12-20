@@ -81,6 +81,7 @@ libsoundpool.so         0xAB780000
 libaudio.so             0xAB700000
 libspeech.so            0xAB600000
 libsonivox.so           0xAB500000
+libWavPack.so           0xAB480000
 libvorbisidec.so        0xAB400000
 libmedia_jni.so         0xAB300000
 libmediaplayerservice.so 0xAB280000
