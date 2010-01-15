@@ -151,7 +151,7 @@ void pm_report_library_size_in_memory(const char *name,
     FAILIF(1, "library '%s' not in prelink map\n", name);
 }
 
-unsigned pm_get_next_link_address(const char *lookup_name)
+off_t pm_get_next_link_address(const char *lookup_name)
 {
     char *x;
     mapentry *me;

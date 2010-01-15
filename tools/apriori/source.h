@@ -103,7 +103,7 @@ struct source_t {
 
     /* This is zero for executables.  For shared libraries, it is the address
 	   at which the library was prelinked. */
-    unsigned base;
+    long base;
 #ifdef SUPPORT_ANDROID_PRELINK_TAGS
 	/* When we read in a file, if it has the prelinked tag, we set prelinked
 	   to 1 and the prelink address in the tag to prelink_base.  This address

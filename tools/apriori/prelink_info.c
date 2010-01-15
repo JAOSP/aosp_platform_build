@@ -14,7 +14,7 @@
 typedef struct {
 	int32_t mmap_addr;
 	char tag[4]; /* 'P', 'R', 'E', ' ' */
-} prelink_info_t __attribute__((packed));
+} prelink_info_t;
 
 static inline void set_prelink(long *prelink_addr, 
 							   int elf_little,

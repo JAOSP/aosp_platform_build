@@ -6,7 +6,7 @@
 
 int dump_hex_buffer(FILE *s, void *b, size_t len, size_t elsize) {
     int num_nonprintable = 0;
-    int i, last;
+    size_t i, last;
     char *pchr = (char *)b;
     fputc('\n', s);
     fprintf(s, "%p: ", b);

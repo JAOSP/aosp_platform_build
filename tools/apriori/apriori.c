@@ -594,8 +594,8 @@ static bool do_init_source(source_t *source, unsigned base)
     return true;
 }
 
-static source_t* init_source(const char *full_path,
-                             const char *output, int is_file,
+static source_t* init_source(char *full_path,
+                             char *output, int is_file,
                              int base, int dry_run)
 {
     source_t *source = (source_t *)CALLOC(1, sizeof(source_t));
@@ -976,7 +976,7 @@ static int do_prelink(source_t *source,
 
     INFO("\tThere are %d relocations.\n", num_rels);
 
-    int rel_idx;
+    unsigned rel_idx;
     for (rel_idx = 0; rel_idx < (size_t)num_rels; rel_idx++) {
         GElf_Rel *rel, rel_mem;
 
@@ -2068,7 +2068,7 @@ static source_t* process_file(const char *filename,
                               const char *output, int is_file,
                               void (*report_library_size_in_memory)(
                                   const char *name, off_t fsize),
-                              unsigned (*get_next_link_address)(
+                              off_t (*get_next_link_address)(
                                   const char *name),
                               int locals_only,
                               char **lib_lookup_dirs,
@@ -2099,9 +2099,9 @@ static source_t* process_file(const char *filename,
                "Could not find [%s] in the current directory or in any of "
                "the search paths!\n", filename);
 
-        unsigned base = get_next_link_address(full);
+        off_t base = get_next_link_address(full);
 
-        source = init_source(full, output, is_file, base, dry_run);
+        source = init_source(full, (char *)output, is_file, base, dry_run);
 
         if (source == NULL) {
             INFO("File [%s] is a static executable.\n", filename);
@@ -2510,7 +2510,7 @@ void apriori(char **execs, int num_execs,
              char *output,
              void (*report_library_size_in_memory)(
                  const char *name, off_t fsize),
-             int (*get_next_link_address)(const char *name),
+             off_t (*get_next_link_address)(const char *name),
              int locals_only,
              int dry_run,
              char **lib_lookup_dirs, int num_lib_lookup_dirs,

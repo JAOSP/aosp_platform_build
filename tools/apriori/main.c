@@ -45,9 +45,9 @@ static void report_library_size_in_memory(const char *name, off_t fsize)
                "less than file [%s]'s size of %lld bytes!\n",
 			   s_addr_increment, s_addr_increment, name, fsize);
 		FAILIF(s_next_link_addr % 4096,
-			   "User-provided address increment 0x%08lx "
+			   "User-provided address increment 0x%08x "
                "is not page-aligned!\n",
-			   s_addr_increment);
+			   (unsigned)s_addr_increment);
 		INFO("\tignoring file size, adjusting by address increment.\n");
 		s_next_link_addr += s_addr_increment;
 	}
@@ -56,14 +56,15 @@ static void report_library_size_in_memory(const char *name, off_t fsize)
 		s_next_link_addr += fsize;
 		s_next_link_addr &= ~(4096 - 1);
 	}
-	INFO("\t[%s] file size 0x%08lx\n",
+	INFO("\t[%s] file size 0x%08x\n",
 		 name,
-		 fsize);
+		 (unsigned)fsize);
 	INFO("\tnext prelink address: 0x%08x\n", s_next_link_addr);
 	ASSERT(!(s_next_link_addr % 4096)); /* New address must be page-aligned */
 }
 
-static unsigned get_next_link_address(const char *name) {
+static off_t get_next_link_address(const char *name) {
+    do { (void)(name); } while (0); /* Supress warning */
     return s_next_link_addr;
 }
 
@@ -183,7 +184,7 @@ int main(int argc, char **argv) {
 	}
 
     void (*func_report_library_size_in_memory)(const char *name, off_t fsize);
-    unsigned (*func_get_next_link_address)(const char *name);
+    off_t (*func_get_next_link_address)(const char *name);
 
     if (prelinkmap != NULL) {
         INFO("Reading prelink addresses from prelink-map file [%s].\n",

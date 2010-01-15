@@ -9,6 +9,7 @@ int hash_lookup(Elf *elf,
                 Elf_Data *symtab,
                 Elf_Data *symstr,
                 const char *symname) {
+    do { (void)(elf); } while (0); /* Supress warning */
     Elf32_Word *hash_data = (Elf32_Word *)hash->d_buf;
     Elf32_Word index;
     Elf32_Word nbuckets = *hash_data++;
