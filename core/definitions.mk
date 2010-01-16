@@ -128,6 +128,14 @@ $(wildcard $(1)/*/Android.mk)
 endef
 
 ###########################################################
+## Find all makefiles that don't have parent makefiles.
+###########################################################
+
+define findleaves
+$(foreach f,$(1),$(if $(wildcard $(f)/$(2)),$(f)/$(2),$(call $(0),$(wildcard $(f)/*),$(2))))
+endef
+
+###########################################################
 ## Look under a directory for makefiles that don't have parent
 ## makefiles.
 ###########################################################
@@ -135,8 +143,7 @@ endef
 # $(1): directory to search under
 # Ignores $(1)/Android.mk
 define first-makefiles-under
-$(shell build/tools/findleaves.py --prune=out --prune=.repo --prune=.git \
-        --mindepth=2 $(1) Android.mk)
+$(call findleaves,$(wildcard $(1)/*),Android.mk)
 endef
 
 ###########################################################
