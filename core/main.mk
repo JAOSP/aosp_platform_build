@@ -458,10 +458,7 @@ else # ONE_SHOT_MAKEFILE
 # Include all of the makefiles in the system
 #
 
-# Can't use first-makefiles-under here because
-# --mindepth=2 makes the prunes not work.
-subdir_makefiles := \
-	$(shell build/tools/findleaves.py --prune=out --prune=.repo --prune=.git $(subdirs) Android.mk)
+subdir_makefiles := $(call first-makefiles-under,$(subdirs))
 
 include $(subdir_makefiles)
 endif # ONE_SHOT_MAKEFILE
