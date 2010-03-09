@@ -141,8 +141,6 @@ include $(board_config_mk)
 TARGET_DEVICE_DIR := $(patsubst %/,%,$(dir $(board_config_mk)))
 board_config_mk :=
 
-include $(BUILD_SYSTEM)/dumpvar.mk
-
 # Clean up/verify variables defined by the board config file.
 TARGET_BOOTLOADER_BOARD_NAME := $(strip $(TARGET_BOOTLOADER_BOARD_NAME))
 TARGET_CPU_ABI := $(strip $(TARGET_CPU_ABI))
@@ -167,6 +165,8 @@ include $(BUILD_SYSTEM)/combo/select.mk
 
 # Pick a Java compiler.
 include $(BUILD_SYSTEM)/combo/javac.mk
+
+include $(BUILD_SYSTEM)/dumpvar.mk
 
 # ---------------------------------------------------------------
 # Check that the configuration is current.  We check that
