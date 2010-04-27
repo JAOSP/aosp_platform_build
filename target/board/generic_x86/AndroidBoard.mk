@@ -1,0 +1,34 @@
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := AT_Translated_Set_2_keyboard.kcm
+include $(BUILD_KEY_CHAR_MAP)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := AT_Translated_Set_2_keyboard.kl
+LOCAL_SRC_FILES := AT_Translated_Set_2_keyboard.kl
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MODULE_PATH := $(TARGET_OUT_KEYLAYOUT)
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := init.rc
+LOCAL_SRC_FILES := init.rc
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT)
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := init.generic_x86.rc
+LOCAL_SRC_FILES := init.generic_x86.rc
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT)
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := init.generic_x86.sh
+LOCAL_SRC_FILES :=  init.generic_x86.sh
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MODULE_PATH := $(TARGET_OUT)/etc/
+include $(BUILD_PREBUILT)
+
