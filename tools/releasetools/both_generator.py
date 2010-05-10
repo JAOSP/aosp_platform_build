@@ -54,6 +54,8 @@ class BothGenerator(object):
   def SetPermissions(self, *a): self._DoBoth("SetPermissions", *a)
   def SetPermissionsRecursive(self, *a): self._DoBoth("SetPermissionsRecursive", *a)
   def MakeSymlinks(self, *a): self._DoBoth("MakeSymlinks", *a)
+  def RetouchLibraries(self, *a): self._DoBoth("RetouchLibraries", *a)
+  def UndoRetouchLibraries(self, *a): self._DoBoth("UndoRetouchLibraries", *a)
   def AppendExtra(self, *a): self._DoBoth("AppendExtra", *a)
 
   def AddToZip(self, input_zip, output_zip, input_path=None):

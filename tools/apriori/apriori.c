@@ -325,6 +325,15 @@ static Elf * init_elf(source_t *source, bool create_new_sections)
                    basename(source->name));
         }
 
+        /* Save some of the info; needed for retouching (ASLR). */
+        char relo_out[1024];
+        snprintf(relo_out, 1024, "%s.apriori-relocations", source->output);
+        source->newelf_relo_fd = open(relo_out, O_RDWR | O_CREAT, 0666);
+        FAILIF(source->newelf_relo_fd < 0, "open(%s): %s (%d)\n",
+               relo_out,
+               strerror(errno),
+               errno);
+
         source->newelf_fd = open(source->output,
                                  O_RDWR | O_CREAT,
                                  0666);
@@ -606,6 +615,7 @@ static source_t* init_source(const char *full_path,
     source->output_is_dir = !is_file;
 
     source->newelf_fd = -1;
+    source->newelf_relo_fd = -1;
     source->elf_fd = -1;
     INFO("Opening %s...\n", full_path);
     source->elf_fd =
@@ -763,6 +773,10 @@ static void destroy_source(source_t *source)
            source->name, strerror(errno), errno);
     FAILIF((source->newelf_fd >= 0) && (close(source->newelf_fd) < 0),
            "Could not close output file: %s (%d)!\n", strerror(errno), errno);
+    FAILIF((source->newelf_relo_fd >= 0) &&
+           (close(source->newelf_relo_fd) < 0),
+           "Could not close retouch output file: %s (%d)!\n",
+           strerror(errno), errno);
 
 #ifdef SUPPORT_ANDROID_PRELINK_TAGS
     if (!source->dry_run) {
@@ -1226,8 +1240,11 @@ static int do_prelink(source_t *source,
                        rel->r_offset,
                        found_sym->st_value,
                        sym_source->base);
-                  if (!dry_run)
+                  if (!dry_run) {
+                    PRINT("WARNING: Relocation type not supported "
+                          "for retouching!");
                     *dest = found_sym->st_value + sym_source->base;
+                  }
                 }
               num_relocations++;
               break;
@@ -1240,8 +1257,26 @@ static int do_prelink(source_t *source,
                    sname,
                    symname ?: "(symbol has no name)",
                    rel->r_offset, *dest, source->base);
-              if (!dry_run)
+              if (!dry_run) {
                 *dest += source->base;
+
+                /* Output an entry for the ASLR touch-up process. */
+                char *last_slash = strrchr(source->output, '/');
+                if (!last_slash)
+                    last_slash = "UNKNOWN";
+                else
+                    last_slash++;
+                if (!*last_slash)
+                    last_slash = "UNKNOWN";
+                char relo_entry[1024];
+                snprintf(relo_entry, 1024,
+                         "%s %s %llu\n",
+                         last_slash, sname,
+                         rel->r_offset-shdr_mem.sh_addr);
+                write(source->newelf_relo_fd,
+                      relo_entry,
+                      strlen(relo_entry));
+              }
               num_relocations++;
               break;
             case R_ARM_COPY:
@@ -1352,15 +1387,21 @@ static int do_prelink(source_t *source,
                             ASSERT(data->d_buf != NULL);
                             ASSERT(data->d_size >= rel->r_offset -
                                    shdr_mem.sh_addr);
-                            if (!dry_run)
-                              memcpy(dest, src, found_sym->st_size);
+                            if (!dry_run) {
+                                PRINT("WARNING: Relocation type not supported "
+                                      "for retouching!");
+                                memcpy(dest, src, found_sym->st_size);
+                            }
                           }
                         else {
                           ASSERT(src == NULL);
                           ASSERT(elf_ndxscn(src_scn) ==
                                  elf_ndxscn(sym_source->bss.scn));
-                          if (!dry_run)
-                            memset(dest, 0, found_sym->st_size);
+                          if (!dry_run) {
+                              PRINT("WARNING: Relocation type not supported "
+                                    "for retouching!");
+                              memset(dest, 0, found_sym->st_size);
+                          }
                         }
                       }
                     }
