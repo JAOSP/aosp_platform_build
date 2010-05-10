@@ -385,10 +385,12 @@ ifneq ($(LOCAL_ACP_UNAVAILABLE),true)
 $(LOCAL_INSTALLED_MODULE): $(LOCAL_BUILT_MODULE) | $(ACP)
 	@echo "Install: $@"
 	$(copy-file-to-target)
+	$(hide) if [ -f $<.retouch ]; then $(copy-retouch-file-to-target) fi;
 else
 $(LOCAL_INSTALLED_MODULE): $(LOCAL_BUILT_MODULE)
 	@echo "Install: $@"
 	$(copy-file-to-target-with-cp)
+	$(hide) if [ -f $<.retouch ]; then $(copy-retouch-file-to-target-with-cp) fi;
 endif
 
 endif # !LOCAL_UNINSTALLABLE_MODULE

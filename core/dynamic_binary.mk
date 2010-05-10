@@ -125,7 +125,7 @@ endif
 
 ifeq ($(LOCAL_STRIP_MODULE),true)
 # Strip the binary
-$(strip_output): $(strip_input) | $(SOSLIM)
+$(strip_output): $(strip_input) | $(SOSLIM) $(RETOUCH_PRE)
 	$(transform-to-stripped)
 else
 # Don't strip the binary, just copy it.  We can't skip this step
@@ -133,14 +133,19 @@ else
 #
 # If the binary we're copying is acp or a prerequisite,
 # use cp(1) instead.
+#
+# If this is a pre-linked binary, make sure to build a .retouch
+# file as well. Usually this happens for prebuilt .so files.
 ifneq ($(LOCAL_ACP_UNAVAILABLE),true)
-$(strip_output): $(strip_input) | $(ACP)
+$(strip_output): $(strip_input) | $(ACP) $(RETOUCH_PRE)
 	@echo "target Unstripped: $(PRIVATE_MODULE) ($@)"
 	$(copy-file-to-target)
+        $(RETOUCH_PRE) $<.apriori-relocations $@ $@.retouch
 else
-$(strip_output): $(strip_input)
+$(strip_output): $(strip_input) | $(RETOUCH_PRE)
 	@echo "target Unstripped: $(PRIVATE_MODULE) ($@)"
 	$(copy-file-to-target-with-cp)
+        $(RETOUCH_PRE) $<.apriori-relocations $@ $@.retouch
 endif
 endif # LOCAL_STRIP_MODULE
 
