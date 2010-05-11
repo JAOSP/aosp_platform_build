@@ -1048,6 +1048,8 @@ define transform-to-stripped
 @mkdir -p $(dir $@)
 @echo "target Strip: $(PRIVATE_MODULE) ($@)"
 $(hide) $(SOSLIM) --strip --shady --quiet $< --outfile $@
+@echo "target Retouch: $(PRIVATE_MODULE) ($@)"
+$(hide) $(RETOUCH_PRE) $<.apriori-relocations $@ $@.retouch
 endef
 
 define transform-to-prelinked
@@ -1468,11 +1470,19 @@ define copy-file-to-target
 $(hide) $(ACP) -fpt $< $@
 endef
 
+define copy-retouch-file-to-target
+mkdir -p $(dir $@); $(ACP) -fpt $<.retouch $@.retouch;
+endef
+
 # The same as copy-file-to-target, but use the local
 # cp command instead of acp.
 define copy-file-to-target-with-cp
 @mkdir -p $(dir $@)
 $(hide) cp -fp $< $@
+endef
+
+define copy-retouch-file-to-target-with-cp
+mkdir -p $(dir $@); cp -fp $<.retouch $@.retouch;
 endef
 
 # The same as copy-file-to-target, but use the zipalign tool to do so.
