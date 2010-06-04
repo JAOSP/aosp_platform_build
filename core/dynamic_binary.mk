@@ -125,8 +125,13 @@ endif
 
 ifeq ($(LOCAL_STRIP_MODULE),true)
 # Strip the binary
+ifeq ($(TARGET_STRIPPER),)
 $(strip_output): $(strip_input) | $(SOSLIM)
 	$(transform-to-stripped)
+else
+$(strip_output): $(strip_input)
+	$(transform-to-stripped)
+endif
 else
 # Don't strip the binary, just copy it.  We can't skip this step
 # because a copy of the binary must appear at LOCAL_BUILT_MODULE.
