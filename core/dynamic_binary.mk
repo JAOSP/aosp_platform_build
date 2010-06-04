@@ -125,7 +125,7 @@ endif
 
 ifeq ($(LOCAL_STRIP_MODULE),true)
 # Strip the binary
-$(strip_output): $(strip_input) | $(SOSLIM)
+$(strip_output): $(strip_input)
 	$(transform-to-stripped)
 else
 # Don't strip the binary, just copy it.  We can't skip this step
