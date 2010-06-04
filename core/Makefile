@@ -686,7 +686,7 @@ endef
 
 system_tar := $(PRODUCT_OUT)/system.tar
 INSTALLED_SYSTEMTARBALL_TARGET := $(system_tar).bz2
-$(INSTALLED_SYSTEMTARBALL_TARGET): PRIVATE_SYSTEM_TAR := $(system_tar)
+PRIVATE_SYSTEM_TAR := $(system_tar)
 $(INSTALLED_SYSTEMTARBALL_TARGET): $(FS_GET_STATS) $(INTERNAL_SYSTEMIMAGE_FILES)
 	$(build-systemtarball-target)
 
