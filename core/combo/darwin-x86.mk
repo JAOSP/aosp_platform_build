@@ -13,6 +13,8 @@ $(combo_target)NO_UNDEFINED_LDFLAGS := -Wl,-undefined,error
 $(combo_target)CC := $(CC)
 $(combo_target)CXX := $(CXX)
 $(combo_target)AR := $(AR)
+$(combo_target)STRIP := $(STRIP)
+$(combo_target)STRIP_COMMAND = $($(combo_target)STRIP) --strip-debug $< -o $@
 
 $(combo_target)SHLIB_SUFFIX := .dylib
 $(combo_target)JNILIB_SUFFIX := .jnilib

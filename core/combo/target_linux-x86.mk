@@ -12,6 +12,8 @@ $(combo_target)CXX := $($(combo_target)TOOLS_PREFIX)g++$(HOST_EXECUTABLE_SUFFIX)
 $(combo_target)AR := $($(combo_target)TOOLS_PREFIX)ar$(HOST_EXECUTABLE_SUFFIX)
 $(combo_target)OBJCOPY := $($(combo_target)TOOLS_PREFIX)objcopy$(HOST_EXECUTABLE_SUFFIX)
 $(combo_target)LD := $($(combo_target)TOOLS_PREFIX)ld$(HOST_EXECUTABLE_SUFFIX)
+$(combo_target)STRIP := $($(combo_target)TOOLS_PREFIX)strip$(HOST_EXECUTABLE_SUFFIX)
+$(combo_target)STRIP_COMMAND = $($(combo_target)STRIP) --strip-debug $< -o $@
 
 ifneq ($(wildcard $($(combo_target)CC)),)
 $(combo_target)LIBGCC := \
@@ -65,7 +67,7 @@ TARGET_CRTEND_O := $(TARGET_OUT_STATIC_LIBRARIES)/crtend_android.o
 TARGET_CRTBEGIN_SO_O := $(TARGET_OUT_STATIC_LIBRARIES)/crtbegin_so.o
 TARGET_CRTEND_SO_O := $(TARGET_OUT_STATIC_LIBRARIES)/crtend_so.o
 
-# TARGET_STRIP_MODULE:=true
+TARGET_STRIP_MODULE:=true
 
 $(combo_target)DEFAULT_SYSTEM_SHARED_LIBRARIES := libc libstdc++ libm
 

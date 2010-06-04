@@ -46,6 +46,8 @@ $(combo_target)CXX := $($(combo_target)TOOLS_PREFIX)g++$(HOST_EXECUTABLE_SUFFIX)
 $(combo_target)AR := $($(combo_target)TOOLS_PREFIX)ar$(HOST_EXECUTABLE_SUFFIX)
 $(combo_target)OBJCOPY := $($(combo_target)TOOLS_PREFIX)objcopy$(HOST_EXECUTABLE_SUFFIX)
 $(combo_target)LD := $($(combo_target)TOOLS_PREFIX)ld$(HOST_EXECUTABLE_SUFFIX)
+$(combo_target)STRIP := $(HOST_OUT_EXECUTABLES)/soslim$(HOST_EXECUTABLE_SUFFIX)
+$(combo_target)STRIP_COMMAND = $($(combo_target)STRIP) --strip --shady --quiet $< --outfile $@
 
 $(combo_target)NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
 
