@@ -19,6 +19,7 @@ combo_os_arch := $($(combo_target)OS)-$($(combo_target)ARCH)
 HOST_CC ?= $(CC)
 HOST_CXX ?= $(CXX)
 HOST_AR ?= $(AR)
+HOST_STRIP ?= $(STRIP)
 
 $(combo_target)BINDER_MINI := 0
 

@@ -46,6 +46,7 @@ $(combo_target)CXX := $($(combo_target)TOOLS_PREFIX)g++$(HOST_EXECUTABLE_SUFFIX)
 $(combo_target)AR := $($(combo_target)TOOLS_PREFIX)ar$(HOST_EXECUTABLE_SUFFIX)
 $(combo_target)OBJCOPY := $($(combo_target)TOOLS_PREFIX)objcopy$(HOST_EXECUTABLE_SUFFIX)
 $(combo_target)LD := $($(combo_target)TOOLS_PREFIX)ld$(HOST_EXECUTABLE_SUFFIX)
+$(combo_target)STRIP := $($(combo_target)TOOLS_PREFIX)strip$(HOST_EXECUTABLE_SUFFIX)
 
 $(combo_target)NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
 

@@ -1041,14 +1041,19 @@ endef
 ## Commands for filtering a target executable or library
 ###########################################################
 
-# Because of bug 743462 ("Prelinked image magic gets stripped
-# by arm-elf-objcopy"), we have to use soslim to strip target
-# binaries.
+ifeq ($(TARGET_USE_STRIP),true)
+define transform-to-stripped
+@mkdir -p $(dir $@)
+@echo "target Strip: $(PRIVATE_MODULE) ($@)"
+$(hide) $($(combo_target)STRIP) --strip-debug $< -o $@
+endef
+else
 define transform-to-stripped
 @mkdir -p $(dir $@)
 @echo "target Strip: $(PRIVATE_MODULE) ($@)"
 $(hide) $(SOSLIM) --strip --shady --quiet $< --outfile $@
 endef
+endif
 
 define transform-to-prelinked
 @mkdir -p $(dir $@)

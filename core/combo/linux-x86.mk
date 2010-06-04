@@ -4,6 +4,7 @@
 # right now we get these from the environment, but we should
 # pick them from the tree somewhere
 $(combo_target)CC := $(CC)
+$(combo_target)STRIP := $(STRIP)
 $(combo_target)CXX := $(CXX)
 $(combo_target)AR := $(AR)
 
