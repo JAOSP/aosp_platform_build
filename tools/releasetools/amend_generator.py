@@ -192,6 +192,14 @@ class AmendGenerator(object):
     self.script.extend(["symlink %s %s" % (i[0], self._FileRoot(i[1]))
                         for i in sorted(symlink_list)])
 
+  def RetouchBinaries(self, file_list):
+    """Execute the retouch instructions in '/system/lib/*.retouch'."""
+    # no op for amend, for now
+
+  def UndoRetouchBinaries(self, file_list):
+    """Undo the retouching [in preparation for an update]."""
+    # no op for amend, for now
+
   def AppendExtra(self, extra):
     """Append text verbatim to the output script."""
     self.script.append(extra)

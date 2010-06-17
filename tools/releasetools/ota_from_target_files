@@ -48,6 +48,9 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
       Specify 'amend' or 'edify' scripts, or 'auto' to pick
       automatically (this is the default).
 
+  -a  (--use_aslr)
+      Specify whether to build the package with ASLR enabled (off by default).
+
 """
 
 import sys
@@ -82,6 +85,7 @@ OPTIONS.wipe_user_data = False
 OPTIONS.omit_prereq = False
 OPTIONS.extra_script = None
 OPTIONS.script_mode = 'auto'
+OPTIONS.aslr_mode = False
 OPTIONS.worker_threads = 3
 
 def MostPopularKey(d, default):
@@ -98,6 +102,10 @@ def IsSymlink(info):
   symlink."""
   return (info.external_attr >> 16) == 0120777
 
+def IsRegular(info):
+  """Return true if the zipfile.ZipInfo object passed in represents a
+  symlink."""
+  return (info.external_attr >> 28) == 010
 
 
 class Item:
@@ -253,13 +261,15 @@ def CopySystemFiles(input_zip, output_zip=None,
                     substitute=None):
   """Copies files underneath system/ in the input zip to the output
   zip.  Populates the Item class with their metadata, and returns a
-  list of symlinks.  output_zip may be None, in which case the copy is
-  skipped (but the other side effects still happen).  substitute is an
-  optional dict of {output filename: contents} to be output instead of
-  certain input files.
+  list of symlinks as well as a list of files that will be retouched.
+  output_zip may be None, in which case the copy is skipped (but the
+  other side effects still happen).  substitute is an optional dict
+  of {output filename: contents} to be output instead of certain input
+  files.
   """
 
   symlinks = []
+  retouch_files = []
 
   for info in input_zip.infolist():
     if info.filename.startswith("SYSTEM/"):
@@ -277,6 +287,9 @@ def CopySystemFiles(input_zip, output_zip=None,
             data = substitute[fn]
           else:
             data = input_zip.read(info.filename)
+          if info.filename.startswith("SYSTEM/lib/") and IsRegular(info):
+            retouch_files.append(("/system/" + basefilename,
+                                  sha.sha(data).hexdigest()))
           output_zip.writestr(info2, data)
         if fn.endswith("/"):
           Item.Get(fn[:-1], dir=True)
@@ -284,7 +297,7 @@ def CopySystemFiles(input_zip, output_zip=None,
           Item.Get(fn, dir=False)
 
   symlinks.sort()
-  return symlinks
+  return (symlinks, retouch_files)
 
 
 def SignOutput(temp_zip_name, output_zip_name):
@@ -383,8 +396,12 @@ def WriteFullOTAPackage(input_zip, output_zip):
   script.UnpackPackageDir("recovery", "/system")
   script.UnpackPackageDir("system", "/system")
 
-  symlinks = CopySystemFiles(input_zip, output_zip)
+  (symlinks, retouch_files) = CopySystemFiles(input_zip, output_zip)
   script.MakeSymlinks(symlinks)
+  if OPTIONS.aslr_mode:
+    script.RetouchBinaries(retouch_files)
+  else:
+    script.UndoRetouchBinaries(retouch_files)
 
   boot_img = File("boot.img", common.BuildBootableImage(
       os.path.join(OPTIONS.input_tmp, "BOOT")))
@@ -440,12 +457,17 @@ def LoadSystemFiles(z):
   """Load all the files from SYSTEM/... in a given target-files
   ZipFile, and return a dict of {filename: File object}."""
   out = {}
+  retouch_files = []
   for info in z.infolist():
     if info.filename.startswith("SYSTEM/") and not IsSymlink(info):
-      fn = "system/" + info.filename[7:]
+      basefilename = info.filename[7:]
+      fn = "system/" + basefilename
       data = z.read(info.filename)
       out[fn] = File(fn, data)
-  return out
+      if info.filename.startswith("SYSTEM/lib/") and IsRegular(info):
+        retouch_files.append(("/system/" + basefilename,
+                              out[fn].sha1))
+  return (out, retouch_files)
 
 
 DIFF_PROGRAM_BY_EXT = {
@@ -616,9 +638,9 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
       metadata=metadata)
 
   print "Loading target..."
-  target_data = LoadSystemFiles(target_zip)
+  (target_data, target_retouch_files) = LoadSystemFiles(target_zip)
   print "Loading source..."
-  source_data = LoadSystemFiles(source_zip)
+  (source_data, source_retouch_files) = LoadSystemFiles(source_zip)
 
   verbatim_targets = []
   patch_list = []
@@ -783,7 +805,7 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
 
   script.ShowProgress(0.1, 10)
 
-  target_symlinks = CopySystemFiles(target_zip, None)
+  (target_symlinks, target_retouch_dummies) = CopySystemFiles(target_zip, None)
 
   target_symlinks_d = dict([(i[1], i[0]) for i in target_symlinks])
   temp_script = script.MakeTemporary()
@@ -792,7 +814,7 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
 
   # Note that this call will mess up the tree of Items, so make sure
   # we're done with it.
-  source_symlinks = CopySystemFiles(source_zip, None)
+  (source_symlinks, source_retouch_dummies) = CopySystemFiles(source_zip, None)
   source_symlinks_d = dict([(i[1], i[0]) for i in source_symlinks])
 
   # Delete all the symlinks in source that aren't in target.  This
@@ -826,6 +848,10 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
       to_create.append((dest, link))
   script.DeleteFiles([i[1] for i in to_create])
   script.MakeSymlinks(to_create)
+  if OPTIONS.aslr_mode:
+    script.RetouchBinaries(target_retouch_files)
+  else:
+    script.UndoRetouchBinaries(target_retouch_files)
 
   # Now that the symlinks are created, we can set all the
   # permissions.
@@ -858,6 +884,8 @@ def main(argv):
       OPTIONS.extra_script = a
     elif o in ("-m", "--script_mode"):
       OPTIONS.script_mode = a
+    elif o in ("-a", "--use_aslr"):
+      OPTIONS.aslr_mode = True
     elif o in ("--worker_threads"):
       OPTIONS.worker_threads = int(a)
     else:
@@ -865,7 +893,7 @@ def main(argv):
     return True
 
   args = common.ParseOptions(argv, __doc__,
-                             extra_opts="b:k:i:d:wne:m:",
+                             extra_opts="b:k:i:d:wne:m:a",
                              extra_long_opts=["board_config=",
                                               "package_key=",
                                               "incremental_from=",
@@ -873,7 +901,8 @@ def main(argv):
                                               "no_prereq",
                                               "extra_script=",
                                               "script_mode=",
-                                              "worker_threads="],
+                                              "worker_threads=",
+                                              "use_aslr"],
                              extra_option_handler=option_handler)
 
   if len(args) != 2:

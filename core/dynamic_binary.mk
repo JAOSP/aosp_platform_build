@@ -140,12 +140,15 @@ else
 #
 # If the binary we're copying is acp or a prerequisite,
 # use cp(1) instead.
+#
+# If this is a pre-linked binary, make sure to build a .retouch
+# file as well. Usually this happens for prebuilt .so files.
 ifneq ($(LOCAL_ACP_UNAVAILABLE),true)
-$(strip_output): $(strip_input) | $(ACP)
+$(strip_output): $(strip_input) | $(ACP) $(RETOUCH_PRE)
 	@echo "target Unstripped: $(PRIVATE_MODULE) ($@)"
 	$(copy-file-to-target)
 else
-$(strip_output): $(strip_input)
+$(strip_output): $(strip_input) | $(RETOUCH_PRE)
 	@echo "target Unstripped: $(PRIVATE_MODULE) ($@)"
 	$(copy-file-to-target-with-cp)
 endif

@@ -55,6 +55,8 @@ class BothGenerator(object):
   def SetPermissions(self, *a): self._DoBoth("SetPermissions", *a)
   def SetPermissionsRecursive(self, *a): self._DoBoth("SetPermissionsRecursive", *a)
   def MakeSymlinks(self, *a): self._DoBoth("MakeSymlinks", *a)
+  def RetouchBinaries(self, *a): self._DoBoth("RetouchBinaries", *a)
+  def UndoRetouchBinaries(self, *a): self._DoBoth("UndoRetouchBinaries", *a)
   def AppendExtra(self, *a): self._DoBoth("AppendExtra", *a)
   def UnmountAll(self, *a): self._DoBoth("UnmountAll", *a)
 
