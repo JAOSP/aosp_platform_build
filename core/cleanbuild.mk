@@ -133,7 +133,11 @@ PREVIOUS_BUILD_CONFIG :=
 -include $(previous_build_config_file)
 PREVIOUS_BUILD_CONFIG := $(strip $(PREVIOUS_BUILD_CONFIG))
 ifdef PREVIOUS_BUILD_CONFIG
-  ifneq "$(current_build_config)" "$(PREVIOUS_BUILD_CONFIG)"
+  current_config_stripped := $(subst -sdk,, "$(current_build_config)")
+  old_config_stripped := $(subst -sdk,, "$(PREVIOUS_BUILD_CONFIG)")
+  # clean the build only if we're actually switching configs
+  # generating an sdk doesn't need a rebuild
+  ifneq "$(current_config_stripped)" "$(old_config_stripped)"
     $(info *** Build configuration changed: "$(PREVIOUS_BUILD_CONFIG)" -> "$(current_build_config)")
     ifneq ($(DISABLE_AUTO_INSTALLCLEAN),true)
       force_installclean := true
