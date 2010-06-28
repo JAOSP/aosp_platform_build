@@ -451,6 +451,7 @@ ifndef LOCAL_UNINSTALLABLE_MODULE
   # acp and libraries that it uses can't use acp for
   # installation;  hence, LOCAL_ACP_UNAVAILABLE.
 ifneq ($(LOCAL_ACP_UNAVAILABLE),true)
+.LOW_RESOLUTION_TIME: $(LOCAL_INSTALLED_MODULE)
 $(LOCAL_INSTALLED_MODULE): $(LOCAL_BUILT_MODULE) | $(ACP)
 	@echo "Install: $@"
 	$(copy-file-to-target)
