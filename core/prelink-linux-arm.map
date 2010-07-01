@@ -93,6 +93,7 @@ libsoundpool.so         0xA9800000 # [~1M]
 libaudio.so             0xA9700000 # [~1M]
 libspeech.so            0xA9600000 # [~1M]
 libsonivox.so           0xA9500000 # [~1M]
+libWavPack.so           0xA9480000 #
 libvorbisidec.so        0xA9400000 # [~1M]
 libmedia_jni.so         0xA9300000 # [~1M]
 libmediaplayerservice.so 0xA9200000 # [~1M]
