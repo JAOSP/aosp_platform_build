@@ -760,9 +760,11 @@ endef
 ## Commands for running gcc to compile a C++ file
 ###########################################################
 
+ECHO_ARM_MODE = $(if $(filter arm,$(TARGET_ARCH)), $(PRIVATE_ARM_MODE))
+
 define transform-cpp-to-o
 @mkdir -p $(dir $@)
-@echo "target $(PRIVATE_ARM_MODE) C++: $(PRIVATE_MODULE) <= $<"
+@echo "target$(ECHO_ARM_MODE) C++: $(PRIVATE_MODULE) <= $<"
 $(hide) $(PRIVATE_CXX) \
 	$(foreach incdir, \
 	    $(PRIVATE_C_INCLUDES) \
@@ -817,7 +819,7 @@ $(hide) $(PRIVATE_CC) \
 endef
 
 define transform-c-to-o-no-deps
-@echo "target $(PRIVATE_ARM_MODE) C: $(PRIVATE_MODULE) <= $<"
+@echo "target$(ECHO_ARM_MODE) C: $(PRIVATE_MODULE) <= $<"
 $(call transform-c-or-s-to-o-no-deps, )
 endef
 
