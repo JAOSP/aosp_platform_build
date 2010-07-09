@@ -49,6 +49,7 @@ ifeq ($(strip $(LOCAL_ALLOW_UNDEFINED_SYMBOLS)),)
 endif
 endif
 
+ifeq ($(TARGET_ARCH),arm)
 ###########################################################
 ## Define arm-vs-thumb-mode flags.
 ###########################################################
@@ -61,6 +62,7 @@ normal_objects_mode := $(if $(LOCAL_ARM_MODE),$(LOCAL_ARM_MODE),thumb)
 # actually used (although they are usually empty).
 arm_objects_cflags := $($(my_prefix)$(arm_objects_mode)_CFLAGS)
 normal_objects_cflags := $($(my_prefix)$(normal_objects_mode)_CFLAGS)
+endif
 
 ###########################################################
 ## Define per-module debugging flags.  Users can turn on
