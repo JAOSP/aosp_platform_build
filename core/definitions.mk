@@ -775,9 +775,9 @@ $(hide) $(PRIVATE_CXX) \
 	 ) \
 	-c \
 	$(if $(PRIVATE_NO_DEFAULT_COMPILER_FLAGS),, \
-	    $(TARGET_GLOBAL_CFLAGS) \
-	    $(TARGET_GLOBAL_CPPFLAGS) \
-	    $(PRIVATE_ARM_CFLAGS) \
+	    $(filter-out $(PRIVATE_DISABLED_CFLAGS),$(TARGET_GLOBAL_CFLAGS)) \
+	    $(filter-out $(PRIVATE_DISABLED_CPPFLAGS),$(TARGET_GLOBAL_CPPFLAGS)) \
+	    $(filter-out $(PRIVATE_DISABLED_CFLAGS),$(PRIVATE_ARM_CFLAGS)) \
 	 ) \
 	-fno-rtti \
 	$(PRIVATE_CFLAGS) \
@@ -807,8 +807,8 @@ $(hide) $(PRIVATE_CC) \
 	 ) \
 	-c \
 	$(if $(PRIVATE_NO_DEFAULT_COMPILER_FLAGS),, \
-	    $(TARGET_GLOBAL_CFLAGS) \
-	    $(PRIVATE_ARM_CFLAGS) \
+	    $(filter-out $(PRIVATE_DISABLED_CFLAGS),$(TARGET_GLOBAL_CFLAGS)) \
+	    $(filter-out $(PRIVATE_DISABLED_CFLAGS),$(PRIVATE_ARM_CFLAGS)) \
 	 ) \
 	$(PRIVATE_CFLAGS) \
 	$(1) \
@@ -871,8 +871,8 @@ $(hide) $(PRIVATE_CXX) \
 	 ) \
 	-c \
 	$(if $(PRIVATE_NO_DEFAULT_COMPILER_FLAGS),, \
-	    $(HOST_GLOBAL_CFLAGS) \
-	    $(HOST_GLOBAL_CPPFLAGS) \
+	    $(filter-out $(PRIVATE_DISABLED_CFLAGS),$(HOST_GLOBAL_CFLAGS)) \
+	    $(filter-out $(PRIVATE_DISABLED_CPPFLAGS),$(HOST_GLOBAL_CPPFLAGS)) \
 	 ) \
 	$(PRIVATE_CFLAGS) \
 	$(PRIVATE_CPPFLAGS) \
@@ -901,7 +901,7 @@ $(hide) $(PRIVATE_CC) \
 	 ) \
 	-c \
 	$(if $(PRIVATE_NO_DEFAULT_COMPILER_FLAGS),, \
-	    $(HOST_GLOBAL_CFLAGS) \
+	    $(filter-out $(PRIVATE_DISABLED_CFLAGS),$(HOST_GLOBAL_CFLAGS)) \
 	 ) \
 	$(PRIVATE_CFLAGS) \
 	$(1) \
