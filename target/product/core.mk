@@ -44,7 +44,8 @@ PRODUCT_PACKAGES := \
     UserDictionaryProvider \
     PackageInstaller \
     DefaultContainerService \
-    Bugreport
+    Bugreport \
+    WAPPushManager
 
 PRODUCT_PROPERTY_OVERRIDES += \
     media.stagefright.enable-player=true \
