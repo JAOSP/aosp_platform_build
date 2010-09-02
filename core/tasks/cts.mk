@@ -27,6 +27,7 @@ CTS_HOST_JAR := $(HOST_OUT_JAVA_LIBRARIES)/cts.jar
 
 junit_host_jar := $(HOST_OUT_JAVA_LIBRARIES)/junit.jar
 HOSTTESTLIB_JAR := $(HOST_OUT_JAVA_LIBRARIES)/hosttestlib.jar
+CTSTESTANNOTATIONSHOSTLIB_JAR := $(HOST_OUT_JAVA_LIBRARIES)/CtsTestAnnotationsHostLib.jar
 
 CTS_CORE_CASE_LIST := android.core.tests.annotation \
 	android.core.tests.archive \
@@ -57,7 +58,7 @@ DEFAULT_TEST_PLAN := $(PRIVATE_DIR)/resource/plans
 
 $(cts_dir)/all_cts_files_stamp: PRIVATE_JUNIT_HOST_JAR := $(junit_host_jar)
 
-$(cts_dir)/all_cts_files_stamp: $(CTS_CASE_LIST) $(junit_host_jar) $(HOSTTESTLIB_JAR) $(ACP)
+$(cts_dir)/all_cts_files_stamp: $(CTS_CASE_LIST) $(junit_host_jar) $(HOSTTESTLIB_JAR) $(CTSTESTANNOTATIONSHOSTLIB_JAR) $(ACP)
 # Make necessary directory for CTS
 	@rm -rf $(PRIVATE_CTS_DIR)
 	@mkdir -p $(TMP_DIR)
@@ -72,6 +73,8 @@ $(cts_dir)/all_cts_files_stamp: $(CTS_CASE_LIST) $(junit_host_jar) $(HOSTTESTLIB
 	$(hide) $(ACP) -fp $(PRIVATE_JUNIT_HOST_JAR) $(PRIVATE_DIR)/tools
 # Copy hosttestlib jar
 	$(hide) $(ACP) -fp $(HOSTTESTLIB_JAR) $(PRIVATE_DIR)/tools
+# Copy CtsTestAnnotationsHostLib jar
+	$(hide) $(ACP) -fp $(CTSTESTANNOTATIONSHOSTLIB_JAR) $(PRIVATE_DIR)/tools
 # Change mode of the executables
 	$(hide) chmod ug+rwX $(PRIVATE_DIR)/tools/$(notdir $(CTS_EXECUTABLE_PATH))
 	$(foreach apk,$(CTS_CASE_LIST), \
