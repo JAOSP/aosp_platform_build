@@ -29,8 +29,10 @@ function get_abs_build_var()
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
+    pushd $T > /dev/null
     CALLED_FROM_SETUP=true BUILD_SYSTEM=build/core \
       make --no-print-directory -C "$T" -f build/core/config.mk dumpvar-abs-$1
+    popd > /dev/null
 }
 
 # Get the exact value of a build variable.
