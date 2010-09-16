@@ -361,7 +361,7 @@ endif
 ifeq ($(SDK_ONLY),true)
 
 # ----- SDK for Windows ------
-# These configure the build targets that are available for the SDK under Windows.
+# These configure the build targets that are available for the Windows SDK.
 # The first section defines all the C/C++ tools that can be compiled in C/C++,
 # the second section defines all the Java ones (assuming javac is available.)
 
@@ -379,6 +379,7 @@ subdirs := \
 	external/easymock \
 	external/expat \
 	external/libpng \
+	external/proguard \
 	external/qemu \
 	external/sqlite/dist \
 	external/zlib \
