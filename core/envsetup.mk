@@ -94,6 +94,10 @@ ifneq (,$(findstring Power,$(UNAME)))
 	HOST_ARCH := ppc
 endif
 
+ifneq (,$(findstring ppc,$(UNAME)))
+	HOST_ARCH := ppc
+endif
+
 BUILD_ARCH := $(HOST_ARCH)
 
 ifeq ($(HOST_ARCH),)
