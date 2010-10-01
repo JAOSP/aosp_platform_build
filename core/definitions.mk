@@ -823,7 +823,7 @@ endef
 
 define transform-s-to-o-no-deps
 @echo "target asm: $(PRIVATE_MODULE) <= $<"
-$(call transform-c-or-s-to-o-no-deps, $(PRIVATE_ASFLAGS))
+$(call transform-c-or-s-to-o-no-deps, "-D__ASSEMBLY__ $(PRIVATE_ASFLAGS)")
 endef
 
 define transform-c-to-o
@@ -916,7 +916,7 @@ endef
 
 define transform-host-s-to-o-no-deps
 @echo "host asm: $(PRIVATE_MODULE) <= $<"
-$(call transform-host-c-or-s-to-o-no-deps, $(PRIVATE_ASFLAGS))
+$(call transform-host-c-or-s-to-o-no-deps, "-D__ASSEMBLY__ $(PRIVATE_ASFLAGS)")
 endef
 
 define transform-host-c-to-o
