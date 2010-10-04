@@ -28,20 +28,6 @@ endif
 
 PACKAGES.$(LOCAL_MODULE).OVERRIDES := $(strip $(LOCAL_OVERRIDES_PACKAGES))
 
-# Ensure that prebuilt .apks have been aligned.
-ifneq ($(filter APPS,$(LOCAL_MODULE_CLASS)),)
-$(LOCAL_BUILT_MODULE) : $(LOCAL_PATH)/$(LOCAL_SRC_FILES) | $(ZIPALIGN)
-	$(transform-prebuilt-to-target-with-zipalign)
-else
-ifneq ($(LOCAL_PREBUILT_STRIP_COMMENTS),)
-$(LOCAL_BUILT_MODULE) : $(LOCAL_PATH)/$(LOCAL_SRC_FILES)
-	$(transform-prebuilt-to-target-strip-comments)
-else
-$(LOCAL_BUILT_MODULE) : $(LOCAL_PATH)/$(LOCAL_SRC_FILES) | $(ACP)
-	$(transform-prebuilt-to-target)
-endif
-endif
-
 ifeq ($(LOCAL_CERTIFICATE),EXTERNAL)
   # The magic string "EXTERNAL" means this package will be signed with
   # the test key throughout the build process, but we expect the final
@@ -73,9 +59,38 @@ else
       LOCAL_CERTIFICATE := $(SRC_TARGET_DIR)/product/security/$(LOCAL_CERTIFICATE)
   endif
 
-  PACKAGES.$(LOCAL_MODULE).PRIVATE_KEY := $(LOCAL_CERTIFICATE).pk8
-  PACKAGES.$(LOCAL_MODULE).CERTIFICATE := $(LOCAL_CERTIFICATE).x509.pem
+  private_key := $(LOCAL_CERTIFICATE).pk8
+  certificate := $(LOCAL_CERTIFICATE).x509.pem
+
+$(LOCAL_BUILT_MODULE): $(private_key) $(certificate) $(SIGNAPK_JAR)
+$(LOCAL_BUILT_MODULE): PRIVATE_PRIVATE_KEY := $(private_key)
+$(LOCAL_BUILT_MODULE): PRIVATE_CERTIFICATE := $(certificate)
+
+  PACKAGES.$(LOCAL_MODULE).PRIVATE_KEY := $(private_key)
+  PACKAGES.$(LOCAL_MODULE).CERTIFICATE := $(certificate)
+
   PACKAGES := $(PACKAGES) $(LOCAL_MODULE)
+endif
+
+# Ensure that prebuilt .apks have been aligned.
+ifneq ($(filter APPS,$(LOCAL_MODULE_CLASS)),)
+$(LOCAL_BUILT_MODULE) : $(LOCAL_PATH)/$(LOCAL_SRC_FILES) | $(ZIPALIGN)
+ifneq ($(LOCAL_CERTIFICATE),PRESIGNED)
+	$(transform-prebuilt-to-target)
+	$(sign-package)
+	@# Alignment must happen after all other zip operations.
+	$(align-package)
+else
+	$(transform-prebuilt-to-target-with-zipalign)
+endif
+else
+ifneq ($(LOCAL_PREBUILT_STRIP_COMMENTS),)
+$(LOCAL_BUILT_MODULE) : $(LOCAL_PATH)/$(LOCAL_SRC_FILES)
+	$(transform-prebuilt-to-target-strip-comments)
+else
+$(LOCAL_BUILT_MODULE) : $(LOCAL_PATH)/$(LOCAL_SRC_FILES) | $(ACP)
+	$(transform-prebuilt-to-target)
+endif
 endif
 
 ifneq ($(prebuilt_module_is_a_library),)
