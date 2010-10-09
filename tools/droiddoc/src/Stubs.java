@@ -30,7 +30,7 @@ public class Stubs {
     public static void writeStubs(String stubsDir, Boolean writeXML, String xmlFile,
             HashSet<String> stubPackages) {
         // figure out which classes we need
-        notStrippable = new HashSet();
+        notStrippable = new HashSet<ClassInfo>();
         ClassInfo[] all = Converter.allClasses();
         File  xml = new File(xmlFile);
         xml.getParentFile().mkdirs();
@@ -359,7 +359,7 @@ public class Stubs {
             stream.print("strictfp ");
         }
 
-        HashSet<String> classDeclTypeVars = new HashSet();
+        HashSet<String> classDeclTypeVars = new HashSet<String>();
         String leafName = cl.asTypeInfo().fullName(classDeclTypeVars);
         int bracket = leafName.indexOf('<');
         if (bracket < 0) bracket = leafName.length() - 1;
@@ -547,7 +547,7 @@ public class Stubs {
             stream.print("strictfp ");
         }
 
-        stream.print(method.typeArgumentsName(new HashSet()) + " ");
+        stream.print(method.typeArgumentsName(new HashSet<String>()) + " ");
 
         if (!isConstructor) {
             stream.print(method.returnType().fullName(method.typeVariables()) + " ");

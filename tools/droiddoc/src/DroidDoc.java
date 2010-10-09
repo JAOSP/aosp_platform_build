@@ -178,7 +178,7 @@ public class DroidDoc
                 stubsDir = a[1];
             }
             else if (a[0].equals("-stubpackages")) {
-                stubPackages = new HashSet();
+                stubPackages = new HashSet<String>();
                 for (String pkg: a[1].split(":")) {
                     stubPackages.add(pkg);
                 }
@@ -706,7 +706,7 @@ public class DroidDoc
             sorted.put(name, pkg);
         }
 
-        ArrayList<PackageInfo> result = new ArrayList();
+        ArrayList<PackageInfo> result = new ArrayList<PackageInfo>();
 
         for (String s: sorted.keySet()) {
             PackageInfo pkg = sorted.get(s);

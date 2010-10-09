@@ -689,8 +689,10 @@ public class Converter
     }
 
     // annotation values
-    private static HashMap<AnnotationValue,AnnotationValueInfo> mAnnotationValues = new HashMap();
-    private static HashSet<AnnotationValue> mAnnotationValuesNeedingInit = new HashSet();
+    private static HashMap<AnnotationValue,AnnotationValueInfo> mAnnotationValues =
+            new HashMap<AnnotationValue,AnnotationValueInfo>();
+    private static HashSet<AnnotationValue> mAnnotationValuesNeedingInit =
+            new HashSet<AnnotationValue>();
 
     private static AnnotationValueInfo obtainAnnotationValue(AnnotationValue o, MethodInfo element)
     {
@@ -743,7 +745,7 @@ public class Converter
         int depth = 0;
         while (mAnnotationValuesNeedingInit.size() > 0) {
             HashSet<AnnotationValue> set = mAnnotationValuesNeedingInit;
-            mAnnotationValuesNeedingInit = new HashSet();
+            mAnnotationValuesNeedingInit = new HashSet<AnnotationValue>();
             for (AnnotationValue o: set) {
                 AnnotationValueInfo v = mAnnotationValues.get(o);
                 initAnnotationValue(o, v);

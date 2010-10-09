@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class NavTree {
 
     public static void writeNavTree(String dir) {
-        ArrayList<Node> children = new ArrayList();
+        ArrayList<Node> children = new ArrayList<Node>();
         for (PackageInfo pkg: DroidDoc.choosePackages()) {
             children.add(makePackageNode(pkg));
         }
@@ -44,7 +44,7 @@ public class NavTree {
     }
 
     private static Node makePackageNode(PackageInfo pkg) {
-        ArrayList<Node> children = new ArrayList();
+        ArrayList<Node> children = new ArrayList<Node>();
 
         children.add(new Node("Description", pkg.fullDescriptionHtmlPage(), null, null));
 
@@ -58,7 +58,7 @@ public class NavTree {
     }
 
     private static void addClassNodes(ArrayList<Node> parent, String label, ClassInfo[] classes) {
-        ArrayList<Node> children = new ArrayList();
+        ArrayList<Node> children = new ArrayList<Node>();
 
         for (ClassInfo cl: classes) {
             if (cl.checkLevel()) {
