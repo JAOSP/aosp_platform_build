@@ -49,7 +49,15 @@ PRODUCT_PACKAGES := \
 	GestureBuilder \
 	SoftKeyboard \
 	CubeLiveWallpapers \
-	QuickSearchBox
+	QuickSearchBox \
+        monkeyrunner \
+        guavalib \
+        jsr305lib \
+	jython \
+        jsilver
+
+# Native host Java libraries that are parts of the SDK.
+# See development/build/sdk.atree
 
 PRODUCT_PACKAGE_OVERLAYS := development/sdk_overlay
 
