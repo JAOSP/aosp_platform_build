@@ -27,6 +27,7 @@ PRODUCT_PROPERTY_OVERRIDES := \
 PRODUCT_PACKAGES := \
     framework-res \
     ip-up-vpn \
+    ip-down-vpn \
     Browser \
     CarHomeLauncher \
     Contacts \
