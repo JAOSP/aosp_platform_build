@@ -162,7 +162,7 @@ endef
 ifeq ($(TARGET_ARCH_VARIANT),x86-atom)
     # Enable recent IA friendly memory routines (such as for Atom)
     # These will not work on the earlier x86 machines
-    TARGET_GLOBAL_CFLAGS += -mtune=i686 -DUSE_SSSE3 -DUSE_SSE2
+    TARGET_GLOBAL_CFLAGS += -mtune=i686 -DUSE_SSSE3 -DUSE_SSE2 -mfpmath=sse -msse2
 endif
 
 TARGET_GLOBAL_CFLAGS += -D__ANDROID__
