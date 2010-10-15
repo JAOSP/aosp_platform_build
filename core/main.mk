@@ -389,6 +389,8 @@ subdirs := \
 	development/tools/line_endings \
 	external/easymock \
 	external/expat \
+        external/guava \
+        external/jsilver \
 	external/libpng \
 	external/qemu \
 	external/sqlite/dist \
@@ -418,6 +420,7 @@ subdirs += \
 	sdk/layoutlib_api \
 	sdk/layoutlib_utils \
 	sdk/layoutopt \
+        sdk/monkeyrunner \
 	sdk/ninepatch \
 	sdk/sdkstats \
 	sdk/sdkmanager \
