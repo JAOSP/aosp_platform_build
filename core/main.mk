@@ -408,7 +408,9 @@ ifneq (,$(shell which javac 2>/dev/null))
 subdirs += \
 	build/tools/signapk \
 	dalvik/dx \
-	libcore \
+        external/guava \
+        external/jsilver \
+        libcore \
 	sdk/archquery \
 	sdk/androidprefs \
 	sdk/apkbuilder \
@@ -418,6 +420,7 @@ subdirs += \
 	sdk/layoutlib_api \
 	sdk/layoutlib_utils \
 	sdk/layoutopt \
+        sdk/monkeyrunner \
 	sdk/ninepatch \
 	sdk/sdkstats \
 	sdk/sdkmanager \
