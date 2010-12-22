@@ -48,6 +48,7 @@ PRODUCT_PACKAGES := \
     libdex \
     libdvm \
     libexpat \
+    libfmradio \
     libicui18n \
     libicuuc \
     libjavacore \

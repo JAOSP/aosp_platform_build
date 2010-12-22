@@ -181,6 +181,7 @@ liblvmxipc.so           0xA2B00000 # [~1M] for vendor/nxp
 libreference-cdma-sms.so 0xA2A00000 # [<64K] for hardware/ril
 
 # libraries for specific apps or temporary libraries
+libfmradio.so           0x9F100000 # [???]
 libcam_ipl.so           0x9F000000 # [???]
 libwbxml.so             0x9EF00000 # [???]
 libwbxml_jni.so         0x9EE00000 # [~1M]
