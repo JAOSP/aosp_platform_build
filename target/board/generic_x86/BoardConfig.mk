@@ -11,6 +11,7 @@ USE_CUSTOM_RUNTIME_HEAP_MAX := "32M"
 TARGET_CPU_ABI := x86
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_BOOTIMAGE_USE_EXT2 := true
+TARGET_USERIMAGES_USE_EXT4_SPARSE := false
 
 # For VirtualBox and likely other emulators
 BOARD_INSTALLER_CMDLINE := init=/init console=ttyS0 console=tty0 androidboot.hardware=generic_x86 vga=788 androidboot.console=tty0 verbose
