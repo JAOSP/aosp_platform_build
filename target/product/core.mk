@@ -56,6 +56,7 @@ PRODUCT_PACKAGES := \
     libsqlite_jni \
     libssl \
     libz \
+    screencap \
     sqlite-jdbc \
     Browser \
     Contacts \
