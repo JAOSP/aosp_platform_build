@@ -1,4 +1,5 @@
 TARGET_ARCH=x86
+TARGET_CPU_SMP := true
 DISABLE_DEXPREOPT := true
 TARGET_COMPRESS_MODULE_SYMBOLS := false
 TARGET_PRELINK_MODULE := false
@@ -13,8 +14,8 @@ TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_BOOTIMAGE_USE_EXT2 := true
 
 # For VirtualBox and likely other emulators
-BOARD_INSTALLER_CMDLINE := init=/init console=ttyS0 console=tty0 androidboot.hardware=generic_x86 vga=788 androidboot.console=tty0 verbose
-BOARD_KERNEL_CMDLINE := init=/init console=tty0 console=ttyS0 androidboot.hardware=generic_x86 vga=788 androidboot.console=tty0 verbose
+BOARD_INSTALLER_CMDLINE := init=/init console=ttyS0 console=tty0 vga=788 verbose
+BOARD_KERNEL_CMDLINE := init=/init console=ttyS0 androidboot.hardware=generic_x86 vga=788 androidboot.console=ttyS0 verbose
 TARGET_USE_DISKINSTALLER := true
 TARGET_DISK_LAYOUT_CONFIG := build/target/board/generic_x86/disk_layout.conf
 BOARD_BOOTIMAGE_MAX_SIZE := 8388608
