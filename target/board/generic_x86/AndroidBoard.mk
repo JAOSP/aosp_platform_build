@@ -1,11 +1,10 @@
 LOCAL_PATH := $(call my-dir)
 
-ifeq ($(TARGET_PREBUILT_KERNEL),)
-LOCAL_KERNEL := prebuilt/android-x86/kernel/kernel
-else
-LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
-endif
+file := $(TARGET_OUT_KEYLAYOUT)/tuttle2.kl
+ALL_PREBUILT += $(file)
+$(file) : $(LOCAL_PATH)/tuttle2.kl | $(ACP)
+        $(transform-prebuilt-to-target)
 
-PRODUCT_COPY_FILES += \
-    $(LOCAL_KERNEL):kernel \
-    $(LOCAL_PATH)/init.rc:root/init.rc
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := tuttle2.kcm
+include $(BUILD_KEY_CHAR_MAP)
