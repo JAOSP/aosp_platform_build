@@ -144,7 +144,7 @@ endif
 # TODO: not clear if this is used any more
 $(full_target): PRIVATE_LOCAL_PATH := $(LOCAL_PATH)
 
-html_dir_files := $(shell find $(LOCAL_PATH)/$(LOCAL_DROIDDOC_HTML_DIR) -type f)
+html_dir_files := $(shell if [ -d "$(LOCAL_PATH)/$(LOCAL_DROIDDOC_HTML_DIR)" ] ; then find $(LOCAL_PATH)/$(LOCAL_DROIDDOC_HTML_DIR) -type f ; fi)
 
 $(full_target): $(full_src_files) $(droiddoc_templates) $(droiddoc) $(html_dir_files) $(full_java_lib_deps) $(LOCAL_ADDITIONAL_DEPENDENCIES)
 	@echo Docs droiddoc: $(PRIVATE_OUT_DIR)
