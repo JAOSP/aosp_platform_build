@@ -1,0 +1,195 @@
+# 0x7F100000 - 0x7FFF0000 Thread 0 stack
+# 0x7F000000 - 0x7F0FFFFF Linker
+
+# 0x70000000 - 0x7EFFFFFF Prelinked System Libraries
+# 0x60000000 - 0x6FFFFFFF Prelinked App Libraries
+# 0x50000000 - 0x5FFFFFFF Non-prelinked Libraries
+# 0x40000000 - 0x4FFFFFFF mmap'd stuff
+# 0x10000000 - 0x3FFFFFFF Thread Stacks
+# 0x00080000 - 0x0FFFFFFF .text / .data / heap
+
+# core system libraries
+libdl.so                       0x7eff0000 # ~0x000010d0 [ <64K]
+libc.so                        0x7ee00000 # ~0x0008612c [  <1M]
+libstdc++.so                   0x7edf0000 # ~0x00001290 [ <64K]
+libm.so                        0x7ed80000 # ~0x00039bd0 [<256K]
+liblog.so                      0x7ed70000 # ~0x00004550 [ <64K]
+libcutils.so                   0x7ed00000 # ~0x00029d90 [<256K]
+libthread_db.so                0x7ecf0000 # ~0x00001210 [ <64K]
+libz.so                        0x7ec80000 # ~0x00016e50 [<256K]
+libevent.so                    0x7eb00000 # ~0x000fffff [  <1M]
+libssl.so                      0x7ea00000 # ~0x0004a330 [  <1M]
+libcrypto.so                   0x7e800000 # ~0x00176a90 [  ~2M]
+libsysutils.so                 0x7e7f0000 # ~0x00005900 [ <64K]
+libffi.so                      0x7e7e0000 # ~0x00003450 [ <64K]
+
+# bluetooth
+liba2dp.so                     0x7e600000 # ~0x000fffff [  <1M]
+audio.so                       0x7e500000 # ~0x000fffff [  <1M]
+input.so                       0x7e400000 # ~0x000fffff [  <1M]
+libhcid.so                     0x7e300000 # ~0x000fffff [  <1M]
+libbluedroid.so                0x7e200000 # ~0x000fffff [  <1M]
+libbluetooth.so                0x7e100000 # ~0x000fffff [  <1M]
+libdbus.so                     0x7e000000 # ~0x00079c50 [  <1M]
+
+# extended system libraries
+libril.so                      0x7dff0000 # ~0x0000d290 [ <64K]
+libreference-ril.so            0x7dfe0000 # ~0x0000a970 [ <64K]
+libwpa_client.so               0x7dfd0000 # ~0x00003420 [ <64K]
+libnetutils.so                 0x7dfc0000 # ~0x00008080 [ <64K]
+
+# core dalvik runtime support
+libandroid_servers.so          0x7df80000 # ~0x00018bc0 [<256K]
+libicuuc.so                    0x7de00000 # ~0x00156af0 [  ~2M]
+libicui18n.so                  0x7dc00000 # ~0x001d4e3c [  ~2M]
+libandroid_runtime.so          0x7db00000 # ~0x000eb33c [  <1M]
+libnativehelper.so             0x7da00000 # ~0x0005f550 [  <1M]
+libdvm-MIPS.so                 0x7d900000 # ~0x000fffff [  <1M]
+libdvm.so                      0x7d700000 # ~0x0010cec8 [  ~2M]
+# Note: libicudata.so intentionally omitted
+
+# graphics
+libpixelflinger.so             0x7d6c0000 # ~0x0003eb30 [<256K]
+libsurfaceflinger_client.so    0x7d680000 # ~0x00026e70 [<256K]
+libsurfaceflinger.so           0x7d500000 # ~0x000480d0 [  <1M]
+libGLES_android.so             0x7d4c0000 # ~0x00029dd0 [<256K]
+libagl.so                      0x7d300000 # ~0x000fffff [  <1M]
+
+libGLESv1_CM.so                0x7d2f0000 # ~0x00008670 [ <64K]
+libGLESv2.so                   0x7d2e0000 # ~0x00007060 [ <64K]
+libOpenVG_CM.so                0x7d100000 # ~0x000fffff [  <1M]
+libOpenVGU_CM.so               0x7d000000 # ~0x000fffff [  <1M]
+libEGL.so                      0x7cfc0000 # ~0x00010bd0 [<256K]
+libETC1.so                     0x7cfb0000 # ~0x000031e0 [ <64K]
+
+libacc.so                      0x7cf40000 # ~0x00016930 [<256K]
+
+libexif.so                     0x7cf00000 # ~0x000120bc [<256K]
+libcamera_client.so            0x7cec0000 # ~0x0001aa30 [<256K]
+libui.so                       0x7cd00000 # ~0x00056760 [  <1M]
+libskia.so                     0x7cb00000 # ~0x0018d420 [  ~2M]
+librs_jni.so                   0x7caf0000 # ~0x000095e0 [ <64K]
+libRS.so                       0x7c900000 # ~0x0004dab0 [  <1M]
+libjnigraphics.so              0x7c8f0000 # ~0x000010b0 [ <64K]
+libskiagl.so                   0x7c8e0000 # ~0x0000d400 [ <64K]
+
+# audio
+libFLAC.so                     0x7c700000 # ~0x000fffff [  <1M]
+libaudiopolicy.so              0x7c600000 # ~0x000fffff [  <1M]
+libaudiopolicygeneric.so       0x7c500000 # ~0x000fffff [  <1M]
+libsoundpool.so                0x7c4f0000 # ~0x0000b2f0 [ <64K]
+libaudio.so                    0x7c300000 # ~0x000fffff [  <1M]
+libspeech.so                   0x7c200000 # ~0x000fffff [  <1M]
+libsonivox.so                  0x7c100000 # ~0x0005aab0 [  <1M]
+libvorbisidec.so               0x7c0c0000 # ~0x00023a40 [<256K]
+libmedia_jni.so                0x7c080000 # ~0x00015610 [<256K]
+libmediaplayerservice.so       0x7c040000 # ~0x00037cf0 [<256K]
+libmedia.so                    0x7bf00000 # ~0x000956d0 [  <1M]
+libFFTEm.so                    0x7be00000 # ~0x00052890 [  <1M]
+libSR_AudioIn.so               0x7bdf0000 # ~0x00001270 [ <64K]
+libaudioflinger.so             0x7bc00000 # ~0x00065290 [  <1M]
+
+# assorted system libraries
+libsqlite.so                   0x7bb00000 # ~0x000d5c40 [  <1M]
+libexpat.so                    0x7bac0000 # ~0x0002cc60 [<256K]
+libwebcore.so                  0x7ae00000 # ~0x00bdb854 [ ~12M]
+libbinder.so                   0x7adc0000 # ~0x0003b6f0 [<256K]
+libutils.so                    0x7ac00000 # ~0x00053c10 [  <1M]
+libcameraservice.so            0x7abc0000 # ~0x0001aec0 [<256K]
+libhardware.so                 0x7abb0000 # ~0x000010e0 [ <64K]
+libhardware_legacy.so          0x7aba0000 # ~0x00005740 [ <64K]
+libapp_process.so              0x7aa00000 # ~0x000fffff [  <1M]
+libsystem_server.so            0x7a9f0000 # ~0x00002330 [ <64K]
+libime.so                      0x7a800000 # ~0x000fffff [  <1M]
+libgps.so                      0x7a700000 # ~0x000fffff [  <1M]
+libcamera.so                   0x7a600000 # ~0x000fffff [  <1M]
+liboemcamera.so                0x7a500000 # ~0x000fffff [  <1M]
+libdiskconfig.so               0x7a4f0000 # ~0x000053c0 [ <64K]
+libemoji.so                    0x7a4e0000 # ~0x00002520 [ <64K]
+libjni_latinime.so             0x7a4d0000 # ~0x000054a0 [ <64K]
+libjni_pinyinime.so            0x7a480000 # ~0x00024340 [<256K]
+libttssynthproxy.so            0x7a470000 # ~0x00007770 [ <64K]
+libttspico.so                  0x7a300000 # ~0x00064b64 [  <1M]
+
+# pv libraries
+libpvasf.so                    0x7a200000 # ~0x000fffff [  <1M]
+libpvasfreg.so                 0x7a100000 # ~0x000fffff [  <1M]
+libomx_sharedlibrary.so        0x7a0c0000 # ~0x0001ad50 [<256K]
+libopencore_download.so        0x7a080000 # ~0x00029390 [<256K]
+libopencore_downloadreg.so     0x7a070000 # ~0x00004b20 [ <64K]
+libopencore_net_support.so     0x79f00000 # ~0x0006ced0 [  <1M]
+libopencore_rtsp.so            0x79e00000 # ~0x000ecc70 [  <1M]
+libopencore_rtspreg.so         0x79df0000 # ~0x00004b20 [ <64K]
+libopencore_author.so          0x79c00000 # ~0x00091910 [  <1M]
+libomx_aacdec_sharedlibrary.so 0x79bc0000 # ~0x00036460 [<256K]
+libomx_amrdec_sharedlibrary.so 0x79b80000 # ~0x00027160 [<256K]
+libomx_amrenc_sharedlibrary.so 0x79b40000 # ~0x0001ce5c [<256K]
+libomx_avcdec_sharedlibrary.so 0x79b00000 # ~0x00017588 [<256K]
+libomx_avcenc_sharedlibrary.so 0x79a00000 # ~0x000fffff [  <1M]
+libomx_m4vdec_sharedlibrary.so 0x799c0000 # ~0x00024f54 [<256K]
+libomx_m4venc_sharedlibrary.so 0x79800000 # ~0x000fffff [  <1M]
+libomx_mp3dec_sharedlibrary.so 0x797c0000 # ~0x000140d8 [<256K]
+libopencore_mp4local.so        0x79600000 # ~0x00046170 [  <1M]
+libopencore_mp4localreg.so     0x795f0000 # ~0x00005fc8 [ <64K]
+libopencore_player.so          0x79400000 # ~0x00196170 [  ~2M]
+
+# opencore hardware support
+libmm-adspsvc.so               0x79300000 # ~0x000fffff [  <1M]
+libOmxCore.so                  0x79200000 # ~0x000fffff [  <1M]
+libOmxMpeg4Dec.so              0x79100000 # ~0x000fffff [  <1M]
+libOmxH264Dec.so               0x79000000 # ~0x000fffff [  <1M]
+libOmxVidEnc.so                0x78f00000 # ~0x000fffff [  <1M]
+libopencorehw.so               0x78e00000 # ~0x000fffff [  <1M]
+libOmxVdec.so                  0x78d00000 # ~0x000fffff [  <1M]
+libmm-omxcore.so               0x78c00000 # ~0x000fffff [  <1M]
+
+# pv libraries
+libopencore_common.so          0x78a00000 # ~0x0017cfec [  ~2M]
+libqcomm_omx.so                0x78900000 # ~0x000fffff [  <1M]
+
+# stagefright libraries
+libstagefright_amrnb_common.so 0x788c0000 # ~0x00011a80 [<256K]
+libstagefright_avc_common.so   0x788b0000 # ~0x00008770 [ <64K]
+libstagefright_color_conversion.so 0x788a0000 # ~0x00004380 [ <64K]
+libstagefright_omx.so          0x78840000 # ~0x00015310 [<256K]
+libstagefrighthw.so            0x78700000 # ~0x000fffff [  <1M]
+libstagefright.so              0x78400000 # ~0x00240228 [  ~3M]
+
+# libraries for specific hardware
+libgsl.so                      0x78300000 # ~0x000fffff [  <1M]
+libhtc_acoustic.so             0x78200000 # ~0x000fffff [  <1M]
+libhtc_ril.so                  0x78100000 # ~0x000fffff [  <1M]
+liblvmxipc.so                  0x78000000 # ~0x000fffff [  <1M]
+libreference-cdma-sms.so       0x77ff0000 # ~0x00001090 [ <64K]
+
+# libraries for specific hardware
+libcam_ipl.so                  0x77e00000 # ~0x000fffff [  <1M]
+libwbxml.so                    0x77d00000 # ~0x000fffff [  <1M]
+libwbxml_jni.so                0x77cc0000 # ~0x00017970 [<256K]
+libxml2wbxml.so                0x77c80000 # ~0x00010a68 [<256K]
+libdrm1.so                     0x77c70000 # ~0x0000f640 [ <64K]
+libdrm1_jni.so                 0x77c60000 # ~0x00004500 [ <64K]
+libwapcore.so                  0x77b00000 # ~0x000fffff [  <1M]
+libstreetview.so               0x77a00000 # ~0x000fffff [  <1M]
+libwapbrowsertest.so           0x77900000 # ~0x000fffff [  <1M]
+libminiglobe.so                0x77800000 # ~0x000fffff [  <1M]
+libearth.so                    0x77700000 # ~0x000fffff [  <1M]
+libembunit.so                  0x776f0000 # ~0x00002450 [ <64K]
+libneon.so                     0x77500000 # ~0x000fffff [  <1M]
+libjni_example.so              0x77400000 # ~0x000fffff [  <1M]
+libjni_load_test.so            0x77300000 # ~0x000fffff [  <1M]
+libjni_lib_test.so             0x77200000 # ~0x000fffff [  <1M]
+librunperf.so                  0x77100000 # ~0x000fffff [  <1M]
+libctest.so                    0x770f0000 # ~0x00001160 [ <64K]
+libUAPI_jni.so                 0x76f00000 # ~0x000fffff [  <1M]
+librpc.so                      0x76e00000 # ~0x000fffff [  <1M]
+libtrace_test.so               0x76d00000 # ~0x000fffff [  <1M]
+libsrec_jni.so                 0x76c00000 # ~0x0009c5d8 [  <1M]
+libjpeg.so                     0x76b00000 # ~0x0004c250 [  <1M]
+libiprouteutil.so              0x76af0000 # ~0x00009020 [ <64K]
+libnetlink.so                  0x76ae0000 # ~0x00004570 [ <64K]
+libpagemap.so                  0x76ad0000 # ~0x00003390 [ <64K]
+libstlport.so                  0x76900000 # ~0x000763a0 [  <1M]
+libzxing.so                    0x76800000 # ~0x000fffff [  <1M]
+libinterstitial.so             0x76700000 # ~0x000fffff [  <1M]
+liblept.so                     0x76600000 # ~0x000fffff [  <1M]

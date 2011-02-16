@@ -50,7 +50,7 @@ endif
 
 # ---------------------------------------------------------------
 # Set up configuration for host machine.  We don't do cross-
-# compiles except for arm, so the HOST is whatever we are
+# compiles except for arm/mips, so the HOST is whatever we are
 # running on
 
 UNAME := $(shell uname -sm)
@@ -135,7 +135,7 @@ endif
 # Set up configuration for target machine.
 # The following must be set:
 # 		TARGET_OS = { linux }
-# 		TARGET_ARCH = { arm | x86 }
+# 		TARGET_ARCH = { arm | x86 | mips }
 
 
 # if we're build the simulator, HOST_* is TARGET_* (except for BUILD_TYPE)
