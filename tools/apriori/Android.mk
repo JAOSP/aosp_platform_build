@@ -21,6 +21,10 @@ ifeq ($(TARGET_ARCH),arm)
 LOCAL_CFLAGS += -DARM_SPECIFIC_HACKS
 endif
 
+ifeq ($(TARGET_ARCH),mips)
+LOCAL_CFLAGS += -DMIPS_SPECIFIC_HACKS
+endif
+
 ifeq ($(HOST_OS),darwin)
 LOCAL_CFLAGS += -DFSCANF_IS_BROKEN
 endif
