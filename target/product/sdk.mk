@@ -64,7 +64,8 @@ PRODUCT_PACKAGES += \
 	etc1tool \
 	hprof-conv \
 	mksdcard \
-	emulator \
+	emulator-armeabi \
+	emulator-x86 \
 	ddms \
 	hierarchyviewer \
 	draw9patch \
