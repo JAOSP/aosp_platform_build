@@ -109,6 +109,7 @@ GRANDFATHERED_USER_MODULES += \
 	emmalib \
 	emulator \
 	emulator-arm \
+	emulator-mips \
 	emulator-core \
 	emulator-elff \
 	emulator-hw \
@@ -214,6 +215,7 @@ GRANDFATHERED_USER_MODULES += \
 	libebl \
 	libebl_arm \
 	libebl_sh \
+	libebl_mips \
 	libedify \
 	libeffects \
 	libEGL \
