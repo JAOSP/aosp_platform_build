@@ -1092,7 +1092,11 @@ case `ps -o command -p $$` in
 esac
 
 # Execute the contents of any vendorsetup.sh files we can find.
-for f in `/bin/ls vendor/*/vendorsetup.sh vendor/*/*/vendorsetup.sh device/*/*/vendorsetup.sh 2> /dev/null`
+T=$(gettop)
+if [ ! "$T" ]; then
+    echo "Couldn't locate the top of the tree.  Try setting TOP."
+fi
+for f in `/bin/ls ${T}/vendor/*/vendorsetup.sh ${T}/vendor/*/*/vendorsetup.sh ${T}/device/*/*/vendorsetup.sh 2> /dev/null`
 do
     echo "including $f"
     . $f
