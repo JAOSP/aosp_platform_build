@@ -33,6 +33,10 @@ endef
 # LOCAL_CC and LOCAL_CXX to override this.
 #
 ifeq ($(TARGET_PRODUCT),sdk)
+ifneq (,$(findstring borken,$(shell prebuilt/linux-x86/toolchain/i686-linux-glibc2.7-4.4.3/bin/i686-linux-gcc -v >/dev/null 2>&1 || echo borken)))
+# Funnily enough, Google's toolchain to avoid exactly this problem does
+# not _run_ on a Kubuntu Hardy system... so use the native compilers there
+else
 HOST_SDK_TOOLCHAIN_PREFIX := prebuilt/linux-x86/toolchain/i686-linux-glibc2.7-4.4.3/bin/i686-linux
 # Don't do anything if the toolchain is not there
 ifneq (,$(strip $(wildcard $(HOST_SDK_TOOLCHAIN_PREFIX)-gcc)))
@@ -40,6 +44,7 @@ HOST_CC  := $(HOST_SDK_TOOLCHAIN_PREFIX)-gcc
 HOST_CXX := $(HOST_SDK_TOOLCHAIN_PREFIX)-g++
 HOST_AR  := $(HOST_SDK_TOOLCHAIN_PREFIX)-ar
 endif # $(HOST_SDK_TOOLCHAIN_PREFIX)-gcc exists
+endif # $(HOST_SDK_TOOLCHAIN_PREFIX)-gcc is usable
 endif # TARGET_PRODUCT == sdk
 
 # We build everything in 32-bit, because some host tools are
