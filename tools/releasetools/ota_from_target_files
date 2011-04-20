@@ -449,8 +449,15 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
            "can't install it.")
   script = edify_generator.EdifyGenerator(source_version, OPTIONS.info_dict)
 
+  source_timestamp = GetBuildProp("ro.build.date.utc", source_zip)
+  target_timestamp =  GetBuildProp("ro.build.date.utc", target_zip)
+  if source_timestamp > target_timestamp :
+        print ("ERROR: ro.build.date.utc in target zip must be larger than one in source zip")
+        sys.exit(1)
+
   metadata = {"pre-device": GetBuildProp("ro.product.device", source_zip),
-              "post-timestamp": GetBuildProp("ro.build.date.utc", target_zip),
+              "post-timestamp": target_timestamp,
+              "pre-timestamp": source_timestamp,
               }
 
   device_specific = common.DeviceSpecificParams(
