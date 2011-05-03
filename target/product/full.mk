@@ -22,6 +22,19 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/board/generic/device.mk)
 
+# If we're building with OpenGL HW emulation, enable the LiveWallPapers
+ifneq (,$(BUILD_EMULATOR_LIVEWALLPAPERS))
+PRODUCT_PACKAGES += \
+	LiveWallpapers \
+	LiveWallpapersPicker \
+	MagicSmokeWallpapers \
+	VisualizationWallpapers \
+	librs_jni
+
+PRODUCT_COPY_FILES += \
+	packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml
+endif
+
 # Overrides
 PRODUCT_NAME := full
 PRODUCT_DEVICE := generic

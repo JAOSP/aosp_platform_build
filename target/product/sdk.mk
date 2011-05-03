@@ -128,6 +128,20 @@ PRODUCT_COPY_FILES := \
 	frameworks/base/data/sounds/effects/VideoRecord.ogg:system/media/audio/ui/VideoRecord.ogg \
 	frameworks/base/data/etc/android.hardware.camera.autofocus.xml:system/etc/permissions/android.hardware.camera.autofocus.xml
 
+# If we're building with OpenGL HW emulation, enable the LiveWallPapers
+ifneq (,$(BUILD_EMULATOR_LIVEWALLPAPERS))
+PRODUCT_PACKAGES += \
+	LiveWallpapers \
+	LiveWallpapersPicker \
+	MagicSmokeWallpapers \
+	VisualizationWallpapers \
+	librs_jni
+
+PRODUCT_COPY_FILES += \
+	packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml
+endif
+
+
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core.mk)
 
 # Overrides
