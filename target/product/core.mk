@@ -44,6 +44,7 @@ PRODUCT_PACKAGES := \
     ip-up-vpn \
     jasmin \
     jasmin.jar \
+    libassd \
     libcrypto \
     libdex \
     libdvm \
@@ -69,6 +70,7 @@ PRODUCT_PACKAGES := \
     MediaProvider \
     PicoTts \
     SettingsProvider \
+    SmartcardService \
     TelephonyProvider \
     TtsService \
     VpnServices \
