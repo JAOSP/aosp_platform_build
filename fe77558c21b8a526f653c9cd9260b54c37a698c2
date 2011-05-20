@@ -1,0 +1,8 @@
+Change-Id: Ife77558c21b8a526f653c9cd9260b54c37a698c2
+Code-Review+2: Dan Bornstein <danfuzz@android.com>
+Verified+1: Jean-Baptiste Queru <jbq@google.com>
+Submitted-by: Jean-Baptiste Queru <jbq@google.com>
+Submitted-at: Wed, 05 Aug 2009 14:24:43 -0700
+Reviewed-on: https://review.source.android.com/11024
+Project: platform/build
+Branch: refs/heads/master

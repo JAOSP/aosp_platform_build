@@ -1,0 +1,8 @@
+Change-Id: Iceb18f8923ca85203094b2b0702f5d81c0622c46
+Verified+1: Jean-Baptiste Queru <jbq@google.com>
+Code-Review+2: Joe Onorato <joeo@android.com>
+Submitted-by: Jean-Baptiste Queru <jbq@google.com>
+Submitted-at: Thu, 05 Nov 2009 15:28:10 -0700
+Reviewed-on: https://review.source.android.com/12506
+Project: platform/build
+Branch: refs/heads/master

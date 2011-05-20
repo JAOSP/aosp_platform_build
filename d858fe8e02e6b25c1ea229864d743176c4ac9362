@@ -1,0 +1,6 @@
+Change-Id: Id858fe8e02e6b25c1ea229864d743176c4ac9362
+Code-Review+2: Brian Swetland <swetland@google.com>
+Verified+1: Brian Swetland <swetland@google.com>
+Reviewed-on: https://review.source.android.com/1550
+Project: platform/build
+Branch: refs/heads/master

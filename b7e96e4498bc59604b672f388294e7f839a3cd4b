@@ -1,0 +1,9 @@
+Change-Id: Ib7e96e4498bc59604b672f388294e7f839a3cd4b
+Code-Review+1: Jean-Baptiste Queru <jbq@google.com>
+Verified+1: Jean-Baptiste Queru <jbq@google.com>
+Code-Review+2: Joe Onorato <joeo@android.com>
+Submitted-by: Jean-Baptiste Queru <jbq@google.com>
+Submitted-at: Fri, 28 Aug 2009 13:58:52 -0700
+Reviewed-on: https://review.source.android.com/11419
+Project: platform/build
+Branch: refs/heads/master

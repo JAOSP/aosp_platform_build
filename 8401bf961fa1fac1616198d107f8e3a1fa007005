@@ -1,0 +1,7 @@
+Change-Id: I901c1d9db4c43e15a79b1690fb373fb2386cf021
+Code-Review+2: Jeff Hamilton <jham@google.com>
+Code-Review+1: John Huang <jsh@android.com>
+Verified+1: John Huang <jsh@android.com>
+Reviewed-on: https://review.source.android.com/4418
+Project: platform/build
+Branch: refs/heads/cdma-import

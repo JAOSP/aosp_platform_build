@@ -1,0 +1,6 @@
+Change-Id: Id3aa4000e42fd1036e0e3286843c5132f905d754
+Code-Review+2: Dianne Hackborn <hackbod@android.com>
+Verified+1: Dianne Hackborn <hackbod@android.com>
+Reviewed-on: https://review.source.android.com/4171
+Project: platform/build
+Branch: refs/heads/release-1.0
