@@ -41,6 +41,7 @@ PRODUCT_PACKAGES := \
     framework-res \
     hprof-conv \
     icu.dat \
+    idmap \
     ip-up-vpn \
     jasmin \
     jasmin.jar \
