@@ -627,7 +627,12 @@ ifeq (,$(filter true, $(TARGET_NO_KERNEL) $(TARGET_NO_RECOVERY) $(BUILD_TINY_AND
 
 INSTALLED_RECOVERYIMAGE_TARGET := $(PRODUCT_OUT)/recovery.img
 
-recovery_initrc := $(call include-path-for, recovery)/etc/init.rc
+# Does the target have its own recovery init.rc?
+ifneq ($(TARGET_PROVIDES_RECOVERY_INIT_RC),true)
+  recovery_initrc := $(call include-path-for, recovery)/etc/init.rc
+else
+  recovery_initrc := $(strip $(wildcard $(TARGET_DEVICE_DIR)/recovery/etc/init.rc))
+endif
 recovery_kernel := $(INSTALLED_KERNEL_TARGET) # same as a non-recovery system
 recovery_ramdisk := $(PRODUCT_OUT)/ramdisk-recovery.img
 recovery_build_prop := $(INSTALLED_BUILD_PROP_TARGET)
@@ -644,6 +649,10 @@ endif
 
 ifeq ($(recovery_fstab),)
   $(info No recovery.fstab for TARGET_DEVICE $(TARGET_DEVICE))
+endif
+
+ifeq ($(recovery_initrc),)
+  $(error No recovery init.rc for TARGET_DEVICE $(TARGET_DEVICE))
 endif
 
 INTERNAL_RECOVERYIMAGE_ARGS := \
