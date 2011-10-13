@@ -290,10 +290,21 @@ endif # full_classes_jar
 
 so_suffix := $($(my_prefix)SHLIB_SUFFIX)
 
-jni_shared_libraries := \
+# If user use the command "mm" in the subfolder, then we should
+# built-in the JNI lib. Otherwise, we should add the library as
+# a depended module
+ifeq ($(MAKECMDGOALS),all_modules)
+  jni_shared_libraries := \
     $(addprefix $($(my_prefix)OUT_INTERMEDIATE_LIBRARIES)/, \
       $(addsuffix $(so_suffix), \
         $(LOCAL_JNI_SHARED_LIBRARIES)))
+else
+  LOCAL_REQUIRED_MODULES += $(LOCAL_JNI_SHARED_LIBRARIES)
+endif
+
+# Add the REQUESTED MODULE to be built and installed
+ALL_MODULES.$(LOCAL_MODULE).REQUIRED := \
+  $(ALL_MODULES.$(LOCAL_MODULE).REQUIRED) $(LOCAL_REQUIRED_MODULES)
 
 # App explicitly requires the prebuilt NDK libstlport_shared.so.
 # libstlport_shared.so should never go to the system image.
