@@ -57,8 +57,6 @@ PRODUCT_PACKAGES := \
 	jython \
 	jsilver \
 	librs_jni \
-	ConnectivityTest \
-	GpsLocationTest \
 	CalendarProvider \
 	Calendar
 
