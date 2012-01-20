@@ -37,6 +37,11 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
       Generate an incremental OTA using the given target-files zip as
       the starting build.
 
+  -d  (--dummy_incremental_from)  <file>
+      Generate an incremental OTA using the given target-files zip as
+      the starting build, but don't assume that the individual files
+      in the starting zip are accurate.
+
   -w  (--wipe_user_data)
       Generate an OTA package that will wipe the user data partition
       when installed.
@@ -48,6 +53,11 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
 
   -e  (--extra_script)  <file>
       Insert the contents of file at the end of the update script.
+
+  -s  (--system_only)
+      When generating an incremental OTA, only consider the system
+      partition and skip the other partitions and the device-specific
+      commands
 
   -a  (--aslr_mode)  <on|off>
       Specify whether to turn on ASLR for the package (on by default).
@@ -79,6 +89,7 @@ import edify_generator
 OPTIONS = common.OPTIONS
 OPTIONS.package_key = None
 OPTIONS.incremental_source = None
+OPTIONS.dummy_source = False
 OPTIONS.require_verbatim = set()
 OPTIONS.prohibit_verbatim = set(("system/build.prop",))
 OPTIONS.patch_threshold = 0.95
@@ -86,6 +97,7 @@ OPTIONS.wipe_user_data = False
 OPTIONS.omit_prereq = False
 OPTIONS.extra_script = None
 OPTIONS.aslr_mode = True
+OPTIONS.system_only = False
 OPTIONS.worker_threads = 3
 
 def MostPopularKey(d, default):
@@ -501,9 +513,10 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
     assert fn == tf.name
     sf = source_data.get(fn, None)
 
-    if sf is None or fn in OPTIONS.require_verbatim:
+    # AOSP: Force all files to be copied verbatim.
+    if sf is None or fn in OPTIONS.require_verbatim or OPTIONS.dummy_source:
       # This file should be included verbatim
-      if fn in OPTIONS.prohibit_verbatim:
+      if fn in OPTIONS.prohibit_verbatim and not OPTIONS.dummy_source:
         raise common.ExternalError("\"%s\" must be sent verbatim" % (fn,))
       print "send", fn, "verbatim"
       tf.AddToZip(output_zip)
@@ -528,25 +541,39 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
       patch_list.append((tf.name, tf, sf, tf.size, common.sha1(d).hexdigest()))
       largest_source_size = max(largest_source_size, sf.size)
 
-  source_fp = GetBuildProp("ro.build.fingerprint", source_zip)
+  # AOSP: remove pre-build metadata
+  if not OPTIONS.dummy_source:
+    source_fp = GetBuildProp("ro.build.fingerprint", source_zip)
+    metadata["pre-build"] = source_fp
+
   target_fp = GetBuildProp("ro.build.fingerprint", target_zip)
-  metadata["pre-build"] = source_fp
   metadata["post-build"] = target_fp
 
   script.Mount("/system")
-  script.AssertSomeFingerprint(source_fp, target_fp)
 
-  source_boot = common.GetBootableImage(
-      "/tmp/boot.img", "boot.img", OPTIONS.source_tmp, "BOOT")
-  target_boot = common.GetBootableImage(
-      "/tmp/boot.img", "boot.img", OPTIONS.target_tmp, "BOOT")
-  updating_boot = (source_boot.data != target_boot.data)
+  # AOSP: don't check source fingerprint
+  if not OPTIONS.dummy_source:
+    script.AssertSomeFingerprint(source_fp, target_fp)
 
-  source_recovery = common.GetBootableImage(
-      "/tmp/recovery.img", "recovery.img", OPTIONS.source_tmp, "RECOVERY")
-  target_recovery = common.GetBootableImage(
-      "/tmp/recovery.img", "recovery.img", OPTIONS.target_tmp, "RECOVERY")
-  updating_recovery = (source_recovery.data != target_recovery.data)
+  # AOSP: skip this, never update boot
+  if OPTIONS.system_only:
+    updating_boot = False
+  else:
+    source_boot = common.GetBootableImage(
+        "/tmp/boot.img", "boot.img", OPTIONS.source_tmp, "BOOT")
+    target_boot = common.GetBootableImage(
+        "/tmp/boot.img", "boot.img", OPTIONS.target_tmp, "BOOT")
+    updating_boot = (source_boot.data != target_boot.data)
+
+  # AOSP: skip this, never update recovery
+  if OPTIONS.system_only:
+    updating_recovery = False
+  else:
+    source_recovery = common.GetBootableImage(
+        "/tmp/recovery.img", "recovery.img", OPTIONS.source_tmp, "RECOVERY")
+    target_recovery = common.GetBootableImage(
+        "/tmp/recovery.img", "recovery.img", OPTIONS.target_tmp, "RECOVERY")
+    updating_recovery = (source_recovery.data != target_recovery.data)
 
   # Here's how we divide up the progress bar:
   #  0.1 for verifying the start state (PatchCheck calls)
@@ -555,7 +582,10 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   #      device-specific commands.
 
   AppendAssertions(script, target_zip)
-  device_specific.IncrementalOTA_Assertions()
+
+  # AOSP: skip device-specific features
+  if not OPTIONS.system_only:
+    device_specific.IncrementalOTA_Assertions()
 
   script.Print("Verifying current system...")
 
@@ -590,7 +620,9 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   if patch_list or updating_recovery or updating_boot:
     script.CacheFreeSpaceCheck(largest_source_size)
 
-  device_specific.IncrementalOTA_VerifyEnd()
+  # AOSP: skip device-specific features
+  if not OPTIONS.system_only:
+    device_specific.IncrementalOTA_VerifyEnd()
 
   script.Comment("---- start making changes here ----")
 
@@ -713,7 +745,9 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   script.AppendScript(temp_script)
 
   # Do device-specific installation (eg, write radio image).
-  device_specific.IncrementalOTA_InstallEnd()
+  # AOSP: skip device-specific stuff
+  if not OPTIONS.system_only:
+    device_specific.IncrementalOTA_InstallEnd()
 
   if OPTIONS.extra_script is not None:
     script.AppendExtra(OPTIONS.extra_script)
@@ -740,6 +774,9 @@ def main(argv):
       OPTIONS.package_key = a
     elif o in ("-i", "--incremental_from"):
       OPTIONS.incremental_source = a
+    elif o in ("-d", "--dummy_incremental_from"):
+      OPTIONS.incremental_source = a
+      OPTIONS.dummy_source = True
     elif o in ("-w", "--wipe_user_data"):
       OPTIONS.wipe_user_data = True
     elif o in ("-n", "--no_prereq"):
@@ -751,6 +788,8 @@ def main(argv):
         OPTIONS.aslr_mode = True
       else:
         OPTIONS.aslr_mode = False
+    elif o in ("-s", "--system_only"):
+      OPTIONS.system_only = True
     elif o in ("--worker_threads"):
       OPTIONS.worker_threads = int(a)
     else:
@@ -758,15 +797,17 @@ def main(argv):
     return True
 
   args = common.ParseOptions(argv, __doc__,
-                             extra_opts="b:k:i:d:wne:a:",
+                             extra_opts="b:k:i:d:wne:a:s",
                              extra_long_opts=["board_config=",
                                               "package_key=",
                                               "incremental_from=",
+                                              "dummy_incremental_from=",
                                               "wipe_user_data",
                                               "no_prereq",
                                               "extra_script=",
                                               "worker_threads=",
                                               "aslr_mode=",
+                                              "system_only=",
                                               ],
                              extra_option_handler=option_handler)
 
@@ -808,6 +849,7 @@ def main(argv):
     OPTIONS.target_info_dict = OPTIONS.info_dict
     OPTIONS.source_info_dict = common.LoadInfoDict(source_zip)
     if OPTIONS.package_key is None:
+      # TODO-AOSP: figure out how to use the target key
       OPTIONS.package_key = OPTIONS.source_info_dict.get(
           "default_system_dev_certificate",
           "build/target/product/security/testkey")
