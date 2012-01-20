@@ -79,6 +79,7 @@ import edify_generator
 OPTIONS = common.OPTIONS
 OPTIONS.package_key = None
 OPTIONS.incremental_source = None
+OPTIONS.dummy_source = False
 OPTIONS.require_verbatim = set()
 OPTIONS.prohibit_verbatim = set(("system/build.prop",))
 OPTIONS.patch_threshold = 0.95
@@ -86,6 +87,7 @@ OPTIONS.wipe_user_data = False
 OPTIONS.omit_prereq = False
 OPTIONS.extra_script = None
 OPTIONS.aslr_mode = True
+OPTIONS.system_only = False
 OPTIONS.worker_threads = 3
 
 def MostPopularKey(d, default):
@@ -465,7 +467,10 @@ def GetBuildProp(property, z):
 
 
 def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
-  source_version = OPTIONS.source_info_dict["recovery_api_version"]
+  if OPTIONS.dummy_source:
+    source_version = 0
+  else:
+    source_version = OPTIONS.source_info_dict["recovery_api_version"]
   target_version = OPTIONS.target_info_dict["recovery_api_version"]
 
   if source_version == 0:
@@ -473,9 +478,13 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
            "can't install it.")
   script = edify_generator.EdifyGenerator(source_version, OPTIONS.target_info_dict)
 
-  metadata = {"pre-device": GetBuildProp("ro.product.device", source_zip),
-              "post-timestamp": GetBuildProp("ro.build.date.utc", target_zip),
-              }
+  if OPTIONS.dummy_source:
+    metadata = {"post-timestamp": GetBuildProp("ro.build.date.utc", target_zip),
+                }
+  else:
+    metadata = {"pre-device": GetBuildProp("ro.product.device", source_zip),
+                "post-timestamp": GetBuildProp("ro.build.date.utc", target_zip),
+                }
 
   device_specific = common.DeviceSpecificParams(
       source_zip=source_zip,
@@ -501,9 +510,13 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
     assert fn == tf.name
     sf = source_data.get(fn, None)
 
-    if sf is None or fn in OPTIONS.require_verbatim:
+    # AOSP: leave magic files untouched, include all other files verbatim
+    # echo DUMMY AOSP FILE | sha1sum # 1fb5aeeef29c2b370bed3fdcf5e644e092f9871b
+    if OPTIONS.dummy_source and tf.sha1 == "1fb5aeeef29c2b370bed3fdcf5e644e092f9871b":
+      print "leaving magic", fn, "untouched"
+    elif sf is None or fn in OPTIONS.require_verbatim or OPTIONS.dummy_source:
       # This file should be included verbatim
-      if fn in OPTIONS.prohibit_verbatim:
+      if fn in OPTIONS.prohibit_verbatim and not OPTIONS.dummy_source:
         raise common.ExternalError("\"%s\" must be sent verbatim" % (fn,))
       print "send", fn, "verbatim"
       tf.AddToZip(output_zip)
@@ -528,25 +541,39 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
       patch_list.append((tf.name, tf, sf, tf.size, common.sha1(d).hexdigest()))
       largest_source_size = max(largest_source_size, sf.size)
 
-  source_fp = GetBuildProp("ro.build.fingerprint", source_zip)
+  # AOSP: remove pre-build metadata
+  if not OPTIONS.dummy_source:
+    source_fp = GetBuildProp("ro.build.fingerprint", source_zip)
+    metadata["pre-build"] = source_fp
+
   target_fp = GetBuildProp("ro.build.fingerprint", target_zip)
-  metadata["pre-build"] = source_fp
   metadata["post-build"] = target_fp
 
   script.Mount("/system")
-  script.AssertSomeFingerprint(source_fp, target_fp)
 
-  source_boot = common.GetBootableImage(
-      "/tmp/boot.img", "boot.img", OPTIONS.source_tmp, "BOOT")
-  target_boot = common.GetBootableImage(
-      "/tmp/boot.img", "boot.img", OPTIONS.target_tmp, "BOOT")
-  updating_boot = (source_boot.data != target_boot.data)
+  # AOSP: don't check source fingerprint
+  if not OPTIONS.dummy_source:
+    script.AssertSomeFingerprint(source_fp, target_fp)
 
-  source_recovery = common.GetBootableImage(
-      "/tmp/recovery.img", "recovery.img", OPTIONS.source_tmp, "RECOVERY")
-  target_recovery = common.GetBootableImage(
-      "/tmp/recovery.img", "recovery.img", OPTIONS.target_tmp, "RECOVERY")
-  updating_recovery = (source_recovery.data != target_recovery.data)
+  # AOSP: skip this, never update boot
+  if OPTIONS.system_only:
+    updating_boot = False
+  else:
+    source_boot = common.GetBootableImage(
+        "/tmp/boot.img", "boot.img", OPTIONS.source_tmp, "BOOT")
+    target_boot = common.GetBootableImage(
+        "/tmp/boot.img", "boot.img", OPTIONS.target_tmp, "BOOT")
+    updating_boot = (source_boot.data != target_boot.data)
+
+  # AOSP: skip this, never update recovery
+  if OPTIONS.system_only:
+    updating_recovery = False
+  else:
+    source_recovery = common.GetBootableImage(
+        "/tmp/recovery.img", "recovery.img", OPTIONS.source_tmp, "RECOVERY")
+    target_recovery = common.GetBootableImage(
+        "/tmp/recovery.img", "recovery.img", OPTIONS.target_tmp, "RECOVERY")
+    updating_recovery = (source_recovery.data != target_recovery.data)
 
   # Here's how we divide up the progress bar:
   #  0.1 for verifying the start state (PatchCheck calls)
@@ -554,8 +581,13 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   #  0.1 for unpacking verbatim files, symlinking, and doing the
   #      device-specific commands.
 
-  AppendAssertions(script, target_zip)
-  device_specific.IncrementalOTA_Assertions()
+  # AOSP: can't do the assertions without the true target_files.zip
+  if not OPTIONS.dummy_source:
+    AppendAssertions(script, target_zip)
+
+  # AOSP: skip device-specific features
+  if not OPTIONS.system_only:
+    device_specific.IncrementalOTA_Assertions()
 
   script.Print("Verifying current system...")
 
@@ -590,7 +622,9 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   if patch_list or updating_recovery or updating_boot:
     script.CacheFreeSpaceCheck(largest_source_size)
 
-  device_specific.IncrementalOTA_VerifyEnd()
+  # AOSP: skip device-specific features
+  if not OPTIONS.system_only:
+    device_specific.IncrementalOTA_VerifyEnd()
 
   script.Comment("---- start making changes here ----")
 
@@ -713,7 +747,9 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   script.AppendScript(temp_script)
 
   # Do device-specific installation (eg, write radio image).
-  device_specific.IncrementalOTA_InstallEnd()
+  # AOSP: skip device-specific stuff
+  if not OPTIONS.system_only:
+    device_specific.IncrementalOTA_InstallEnd()
 
   if OPTIONS.extra_script is not None:
     script.AppendExtra(OPTIONS.extra_script)
@@ -806,7 +842,8 @@ def main(argv):
     print "unzipping source target-files..."
     OPTIONS.source_tmp, source_zip = common.UnzipTemp(OPTIONS.incremental_source)
     OPTIONS.target_info_dict = OPTIONS.info_dict
-    OPTIONS.source_info_dict = common.LoadInfoDict(source_zip)
+    if not OPTIONS.dummy_source:
+      OPTIONS.source_info_dict = common.LoadInfoDict(source_zip)
     if OPTIONS.package_key is None:
       OPTIONS.package_key = OPTIONS.source_info_dict.get(
           "default_system_dev_certificate",
