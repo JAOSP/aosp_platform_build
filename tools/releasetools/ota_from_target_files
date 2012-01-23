@@ -79,7 +79,7 @@ import edify_generator
 OPTIONS = common.OPTIONS
 OPTIONS.package_key = None
 OPTIONS.incremental_source = None
-OPTIONS.dummy_source = False
+OPTIONS.dummy_source = True
 OPTIONS.require_verbatim = set()
 OPTIONS.prohibit_verbatim = set(("system/build.prop",))
 OPTIONS.patch_threshold = 0.95
@@ -87,7 +87,7 @@ OPTIONS.wipe_user_data = False
 OPTIONS.omit_prereq = False
 OPTIONS.extra_script = None
 OPTIONS.aslr_mode = True
-OPTIONS.system_only = False
+OPTIONS.system_only = True
 OPTIONS.worker_threads = 3
 
 def MostPopularKey(d, default):
