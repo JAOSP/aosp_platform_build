@@ -10,9 +10,17 @@ ABP:=$(PWD)/$(HOST_OUT_EXECUTABLES)
 endif
 
 # Add the toolchain bin dir if it actually exists
-ifneq ($(wildcard $(PWD)/prebuilt/$(HOST_PREBUILT_TAG)/toolchain/arm-linux-androideabi-4.4.x/bin),)
-	# this should be copied to HOST_OUT_EXECUTABLES instead
-	ABP:=$(ABP):$(PWD)/prebuilt/$(HOST_PREBUILT_TAG)/toolchain/arm-linux-androideabi-4.4.x/bin
+ifeq ($(TARGET_ARCH),arm)
+  ifneq ($(wildcard $(PWD)/prebuilt/$(HOST_PREBUILT_TAG)/toolchain/arm-linux-androideabi-4.4.x/bin),)
+    # this should be copied to HOST_OUT_EXECUTABLES instead
+    ABP:=$(ABP):$(PWD)/prebuilt/$(HOST_PREBUILT_TAG)/toolchain/arm-linux-androideabi-4.4.x/bin
+  endif
+endif
+ifeq ($(TARGET_ARCH),mips)
+  ifneq ($(wildcard $(PWD)/prebuilt/$(HOST_PREBUILT_TAG)/toolchain/mips-linux-gnu-4.5.2/bin),)
+    # this should be copied to HOST_OUT_EXECUTABLES instead
+    ABP:=$(ABP):$(PWD)/prebuilt/$(HOST_PREBUILT_TAG)/toolchain/mips-4.5.2/bin
+  endif
 endif
 ANDROID_BUILD_PATHS := $(ABP)
 ANDROID_PREBUILTS := prebuilt/$(HOST_PREBUILT_TAG)
