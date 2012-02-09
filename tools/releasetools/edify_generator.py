@@ -157,7 +157,7 @@ class EdifyGenerator(object):
     """Log a message to the screen (if the logs are visible)."""
     self.script.append('ui_print("%s");' % (message,))
 
-  def FormatPartition(self, partition):
+  def FormatPartition(self, partition, selinux=None):
     """Format the given partition, specified by its mount point (eg,
     "/system")."""
 
@@ -165,9 +165,14 @@ class EdifyGenerator(object):
     fstab = self.info.get("fstab", None)
     if fstab:
       p = fstab[partition]
-      self.script.append('format("%s", "%s", "%s", "%s");' %
-                         (p.fs_type, common.PARTITION_TYPES[p.fs_type],
-                          p.device, p.length))
+      if selinux is None:
+        self.script.append('format("%s", "%s", "%s", "%s");' %
+                            (p.fs_type, common.PARTITION_TYPES[p.fs_type],
+                            p.device, p.length))
+      else:
+        self.script.append('format("%s", "%s", "%s", "%s", "%s");' %
+                           (p.fs_type, common.PARTITION_TYPES[p.fs_type],
+                            p.device, p.length, p.mount_point))
 
   def DeleteFiles(self, file_list):
     """Delete all files in file_list."""
