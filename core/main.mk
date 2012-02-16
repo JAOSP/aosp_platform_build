@@ -82,21 +82,21 @@ ifneq ($(VERSION_CHECK_SEQUENCE_NUMBER),$(VERSIONS_CHECKED))
 
 $(info Checking build tools versions...)
 
-ifneq ($(HOST_OS),windows)
-ifneq ($(HOST_OS)-$(HOST_ARCH),darwin-ppc)
-# check for a case sensitive file system
-ifneq (a,$(shell mkdir -p $(OUT_DIR) ; \
-                echo a > $(OUT_DIR)/casecheck.txt; \
-                    echo B > $(OUT_DIR)/CaseCheck.txt; \
-                cat $(OUT_DIR)/casecheck.txt))
-$(warning ************************************************************)
-$(warning You are building on a case-insensitive filesystem.)
-$(warning Please move your source tree to a case-sensitive filesystem.)
-$(warning ************************************************************)
-$(error Case-insensitive filesystems not supported)
-endif
-endif
-endif
+# ifneq ($(HOST_OS),windows)
+# ifneq ($(HOST_OS)-$(HOST_ARCH),darwin-ppc)
+# # check for a case sensitive file system
+# ifneq (a,$(shell mkdir -p $(OUT_DIR) ; \
+#                 echo a > $(OUT_DIR)/casecheck.txt; \
+#                     echo B > $(OUT_DIR)/CaseCheck.txt; \
+#                 cat $(OUT_DIR)/casecheck.txt))
+# $(warning ************************************************************)
+# $(warning You are building on a case-insensitive filesystem.)
+# $(warning Please move your source tree to a case-sensitive filesystem.)
+# $(warning ************************************************************)
+# $(error Case-insensitive filesystems not supported)
+# endif
+# endif
+# endif
 
 # Make sure that there are no spaces in the absolute path; the
 # build system can't deal with them.
