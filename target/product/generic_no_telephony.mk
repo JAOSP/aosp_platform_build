@@ -37,15 +37,17 @@ PRODUCT_PACKAGES := \
     Phone \
     QuickSearchBox \
     Settings \
-    Sync \
     SystemUI \
-    Updater \
     CalendarProvider \
-    SyncProvider \
-    bluetooth-health \
-    hostapd \
-    wpa_supplicant.conf
 
+#    Updater \
+#    Sync \
+#    SyncProvider \
+#    bluetooth-health \
+#    hostapd \
+#    wpa_supplicant.conf
+#
+	
 PRODUCT_PACKAGES += \
     icu.dat
 
@@ -53,7 +55,8 @@ PRODUCT_PACKAGES += \
     librs_jni \
     libvideoeditor_jni \
     libvideoeditorplayer \
-    libvideoeditor_core
+	
+#    libvideoeditor_core
 
 PRODUCT_PACKAGES += \
     audio.primary.default \
