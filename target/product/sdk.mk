@@ -81,6 +81,7 @@ PRODUCT_PACKAGES += \
 	android \
 	dexdump \
 	lint \
+	monitor \
 	monkeyrunner
 
 # Native host Java libraries that are parts of the SDK.
