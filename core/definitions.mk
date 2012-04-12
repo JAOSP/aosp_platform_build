@@ -1839,6 +1839,18 @@ define copy-file-to-new-target-with-cp
 $(hide) cp -f $< $@
 endef
 
+# The same as copy-file-to-target, but using m4 with some
+# macros defined.
+define copy-file-to-target-with-m4
+@mkdir -p $(dir $@)
+$(hide) m4 -DTARGET_PRODUCT=$(TARGET_PRODUCT) \
+           -DTARGET_BUILD_VARIANT=$(TARGET_BUILD_VARIANT) \
+           -DONLY_IN_PRODUCT="ifelse(TARGET_PRODUCT, \`\$$1', \`\$$2')" \
+           -DONLY_IN_VARIANT="ifelse(TARGET_BUILD_VARIANT, \`\$$1', \`\$$2')" \
+           -DONLY_IN_DEBUG="ifelse(TARGET_BUILD_VARIANT, \`eng', \`\$$1', TARGET_BUILD_VARIANT, \`userdebug', \`\$$1')" \
+        $^ > $@
+endef
+
 # Copy a prebuilt file to a target location.
 define transform-prebuilt-to-target
 @echo "$(if $(PRIVATE_IS_HOST_MODULE),host,target) Prebuilt: $(PRIVATE_MODULE) ($@)"
@@ -1855,6 +1867,11 @@ endef
 define transform-prebuilt-to-target-strip-comments
 @echo "$(if $(PRIVATE_IS_HOST_MODULE),host,target) Prebuilt: $(PRIVATE_MODULE) ($@)"
 $(copy-file-to-target-strip-comments)
+endef
+
+define transform-prebuilt-to-target-with-m4
+@echo "$(if $(PRIVATE_IS_HOST_MODULE),host,target) Prebuilt (m4): $(PRIVATE_MODULE) ($@)"
+$(copy-file-to-target-with-m4)
 endef
 
 ###########################################################

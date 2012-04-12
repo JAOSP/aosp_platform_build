@@ -157,6 +157,9 @@ else
 ifneq ($(LOCAL_PREBUILT_STRIP_COMMENTS),)
 $(built_module) : $(my_prebuilt_src_file)
 	$(transform-prebuilt-to-target-strip-comments)
+else ifneq ($(LOCAL_PREBUILT_USE_M4),)
+$(built_module) : $(LOCAL_PATH)/$(LOCAL_SRC_FILES)
+	$(transform-prebuilt-to-target-with-m4)
 else
 $(built_module) : $(my_prebuilt_src_file) | $(ACP)
 	$(transform-prebuilt-to-target)
