@@ -25,7 +25,7 @@ endif
 # You can set TARGET_TOOLS_PREFIX to get gcc from somewhere else
 ifeq ($(strip $(TARGET_TOOLS_PREFIX)),)
 TARGET_TOOLS_PREFIX := \
-	prebuilts/gcc/$(HOST_PREBUILT_TAG)/x86/i686-android-linux-4.4.3/bin/i686-android-linux-
+	prebuilts/gcc/$(HOST_PREBUILT_TAG)/x86/i686-linux-android-4.6/bin/i686-linux-android-
 endif
 
 TARGET_CC := $(TARGET_TOOLS_PREFIX)gcc$(HOST_EXECUTABLE_SUFFIX)
@@ -123,7 +123,6 @@ TARGET_GLOBAL_CFLAGS += -D__ANDROID__
 
 TARGET_GLOBAL_LDFLAGS += -m32
 TARGET_GLOBAL_LDFLAGS += -Wl,-z,noexecstack
-TARGET_GLOBAL_LDFLAGS += -Wl,--gc-sections
 
 TARGET_C_INCLUDES := \
 	$(libc_root)/arch-x86/include \
