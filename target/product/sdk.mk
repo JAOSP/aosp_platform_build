@@ -71,6 +71,12 @@ PRODUCT_PACKAGES += \
 	audio.primary.goldfish \
 	audio_policy.default
 
+# drm support
+PRODUCT_PACKAGES += \
+        drmserver \
+        libdrmframework \
+        libdrmframework_jni
+
 PRODUCT_PACKAGE_OVERLAYS := development/sdk_overlay
 
 PRODUCT_COPY_FILES := \
