@@ -1,0 +1,9 @@
+Code-Review+2: Jean-Baptiste Queru <jbq@google.com>
+Verified+1: Jean-Baptiste Queru <jbq@google.com>
+Code-Review+1: Bruce Beare <bruce.j.beare@intel.com>
+Code-Review+1: Jack Ren <jack.ren@intel.com>
+Submitted-by: Jean-Baptiste Queru <jbq@google.com>
+Submitted-at: Fri, 11 May 2012 11:25:10 -0700
+Reviewed-on: https://android-review.googlesource.com/34271
+Project: platform/build
+Branch: refs/heads/master
