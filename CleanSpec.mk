@@ -112,3 +112,4 @@ $(call add-clean-step, rm -rf $(PRODUCT_OUT)/system/build.prop)
 # ************************************************
 # NEWER CLEAN STEPS MUST BE AT THE END OF THE LIST
 # ************************************************
+#test
