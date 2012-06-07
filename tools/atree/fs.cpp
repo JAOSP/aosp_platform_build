@@ -152,8 +152,8 @@ copy_file(const string& src, const string& dst)
 int
 strip_file(const string& path)
 {
-    // Default strip command to run is "strip" unless overridden by the STRIP env var.
-    const char* strip_cmd = getenv("STRIP");
+    // Default strip command to run is "strip" unless overridden by the ATREE_STRIP env var.
+    const char* strip_cmd = getenv("ATREE_STRIP");
     if (!strip_cmd || !strip_cmd[0]) {
         strip_cmd = "strip";
     }
