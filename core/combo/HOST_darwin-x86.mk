@@ -24,18 +24,23 @@ HOST_GLOBAL_CFLAGS += -m32
 HOST_GLOBAL_LDFLAGS += -m32
 
 build_mac_version := $(shell sw_vers -productVersion)
-mac_sdk_version := 10.6
-mac_sdk_root := /Developer/SDKs/MacOSX$(mac_sdk_version).sdk
+
+# Choose latest SDK installed. We need unwind.h to build HOST-libutils which can only
+# be found in latest SDK(.../MacOsX10.7.sdk/usr/include/).
+mac_sdk_version := $(shell xcodebuild -showsdks |grep macosx | sort | tail -1 | sed -e "s/.*macosx//g")
+mac_sdk_path := $(shell xcode-select -print-path)
+
+ifneq ($(findstring Xcode.app,$(mac_sdk_path)),)
+    mac_sdk_root := /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(mac_sdk_version).sdk
+else
+    mac_sdk_root := /Developer/SDKs/MacOSX$(mac_sdk_version).sdk
+endif
+
 ifeq ($(wildcard $(mac_sdk_root)),)
-recent_xcode4_mac_sdk_root := /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(mac_sdk_version).sdk
-ifeq ($(wildcard $(recent_xcode4_mac_sdk_root)),)
 $(warning *****************************************************)
 $(warning * Can not find SDK $(mac_sdk_version) at $(mac_sdk_root))
-$(warning * or $(recent_xcode4_mac_sdk_root))
 $(warning *****************************************************)
 $(error Stop.)
-endif
-mac_sdk_root := $(recent_xcode4_mac_sdk_root)
 endif
 
 HOST_GLOBAL_CFLAGS += -isysroot $(mac_sdk_root) -mmacosx-version-min=$(mac_sdk_version)
