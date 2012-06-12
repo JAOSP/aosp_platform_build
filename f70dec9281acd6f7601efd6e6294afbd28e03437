@@ -1,0 +1,8 @@
+Change-Id: If70dec9281acd6f7601efd6e6294afbd28e03437
+Verified+1: Jean-Baptiste Queru <jbq@google.com>
+Code-Review+2: Ying Wang <wangying@android.com>
+Submitted-by: Jean-Baptiste Queru <jbq@google.com>
+Submitted-at: Tue, 12 Jun 2012 07:47:48 -0700
+Reviewed-on: https://android-review.googlesource.com/37555
+Project: platform/build
+Branch: refs/heads/master
