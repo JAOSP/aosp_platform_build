@@ -119,7 +119,7 @@ endif
 
 # Check for the correct version of java
 java_version := $(shell java -version 2>&1 | head -n 1 | grep '^java .*[ "]1\.6[\. "$$]')
-ifneq ($(shell java -version 2>&1 | grep -i openjdk),)
+ifneq ($(shell java -version 2>&1 | grep -i "google\|hotspot\|oracle"),)
 java_version :=
 endif
 ifeq ($(strip $(java_version)),)
