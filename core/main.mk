@@ -125,7 +125,13 @@ endif
 # Check for the correct version of java
 java_version := $(shell java -version 2>&1 | head -n 1 | grep '^java .*[ "]1\.6[\. "$$]')
 ifneq ($(shell java -version 2>&1 | grep -i openjdk),)
-java_version :=
+$(info ************************************************************)
+$(info You are attempting to build with OpenJDK which isn't supported)
+$(info $(space))
+$(info Please download Java SE 1.6 from)
+$(info $(space)$(space)$(space)$(space)http://java.sun.com/javase/downloads/)
+$(info ************************************************************)
+$(error stop)
 endif
 ifeq ($(strip $(java_version)),)
 $(info ************************************************************)
