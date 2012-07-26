@@ -122,6 +122,8 @@ function setpaths()
             ;;
         arm) toolchaindir=arm/arm-linux-androideabi-4.6/bin
             ;;
+        mips) toolchaindir=mips/mipsel-linux-android-4.6/bin
+            ;;
         *)
             echo "Can't find toolchain for unknown architecture: $ARCH"
             toolchaindir=xxxxxxxxx
@@ -136,6 +138,8 @@ function setpaths()
         x86) toolchaindir=x86/i686-eabi-4.4.3/bin
             ;;
         arm) toolchaindir=arm/arm-eabi-4.6/bin
+            ;;
+        mips) toolchaindir=
             ;;
         *)
             echo "Can't find toolchain for unknown architecture: $ARCH"
@@ -204,13 +208,14 @@ function set_sequence_number()
 function settitle()
 {
     if [ "$STAY_OFF_MY_LAWN" = "" ]; then
+        local arch=$(gettargetarch)
         local product=$TARGET_PRODUCT
         local variant=$TARGET_BUILD_VARIANT
         local apps=$TARGET_BUILD_APPS
         if [ -z "$apps" ]; then
-            export PROMPT_COMMAND="echo -ne \"\033]0;[${product}-${variant}] ${USER}@${HOSTNAME}: ${PWD}\007\""
+            export PROMPT_COMMAND="echo -ne \"\033]0;[${arch}-${product}-${variant}] ${USER}@${HOSTNAME}: ${PWD}\007\""
         else
-            export PROMPT_COMMAND="echo -ne \"\033]0;[$apps $variant] ${USER}@${HOSTNAME}: ${PWD}\007\""
+            export PROMPT_COMMAND="echo -ne \"\033]0;[$arch $apps $variant] ${USER}@${HOSTNAME}: ${PWD}\007\""
         fi
     fi
 }
@@ -417,6 +422,7 @@ function add_lunch_combo()
 add_lunch_combo full-eng
 add_lunch_combo full_x86-eng
 add_lunch_combo vbox_x86-eng
+add_lunch_combo full_mips-eng
 
 function print_lunch_menu()
 {
@@ -739,6 +745,7 @@ function gdbclient()
    case "$ARCH" in
        x86) GDB=i686-linux-android-gdb;;
        arm) GDB=arm-linux-androideabi-gdb;;
+       mips) GDB=mipsel-linux-android-gdb;;
        *) echo "Unknown arch $ARCH"; return 1;;
    esac
 
@@ -805,6 +812,11 @@ case `uname -s` in
         ;;
 esac
 
+function gettargetarch
+{
+    get_build_var TARGET_ARCH
+}
+
 function jgrep()
 {
     find . -name .repo -prune -o -name .git -prune -o  -type f -name "*\.java" -print0 | xargs -0 grep --color -n "$@"
@@ -860,7 +872,8 @@ function tracedmdump()
         return
     fi
     local prebuiltdir=$(getprebuilt)
-    local KERNEL=$T/prebuilt/android-arm/kernel/vmlinux-qemu
+    local arch=$(gettargetarch)
+    local KERNEL=$T/prebuilts/qemu-kernel/$arch/vmlinux-qemu
 
     local TRACE=$1
     if [ ! "$TRACE" ] ; then
