@@ -30,18 +30,27 @@ HOST_GLOBAL_LDFLAGS += -m32
 endif # BUILD_HOST_64bit
 
 build_mac_version := $(shell sw_vers -productVersion)
-mac_sdk_version := 10.6
+
+# Choose lowest SDK version installed
+mac_sdk_supported_versions :=  10.6 10.7 10.8
+mac_sdk_installed_versions := $(shell xcodebuild -showsdks |grep macosx | sort | sed -e "s/.*macosx//g")
+mac_sdk_version := $(firstword $(filter $(mac_sdk_installed_versions), $(mac_sdk_supported_versions)))
+
+mac_sdk_path := $(shell xcode-select -print-path)
+ifeq ($(findstring /Applications,$(mac_sdk_path)),)
+# Legacy Xcode
 mac_sdk_root := /Developer/SDKs/MacOSX$(mac_sdk_version).sdk
+else
+#  Xcode 4.4(App Store) or higher
+# /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.?.sdk
+mac_sdk_root := $(mac_sdk_path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(mac_sdk_version).sdk
+endif
+
 ifeq ($(wildcard $(mac_sdk_root)),)
-recent_xcode4_mac_sdk_root := /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(mac_sdk_version).sdk
-ifeq ($(wildcard $(recent_xcode4_mac_sdk_root)),)
 $(warning *****************************************************)
 $(warning * Can not find SDK $(mac_sdk_version) at $(mac_sdk_root))
-$(warning * or $(recent_xcode4_mac_sdk_root))
 $(warning *****************************************************)
 $(error Stop.)
-endif
-mac_sdk_root := $(recent_xcode4_mac_sdk_root)
 endif
 
 HOST_GLOBAL_CFLAGS += -isysroot $(mac_sdk_root) -mmacosx-version-min=$(mac_sdk_version)
