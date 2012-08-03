@@ -15,6 +15,12 @@ ifneq ($(wildcard $(PWD)/prebuilts/gcc/$(HOST_PREBUILT_TAG)/arm/arm-linux-androi
 	ABP:=$(ABP):$(PWD)/prebuilts/gcc/$(HOST_PREBUILT_TAG)/arm/arm-linux-androideabi-4.6/bin
 endif
 
+# Add the MIPS toolchain bin dir if it actually exists
+ifneq ($(wildcard $(PWD)/prebuilts/gcc/$(HOST_PREBUILT_TAG)/mips/mipsel-linux-android-4.6/bin),)
+	# this should be copied to HOST_OUT_EXECUTABLES instead
+	ABP:=$(ABP):$(PWD)/prebuilts/gcc/$(HOST_PREBUILT_TAG)/mips/mipsel-linux-android-4.6/bin
+endif
+
 # Add the x86 toolchain bin dir if it actually exists
 ifneq ($(wildcard $(PWD)/prebuilts/gcc/$(HOST_PREBUILT_TAG)/x86/i686-android-linux-4.4.3/bin),)
 	# this should be copied to HOST_OUT_EXECUTABLES instead
