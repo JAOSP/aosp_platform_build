@@ -1112,6 +1112,23 @@ if [ "x$SHELL" != "x/bin/bash" ]; then
     esac
 fi
 
+# Only check compiler binary size, don't look at modification time
+# since that will depend on when the repo was checked out
+export CCACHE_COMPILERCHECK="stat -L --printf=%s %compiler%"
+
+# See man page, optimizations to get more cache hits
+# implies that __DATE__ and __TIME__ are not critical for functionality.
+# Ignore include file modification time since it will depend on when
+# the repo was checked out
+export CCACHE_SLOPPINESS=time_macros,include_file_mtime,file_macro
+
+# Turn all preprocessor absolute paths into relative paths.
+# Fixes absolute paths in preprocessed source due to use of -g.
+# We don't really use system headers much so the rootdir is
+# fine; ensures these paths are relative for all Android trees
+# on a workstation.
+export CCACHE_BASEDIR=/
+
 # Execute the contents of any vendorsetup.sh files we can find.
 for f in `/bin/ls vendor/*/vendorsetup.sh vendor/*/*/vendorsetup.sh device/*/*/vendorsetup.sh 2> /dev/null`
 do
