@@ -60,6 +60,7 @@ PRODUCT_PACKAGES += \
     drmserver \
     dx \
     ext \
+    make_ext4fs \
     framework-res \
     hprof-conv \
     icu.dat \
