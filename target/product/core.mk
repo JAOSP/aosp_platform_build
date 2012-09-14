@@ -89,6 +89,7 @@ PRODUCT_PACKAGES += \
     libjavacore \
     libkeystore \
     libmdnssd \
+    libmonkeyprocess \
     libnativehelper \
     libnfc_ndef \
     libpowermanager \
