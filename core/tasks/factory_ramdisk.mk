@@ -81,9 +81,13 @@ else
   RAMDISK_CMDLINE :=
 endif
 $(INSTALLED_FACTORY_RAMDISK_TARGET) : $(MKBOOTIMG) $(TARGET_RAMDISK_KERNEL) $(INSTALLED_FACTORY_RAMDISK_FS)
+ifeq ($(TARGET_RAMDISK_KERNEL),)
+	$(error Error: No kernel for $(BUILT_FACTORY_RAMDISK_TARGET))
+else
 	$(call pretty,"Target factory ram disk img format: $@")
 	$(MKBOOTIMG) --kernel $(TARGET_RAMDISK_KERNEL) --ramdisk $(INSTALLED_FACTORY_RAMDISK_FS) \
             --base $(BOARD_KERNEL_BASE) $(RAMDISK_CMDLINE) --output $@
+endif
 
 endif
 
