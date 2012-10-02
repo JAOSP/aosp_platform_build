@@ -178,7 +178,7 @@ endef
 define all-java-files-under
 $(patsubst ./%,%, \
   $(shell cd $(LOCAL_PATH) ; \
-          find $(1) -name "*.java" -and -not -name ".*") \
+          find -L $(1) -name "*.java" -and -not -name ".*") \
  )
 endef
 
@@ -200,7 +200,7 @@ endef
 define all-c-files-under
 $(patsubst ./%,%, \
   $(shell cd $(LOCAL_PATH) ; \
-          find $(1) -name "*.c" -and -not -name ".*") \
+          find -L $(1) -name "*.c" -and -not -name ".*") \
  )
 endef
 
@@ -222,7 +222,7 @@ endef
 define all-Iaidl-files-under
 $(patsubst ./%,%, \
   $(shell cd $(LOCAL_PATH) ; \
-          find $(1) -name "I*.aidl" -and -not -name ".*") \
+          find -L $(1) -name "I*.aidl" -and -not -name ".*") \
  )
 endef
 
@@ -243,7 +243,7 @@ endef
 define all-logtags-files-under
 $(patsubst ./%,%, \
   $(shell cd $(LOCAL_PATH) ; \
-          find $(1) -name "*.logtags" -and -not -name ".*") \
+          find -L $(1) -name "*.logtags" -and -not -name ".*") \
   )
 endef
 
@@ -256,7 +256,7 @@ endef
 define all-proto-files-under
 $(patsubst ./%,%, \
   $(shell cd $(LOCAL_PATH) ; \
-          find $(1) -name "*.proto" -and -not -name ".*") \
+          find -L $(1) -name "*.proto" -and -not -name ".*") \
   )
 endef
 
@@ -269,7 +269,7 @@ endef
 define all-renderscript-files-under
 $(patsubst ./%,%, \
   $(shell cd $(LOCAL_PATH) ; \
-          find $(1) -name "*.rs" -and -not -name ".*") \
+          find -L $(1) -name "*.rs" -and -not -name ".*") \
   )
 endef
 
@@ -282,7 +282,7 @@ endef
 define all-html-files-under
 $(patsubst ./%,%, \
   $(shell cd $(LOCAL_PATH) ; \
-          find $(1) -name "*.html" -and -not -name ".*") \
+          find -L $(1) -name "*.html" -and -not -name ".*") \
  )
 endef
 
@@ -301,7 +301,7 @@ endef
 ###########################################################
 
 define find-subdir-files
-$(patsubst ./%,%,$(shell cd $(LOCAL_PATH) ; find $(1)))
+$(patsubst ./%,%,$(shell cd $(LOCAL_PATH) ; find -L $(1)))
 endef
 
 ###########################################################
@@ -314,7 +314,7 @@ endef
 
 define find-subdir-subdir-files
 $(filter-out $(patsubst %,$(1)/%,$(3)),$(patsubst ./%,%,$(shell cd \
-            $(LOCAL_PATH) ; find $(1) -maxdepth 1 -name $(2))))
+            $(LOCAL_PATH) ; find -L $(1) -maxdepth 1 -name $(2))))
 endef
 
 ###########################################################
@@ -1462,7 +1462,7 @@ $(hide) mkdir -p $(PRIVATE_CLASS_INTERMEDIATES_DIR)
 $(call unzip-jar-files,$(PRIVATE_STATIC_JAVA_LIBRARIES),$(PRIVATE_CLASS_INTERMEDIATES_DIR))
 $(call dump-words-to-file,$(PRIVATE_JAVA_SOURCES),$(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list)
 $(hide) if [ -d "$(PRIVATE_SOURCE_INTERMEDIATES_DIR)" ]; then \
-	    find $(PRIVATE_SOURCE_INTERMEDIATES_DIR) -name '*.java' >> $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list; \
+	    find -L $(PRIVATE_SOURCE_INTERMEDIATES_DIR) -name '*.java' >> $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list; \
 fi
 $(hide) tr ' ' '\n' < $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list \
     | sort -u > $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq
@@ -1481,7 +1481,7 @@ $(hide) if [ -s $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq ] ; the
 fi
 $(hide) rm -f $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list
 $(hide) rm -f $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq
-$(if $(PRIVATE_JAR_EXCLUDE_FILES), $(hide) find $(PRIVATE_CLASS_INTERMEDIATES_DIR) \
+$(if $(PRIVATE_JAR_EXCLUDE_FILES), $(hide) find -L $(PRIVATE_CLASS_INTERMEDIATES_DIR) \
     -name $(word 1, $(PRIVATE_JAR_EXCLUDE_FILES)) \
     $(addprefix -o -name , $(wordlist 2, 999, $(PRIVATE_JAR_EXCLUDE_FILES))) \
     | xargs rm -rf)
@@ -1505,9 +1505,9 @@ $(call unzip-jar-files,$(PRIVATE_STATIC_JAVA_LIBRARIES),$(PRIVATE_CLASS_INTERMED
 $(hide) if [ -e $(PRIVATE_CLASS_INTERMEDIATES_DIR)/stamp ] ; then \
         newerFlag=$$(echo -n "-newer $(PRIVATE_CLASS_INTERMEDIATES_DIR)/stamp") ; \
     fi ; \
-    find $(PRIVATE_JAVA_SOURCES) $$newerFlag > $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list ; \
+    find -L $(PRIVATE_JAVA_SOURCES) $$newerFlag > $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list ; \
     if [ -d "$(PRIVATE_SOURCE_INTERMEDIATES_DIR)" ]; then \
-        find $(PRIVATE_SOURCE_INTERMEDIATES_DIR) -name '*.java' $$newerFlag >> $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list; \
+        find -L $(PRIVATE_SOURCE_INTERMEDIATES_DIR) -name '*.java' $$newerFlag >> $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list; \
     fi
 $(hide) tr ' ' '\n' < $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list \
     | sort -u > $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq
@@ -1529,7 +1529,7 @@ fi
 $(hide) rm -f $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list
 $(hide) rm -f $(PRIVATE_CLASS_INTERMEDIATES_DIR)/java-source-list-uniq
 $(hide) rm -f $@
-$(if $(PRIVATE_JAR_EXCLUDE_FILES), $(hide) find $(PRIVATE_CLASS_INTERMEDIATES_DIR) \
+$(if $(PRIVATE_JAR_EXCLUDE_FILES), $(hide) find -L $(PRIVATE_CLASS_INTERMEDIATES_DIR) \
     -name $(word 1, $(PRIVATE_JAR_EXCLUDE_FILES)) \
     $(addprefix -o -name , $(wordlist 2, 999, $(PRIVATE_JAR_EXCLUDE_FILES))) \
     | xargs rm -rf)
