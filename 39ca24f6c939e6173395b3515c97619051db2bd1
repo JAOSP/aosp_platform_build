@@ -1,0 +1,10 @@
+Code-Review+1: Kenny Root <kenny@the-b.org>
+Verified+1: Elliott Hughes <enh@google.com>
+Code-Review+1: Jeff Brown <jeffbrown@android.com>
+Code-Review+2: Ying Wang <wangying@android.com>
+Code-Review+1: Ian Rogers <irogers@google.com>
+Submitted-by: Elliott Hughes <enh@google.com>
+Submitted-at: Thu, 18 Oct 2012 10:01:20 -0700
+Reviewed-on: https://android-review.googlesource.com/44971
+Project: platform/build
+Branch: refs/heads/master
