@@ -68,6 +68,7 @@ import subprocess
 import tempfile
 import time
 import zipfile
+import platform
 
 try:
   from hashlib import sha1 as sha1
@@ -101,7 +102,10 @@ def MostPopularKey(d, default):
 def IsSymlink(info):
   """Return true if the zipfile.ZipInfo object passed in represents a
   symlink."""
-  return (info.external_attr >> 16) == 0120777
+  if platform.system() == 'Darwin':
+    return (info.external_attr >> 16) == 2716663808
+  else:
+    return (info.external_attr >> 16) == 0120777
 
 def IsRegular(info):
   """Return true if the zipfile.ZipInfo object passed in represents a
