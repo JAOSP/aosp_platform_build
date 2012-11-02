@@ -263,10 +263,10 @@ $(APKCERTS_FILE):
 	$(foreach p,$(PACKAGES),\
 	  $(if $(PACKAGES.$(p).EXTERNAL_KEY),\
 	    $(call _apkcerts_echo_with_newline,\
-	      'name="$(p).apk" certificate="EXTERNAL" \
+	      'name="$(MODULES.$(p).STEM).apk" certificate="EXTERNAL" \
 	      private_key=""' >> $@),\
 	    $(call _apkcerts_echo_with_newline,\
-	      'name="$(p).apk" certificate="$(PACKAGES.$(p).CERTIFICATE)" \
+	      'name="$(MODULES.$(p).STEM).apk" certificate="$(PACKAGES.$(p).CERTIFICATE)" \
 	      private_key="$(PACKAGES.$(p).PRIVATE_KEY)"' >> $@)))
 	# In case value of PACKAGES is empty.
 	$(hide) touch $@
