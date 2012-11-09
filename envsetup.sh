@@ -732,7 +732,7 @@ function systemstack()
     adb shell echo '""' '>>' /data/anr/traces.txt && adb shell chmod 776 /data/anr/traces.txt && adb shell kill -3 $(pid system_server)
 }
 
-function gdbclient()
+function debugclient()
 {
    local OUT_ROOT=$(get_abs_build_var PRODUCT_OUT)
    local OUT_SYMBOLS=$(get_abs_build_var TARGET_OUT_UNSTRIPPED)
@@ -788,11 +788,29 @@ function gdbclient()
        echo >>"$OUT_ROOT/gdbclient.cmds" "target remote $PORT"
        echo >>"$OUT_ROOT/gdbclient.cmds" ""
 
-       $ANDROID_TOOLCHAIN/$GDB -x "$OUT_ROOT/gdbclient.cmds" "$OUT_EXE_SYMBOLS/$EXE"
-  else
+       local CLIENT="$4"
+       if [ "$CLIENT" ] ; then
+           if [ "$CLIENT" = "gdb" ] ; then
+               $ANDROID_TOOLCHAIN/$GDB -x "$OUT_ROOT/gdbclient.cmds" "$OUT_EXE_SYMBOLS/$EXE"
+           elif [ "$CLIENT" = "ddd" ] ; then
+               ddd --debugger $ANDROID_TOOLCHAIN/$GDB -x "$OUT_ROOT/gdbclient.cmds" "$OUT_EXE_SYMBOLS/$EXE"
+           else
+               echo "Invalid client: $CLIENT"
+           fi
+       fi
+   else
        echo "Unable to determine build system output dir."
    fi
+}
 
+function gdbclient()
+{
+    debugclient "$1" "$2" "$3" gdb
+}
+
+function dddclient()
+{
+    debugclient "$1" "$2" "$3" ddd
 }
 
 case `uname -s` in
