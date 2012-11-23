@@ -448,7 +448,7 @@ endef
 ###########################################################
 
 define normalize-libraries
-$(foreach so,$(filter %.so,$(1)),-l$(patsubst lib%.so,%,$(notdir $(so))))\
+$(foreach so,$(filter %.so,$(1)),-l$(patsubst lib%,%,$(patsubst %.so,%,$(notdir $(so)))))\
 $(filter-out %.so,$(1))
 endef
 
