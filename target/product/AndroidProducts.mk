@@ -53,6 +53,10 @@ PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/full_x86.mk \
     $(LOCAL_DIR)/aosp_mips.mk \
     $(LOCAL_DIR)/full_mips.mk \
+    $(LOCAL_DIR)/aosp_x86_64.mk \
+    $(LOCAL_DIR)/full_x86_64.mk \
+    $(LOCAL_DIR)/aosp_x32.mk \
+    $(LOCAL_DIR)/full_x32.mk \
     $(LOCAL_DIR)/vbox_x86.mk \
     $(LOCAL_DIR)/sdk.mk \
     $(LOCAL_DIR)/sdk_x86.mk \
