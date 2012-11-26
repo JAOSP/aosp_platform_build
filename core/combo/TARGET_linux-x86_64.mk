@@ -14,12 +14,12 @@
 # limitations under the License.
 #
 
-# Configuration for Linux on x86 as a target.
+# Configuration for Linux on x86_64 as a target.
 # Included by combo/select.mk
 
 # Provide a default variant.
 ifeq ($(strip $(TARGET_ARCH_VARIANT)),)
-TARGET_ARCH_VARIANT := x86
+TARGET_ARCH_VARIANT := x86_64
 endif
 
 ifeq ($(strip $(TARGET_GCC_VERSION_EXP)),)
@@ -62,7 +62,7 @@ endif
 
 ifneq ($(wildcard $(TARGET_CC)),)
 TARGET_LIBGCC := \
-	$(shell $(TARGET_CC) -m32 -print-file-name=libgcc.a)
+	$(shell $(TARGET_CC) -m64 -print-file-name=libgcc.a)
 target_libgcov := $(shell $(TARGET_CC) $(TARGET_GLOBAL_CFLAGS) \
 	-print-file-name=libgcov.a)
 endif
@@ -132,7 +132,7 @@ TARGET_GLOBAL_CFLAGS += \
 			-funswitch-loops \
 			-funwind-tables \
 			-fstack-protector \
-			-m32
+			-m64
 
 android_config_h := $(call select-android-config-h,target_linux-x86)
 TARGET_ANDROID_CONFIG_CFLAGS := -include $(android_config_h) -I $(dir $(android_config_h))
@@ -188,7 +188,7 @@ TARGET_GLOBAL_CFLAGS += -mbionic
 #
 TARGET_GLOBAL_CFLAGS += -D__ANDROID__
 
-TARGET_GLOBAL_LDFLAGS += -m32
+TARGET_GLOBAL_LDFLAGS += -m64
 
 TARGET_GLOBAL_LDFLAGS += -Wl,-z,noexecstack
 TARGET_GLOBAL_LDFLAGS += -Wl,-z,relro -Wl,-z,now
@@ -196,12 +196,12 @@ TARGET_GLOBAL_LDFLAGS += -Wl,--warn-shared-textrel
 TARGET_GLOBAL_LDFLAGS += -Wl,--gc-sections
 
 TARGET_C_INCLUDES := \
-	$(libc_root)/arch-x86/include \
+	$(libc_root)/arch-x86_64/include \
 	$(libc_root)/include \
 	$(libstdc++_root)/include \
 	$(KERNEL_HEADERS) \
 	$(libm_root)/include \
-	$(libm_root)/include/i387 \
+	$(libm_root)/include/amd64 \
 	$(libthread_db_root)/include
 
 TARGET_CRTBEGIN_STATIC_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtbegin_static.o
@@ -286,13 +286,13 @@ $(hide) $(PRIVATE_CXX) \
 	$(if $(filter true,$(PRIVATE_NO_CRT)),,$(PRIVATE_TARGET_CRTEND_O))
 endef
 
-# Special check for x86 NDK ABI compatibility.
+# Special check for x86_64 NDK ABI compatibility.
 # The TARGET_CPU_ABI variable should be defined in BoardConfig.mk to 'x86'
-# *only* if the platform image is compatible with the NDK x86 ABI.
+# *only* if the platform image is compatible with the NDK x86_64 ABI.
 #
 # We perform a small check here to ensure that nothing bad can happen.
 #
-ifeq ($(TARGET_CPU_ABI),x86)
+ifeq ($(TARGET_CPU_ABI),x86_64)
   ifneq (true-true-true-true,$(ARCH_X86_HAVE_MMX)-$(ARCH_X86_HAVE_SSE)-$(ARCH_X86_HAVE_SSE2)-$(ARCH_X86_HAVE_SSE3))
     $(info ERROR: Your x86 platform image is not compatible with the NDK x86 ABI)
     $(info As such, you should *not* define TARGET_CPU_ABI to 'x86' in your BoardConfig.mk)
