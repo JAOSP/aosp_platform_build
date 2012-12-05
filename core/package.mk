@@ -153,7 +153,7 @@ else
 ifeq (,$(TARGET_BUILD_APPS))
 ifneq (,$(LOCAL_SRC_FILES))
 ifndef LOCAL_DEX_PREOPT
-LOCAL_DEX_PREOPT := true
+LOCAL_DEX_PREOPT := false
 endif
 endif
 endif
