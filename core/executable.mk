@@ -5,6 +5,10 @@
 ## None.
 ###########################################################
 
+ifeq ($(or $(USE_CLANG),$(USE_DEVICE_CLANG)),1)
+  include $(BUILD_SYSTEM)/use_clang.mk
+endif
+
 ifeq ($(strip $(LOCAL_MODULE_CLASS)),)
 LOCAL_MODULE_CLASS := EXECUTABLES
 endif
@@ -60,4 +64,8 @@ $(linked_module): $(my_target_crtbegin_static_o) $(all_objects) $(all_libraries)
 else
 $(linked_module): $(my_target_crtbegin_dynamic_o) $(all_objects) $(all_libraries) $(my_target_crtend_o)
 	$(transform-o-to-executable)
+endif
+
+ifeq ($(or $(USE_CLANG),$(USE_DEVICE_CLANG)),1)
+  include $(BUILD_SYSTEM)/restore_compiler.mk
 endif

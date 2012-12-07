@@ -7,6 +7,10 @@
 ## LOCAL_MODULE_SUFFIX will be set for you.
 ###########################################################
 
+ifeq ($(or $(USE_CLANG),$(USE_DEVICE_CLANG)),1)
+  include $(BUILD_SYSTEM)/use_clang.mk
+endif
+
 ifeq ($(strip $(LOCAL_MODULE_CLASS)),)
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 endif
@@ -68,3 +72,7 @@ $(linked_module): $(all_objects) $(all_libraries) \
                   $(LOCAL_ADDITIONAL_DEPENDENCIES) \
                   $(my_target_crtbegin_so_o) $(my_target_crtend_so_o)
 	$(transform-o-to-shared-lib)
+
+ifeq ($(or $(USE_CLANG),$(USE_DEVICE_CLANG)),1)
+  include $(BUILD_SYSTEM)/restore_compiler.mk
+endif

@@ -1,3 +1,7 @@
+ifeq ($(or $(USE_CLANG),$(USE_HOST_CLANG),$(USE_DEVICE_CLANG)),1)
+  include $(BUILD_SYSTEM)/use_clang.mk
+endif
+
 LOCAL_MODULE_CLASS := EXECUTABLES
 LOCAL_MODULE_SUFFIX := 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
@@ -23,3 +27,7 @@ $(LOCAL_BUILT_MODULE): $(all_objects) $(all_libraries)
 		--start-group $(PRIVATE_ALL_STATIC_LIBRARIES) --end-group \
 		$(PRIVATE_LIBS)
 	$(hide) $(TARGET_OBJCOPY) -O binary $(PRIVATE_ELF_FILE) $@
+
+ifeq ($(or $(USE_CLANG),$(USE_HOST_CLANG),$(USE_DEVICE_CLANG)),1)
+  include $(BUILD_SYSTEM)/restore_compiler.mk
+endif

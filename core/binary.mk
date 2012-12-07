@@ -66,6 +66,10 @@ else
   endif
 endif
 
+ifeq ($(or $(USE_CLANG),$(USE_HOST_CLANG),$(USE_DEVICE_CLANG)),1)
+  LOCAL_LDFLAGS += -Wl,--hash-style=sysv
+endif
+
 # Logging used to be part of libcutils (target) and libutils (sim);
 # hack modules that use those other libs to also include liblog.
 # All of this complexity is to make sure that liblog only appears
