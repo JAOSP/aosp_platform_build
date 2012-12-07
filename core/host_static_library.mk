@@ -7,6 +7,10 @@
 ## LOCAL_MODULE_SUFFIX will be set for you.
 ###########################################################
 
+ifeq ($(or $(USE_CLANG),$(USE_HOST_CLANG)),1)
+  include $(BUILD_SYSTEM)/use_clang.mk
+endif
+
 ifeq ($(strip $(LOCAL_MODULE_CLASS)),)
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 endif
@@ -25,3 +29,7 @@ include $(BUILD_SYSTEM)/binary.mk
 $(LOCAL_BUILT_MODULE): $(built_whole_libraries)
 $(LOCAL_BUILT_MODULE): $(all_objects)
 	$(transform-host-o-to-static-lib)
+
+ifeq ($(or $(USE_CLANG),$(USE_HOST_CLANG)),1)
+  include $(BUILD_SYSTEM)/restore_compiler.mk
+endif
