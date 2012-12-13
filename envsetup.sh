@@ -1163,3 +1163,6 @@ done
 unset f
 
 addcompletions
+
+# Clear the previously exported TARGET_GCC_VERSION when re-executing envsetup.sh
+export TARGET_GCC_VERSION=
