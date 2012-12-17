@@ -112,7 +112,10 @@ $(full_target): PRIVATE_DROIDDOC_OPTIONS := $(LOCAL_DROIDDOC_OPTIONS)
 define prepare-doc-source-list
 $(hide) mkdir -p $(dir $(1))
 $(call dump-words-to-file, $(2), $(1))
-$(hide) for d in $(3) ; do find $$d -name '*.java' >> $(1) 2> /dev/null ; done ; true
+$(hide) for d in $(3) ; do find $$d -name '*.java' >> $(1) 2> /dev/null ; done ; true; \
+	head -1 $(1) | tr " " "\n" | sort | uniq | tr "\n" " " > temp_droid; \
+	cat $(1) | sed '1 d' >> temp_droid; \
+	mv temp_droid $(1);
 endef
 
 ifeq (a,b)
@@ -159,6 +162,9 @@ $(full_target): $(full_src_files) $(droiddoc_templates) $(droiddoc) $(html_dir_f
 	$(call prepare-doc-source-list,$(PRIVATE_SRC_LIST_FILE),$(PRIVATE_JAVA_FILES), \
 			$(PRIVATE_SOURCE_INTERMEDIATES_DIR) $(PRIVATE_ADDITIONAL_JAVA_DIR))
 	$(hide) ( \
+		head -1 $(PRIVATE_SRC_LIST_FILE) | tr " " "\n" | sort | uniq | tr "\n" " " > temp_$(PRIVATE_SRC_LIST_FILE); \
+		cat $(PRIVATE_SRC_LIST_FILE) | sed '1 d' >> temp_$(PRIVATE_SRC_LIST_FILE); \
+		mv temp_$(PRIVATE_SRC_LIST_FILE) $(PRIVATE_SRC_LIST_FILE); \
 		javadoc \
                 \@$(PRIVATE_SRC_LIST_FILE) \
                 -J-Xmx1280m \
@@ -191,6 +197,9 @@ $(full_target): $(full_src_files) $(full_java_lib_deps)
 	$(call prepare-doc-source-list,$(PRIVATE_SRC_LIST_FILE),$(PRIVATE_JAVA_FILES), \
 			$(PRIVATE_SOURCE_INTERMEDIATES_DIR) $(PRIVATE_ADDITIONAL_JAVA_DIR))
 	$(hide) ( \
+		head -1 $(PRIVATE_SRC_LIST_FILE) | tr " " "\n" | sort | uniq | tr "\n" " " > temp_$(PRIVATE_SRC_LIST_FILE) \
+		cat $(PRIVATE_SRC_LIST_FILE) | sed '1 d' >> temp_$(PRIVATE_SRC_LIST_FILE); \
+		mv temp_$(PRIVATE_SRC_LIST_FILE) $(PRIVATE_SRC_LIST_FILE); \
 		javadoc \
                 $(PRIVATE_DROIDDOC_OPTIONS) \
                 \@$(PRIVATE_SRC_LIST_FILE) \
