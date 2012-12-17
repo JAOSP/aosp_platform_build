@@ -159,6 +159,9 @@ $(full_target): $(full_src_files) $(droiddoc_templates) $(droiddoc) $(html_dir_f
 	$(call prepare-doc-source-list,$(PRIVATE_SRC_LIST_FILE),$(PRIVATE_JAVA_FILES), \
 			$(PRIVATE_SOURCE_INTERMEDIATES_DIR) $(PRIVATE_ADDITIONAL_JAVA_DIR))
 	$(hide) ( \
+		head -1 $(PRIVATE_SRC_LIST_FILE) | tr " " "\n" | sort | uniq | tr "\n" " " > temp_$(PRIVATE_SRC_LIST_FILE); \
+		cat $(PRIVATE_SRC_LIST_FILE) | sed '1 d' >> temp_$(PRIVATE_SRC_LIST_FILE); \
+		mv temp_$(PRIVATE_SRC_LIST_FILE) $(PRIVATE_SRC_LIST_FILE); \
 		javadoc \
                 \@$(PRIVATE_SRC_LIST_FILE) \
                 -J-Xmx1280m \
@@ -191,6 +194,9 @@ $(full_target): $(full_src_files) $(full_java_lib_deps)
 	$(call prepare-doc-source-list,$(PRIVATE_SRC_LIST_FILE),$(PRIVATE_JAVA_FILES), \
 			$(PRIVATE_SOURCE_INTERMEDIATES_DIR) $(PRIVATE_ADDITIONAL_JAVA_DIR))
 	$(hide) ( \
+		head -1 $(PRIVATE_SRC_LIST_FILE) | tr " " "\n" | sort | uniq | tr "\n" " " > temp_$(PRIVATE_SRC_LIST_FILE) \
+		cat $(PRIVATE_SRC_LIST_FILE) | sed '1 d' >> temp_$(PRIVATE_SRC_LIST_FILE); \
+		mv temp_$(PRIVATE_SRC_LIST_FILE) $(PRIVATE_SRC_LIST_FILE); \
 		javadoc \
                 $(PRIVATE_DROIDDOC_OPTIONS) \
                 \@$(PRIVATE_SRC_LIST_FILE) \
