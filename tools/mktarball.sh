@@ -23,6 +23,8 @@ cd $2
 rm ${target_tar} > /dev/null 2>&1
 
 # do dirs first
+SAVEIFS=$IFS
+IFS=$(echo -en "\n\b")
 subdirs=`find ${dir_to_tar} -type d -print`
 files=`find ${dir_to_tar} \! -type d -print`
 for f in ${subdirs} ${files} ; do
@@ -37,6 +39,7 @@ for f in ${subdirs} ${files} ; do
     tar --no-recursion --numeric-owner --owner $new_uid \
         --group $new_gid --mode $new_perms -p -rf ${target_tar} ${f}
 done
+IFS=$SAVEIFS
 
 if [ $? -eq 0 ] ; then
     case "${target_tarball}" in
