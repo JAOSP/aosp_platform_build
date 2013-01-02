@@ -1,0 +1,7 @@
+Code-Review+2: Jean-Baptiste Queru <jbq@google.com>
+Verified+1: Doug Zongker <dougz@android.com>
+Submitted-by: Doug Zongker <dougz@android.com>
+Submitted-at: Wed, 02 Jan 2013 13:49:02 -0800
+Reviewed-on: https://android-review.googlesource.com/48916
+Project: platform/build
+Branch: refs/heads/master
