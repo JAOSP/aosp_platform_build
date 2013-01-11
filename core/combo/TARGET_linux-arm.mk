@@ -75,7 +75,8 @@ TARGET_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
 TARGET_arm_CFLAGS :=    -O2 \
                         -fomit-frame-pointer \
                         -fstrict-aliasing    \
-                        -funswitch-loops
+                        -funswitch-loops \
+                        -fbuiltin-sincos
 
 # Modules can choose to compile some source as thumb. As
 # non-thumb enabled targets are supported, this is treated
