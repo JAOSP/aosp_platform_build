@@ -123,7 +123,7 @@ endif
 
 
 # Check for the correct version of java
-java_version := $(shell java -version 2>&1 | head -n 1 | grep '^java .*[ "]1\.6[\. "$$]')
+java_version := $(shell java -version 2>&1 | grep 'version' | grep '^java .*[ "]1\.6[\. "$$]')
 ifneq ($(shell java -version 2>&1 | grep -i openjdk),)
 java_version :=
 endif
