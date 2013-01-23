@@ -145,10 +145,11 @@ def AddSystem(output_zip):
 
   img.seek(os.SEEK_SET, 0)
   data = img.read()
-  img.close()
+  img.seek(os.SEEK_SET, 0)
 
   common.CheckSize(data, "system.img", OPTIONS.info_dict)
-  common.ZipWriteStr(output_zip, "system.img", data)
+  common.ZipWriteFile(output_zip, "system.img", img.name)
+  img.close()
 
 
 def CopyInfo(output_zip):
@@ -184,7 +185,7 @@ def main(argv):
   OPTIONS.input_tmp, input_zip = common.UnzipTemp(args[0])
   OPTIONS.info_dict = common.LoadInfoDict(input_zip)
 
-  output_zip = zipfile.ZipFile(args[1], "w", compression=zipfile.ZIP_DEFLATED)
+  output_zip = zipfile.ZipFile(args[1], "w", compression=zipfile.ZIP_DEFLATED, allowZip64=True)
 
   common.GetBootableImage(
       "boot.img", "boot.img", OPTIONS.input_tmp, "BOOT").AddToZip(output_zip)

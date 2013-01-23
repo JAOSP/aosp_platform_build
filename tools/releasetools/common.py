@@ -650,6 +650,14 @@ def ZipWriteStr(zip, filename, data, perms=0644):
   zinfo.external_attr = perms << 16
   zip.writestr(zinfo, data)
 
+def ZipWriteFile(zip, filename, originalfilename, perms=0644):
+  # use a fixed timestamp so the output is repeatable.
+  fixedtime = time.mktime((2009, 1, 1, 0, 0, 0, 0, 0, 0))
+  os.utime(originalfilename, (fixedtime, fixedtime))
+  os.chmod(originalfilename, perms)
+  zip.write(originalfilename, filename, compress_type = zip.compression)
+
+
 
 class DeviceSpecificParams(object):
   module = None

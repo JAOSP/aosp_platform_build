@@ -801,7 +801,7 @@ def main(argv):
 
   temp_zip_file = tempfile.NamedTemporaryFile()
   output_zip = zipfile.ZipFile(temp_zip_file, "w",
-                               compression=zipfile.ZIP_DEFLATED)
+                               compression=zipfile.ZIP_DEFLATED, allowZip64=True)
 
   if OPTIONS.incremental_source is None:
     WriteFullOTAPackage(input_zip, output_zip)
