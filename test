@@ -1,0 +1,1 @@
+This patch is used to verify if something can be committed to remote server,do not merge the patch if it will be made.
