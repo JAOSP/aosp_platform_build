@@ -21,7 +21,7 @@ ifneq ($(addon_name),)
 addon_dir_leaf := $(addon_name)-$(FILE_NAME_TAG)-$(INTERNAL_SDK_HOST_OS_NAME)
 
 intermediates := $(HOST_OUT_INTERMEDIATES)/SDK_ADDON/$(addon_name)_intermediates
-full_target := $(HOST_OUT_SDK_ADDON)/$(addon_dir_leaf).zip
+sdk_addon_target := $(HOST_OUT_SDK_ADDON)/$(addon_dir_leaf).zip
 staging := $(intermediates)/$(addon_dir_leaf)
 
 sdk_addon_deps :=
@@ -74,11 +74,11 @@ $(foreach cf,$(files_to_copy), \
 # whole thing.
 doc_modules := $(strip $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_SDK_ADDON_DOC_MODULES))
 sdk_addon_deps += $(foreach dm, $(doc_modules), $(call doc-timestamp-for, $(dm)))
-$(full_target): PRIVATE_DOCS_DIRS := $(addprefix $(OUT_DOCS)/, $(doc_modules))
+$(sdk_addon_target): PRIVATE_DOCS_DIRS := $(addprefix $(OUT_DOCS)/, $(doc_modules))
 
-$(full_target): PRIVATE_STAGING_DIR := $(staging)
+$(sdk_addon_target): PRIVATE_STAGING_DIR := $(staging)
 
-$(full_target): $(sdk_addon_deps) | $(ACP)
+$(sdk_addon_target): $(sdk_addon_deps) | $(ACP)
 	@echo Packaging SDK Addon: $@
 	$(hide) mkdir -p $(PRIVATE_STAGING_DIR)/docs
 	$(hide) for d in $(PRIVATE_DOCS_DIRS); do \
@@ -88,17 +88,17 @@ $(full_target): $(sdk_addon_deps) | $(ACP)
 	$(hide) ( F=$$(pwd)/$@ ; cd $(PRIVATE_STAGING_DIR)/.. && zip -rq $$F * )
 
 .PHONY: sdk_addon
-sdk_addon: $(full_target)
+sdk_addon: $(sdk_addon_target)
 
 ifneq ($(sdk_repo_goal),)
 # If we're building the sdk_repo, keep the name of the addon zip
 # around so that development/build/tools/sdk_repo.mk can dist it
 # at the appropriate location.
-ADDON_SDK_ZIP := $(full_target)
+ADDON_SDK_ZIP := $(sdk_addon_target)
 else
 # When not building an sdk_repo, just dist the addon zip file
 # as-is.
-$(call dist-for-goals, sdk_addon, $(full_target))
+$(call dist-for-goals, sdk_addon, $(sdk_addon_target))
 endif
 
 else # addon_name
