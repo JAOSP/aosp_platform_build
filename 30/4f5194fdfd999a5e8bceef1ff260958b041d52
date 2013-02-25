@@ -1,0 +1,7 @@
+Code-Review+2: Jean-Baptiste Queru <jbq@google.com>
+Verified+1: Deckard Autoverifier <deckard@android.com>
+Submitted-by: Jean-Baptiste Queru <jbq@google.com>
+Submitted-at: Mon, 25 Feb 2013 21:01:48 +0000
+Reviewed-on: https://android-review.googlesource.com/52161
+Project: platform/build
+Branch: refs/heads/master
