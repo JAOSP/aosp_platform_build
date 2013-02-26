@@ -1,0 +1,9 @@
+Code-Review+1: Elliott Hughes <enh@google.com>
+Code-Review+1: Brian Carlstrom <bdc@google.com>
+Code-Review+2: Ying Wang <wangying@android.com>
+Verified+1: Ying Wang <wangying@android.com>
+Submitted-by: Ying Wang <wangying@android.com>
+Submitted-at: Tue, 26 Feb 2013 00:51:10 +0000
+Reviewed-on: https://android-review.googlesource.com/52233
+Project: platform/build
+Branch: refs/heads/master
