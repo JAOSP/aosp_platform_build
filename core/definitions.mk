@@ -126,6 +126,10 @@ $(strip \
  )
 endef
 
+define my-full-dir
+$(shell readlink -f $(call my-dir))
+endef
+
 ###########################################################
 ## Retrieve a list of all makefiles immediately below some directory
 ###########################################################
