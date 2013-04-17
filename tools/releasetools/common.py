@@ -28,6 +28,7 @@ import tempfile
 import threading
 import time
 import zipfile
+import shlex
 
 try:
   from hashlib import sha1 as sha1
@@ -309,7 +310,7 @@ def BuildBootableImage(sourcedir, fs_config_file, info_dict=None):
 
   args = info_dict.get("mkbootimg_args", None)
   if args and args.strip():
-    cmd.extend(args.split())
+    cmd.extend(shlex.split(args))
 
   cmd.extend(["--ramdisk", ramdisk_img.name,
               "--output", img.name])
