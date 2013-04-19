@@ -71,8 +71,10 @@ if sys.hexversion < 0x02040000:
   print >> sys.stderr, "Python 2.4 or newer is required."
   sys.exit(1)
 
+import base64
 import cStringIO
 import copy
+import errno
 import os
 import re
 import subprocess
@@ -161,9 +163,46 @@ def SignApks(input_tf_zip, output_tf_zip, apk_key_map, key_passwords):
       print "rewriting %s:" % (info.filename,)
       new_data = RewriteProps(data)
       output_tf_zip.writestr(out_info, new_data)
+    elif info.filename.endswith("mac_permissions.xml"):
+      print "rewriting %s with new keys." % info.filename
+      new_data = ReplaceMMACCerts(data)
+      output_tf_zip.writestr(out_info, new_data)
     else:
       # a non-APK file; copy it verbatim
       output_tf_zip.writestr(out_info, data)
+
+
+def ReplaceMMACCerts(data):
+  """Replace all occurences of a set of X509 certs with
+  a newer set of X509 certs in MMAC policy files."""
+  for old, new in OPTIONS.key_map.iteritems():
+    try:
+      if OPTIONS.verbose:
+        print "Trying to replace " + old + ".x509.pem with " + new + ".x509.pem"
+      f = open(old + ".x509.pem")
+      old_cert16 = base64.b16encode(common.ParseCertificate(f.read())).lower()
+      f.close()
+      f = open(new + ".x509.pem")
+      new_cert16 = base64.b16encode(common.ParseCertificate(f.read())).lower()
+      f.close()
+      (data, num_subs) = re.subn(old_cert16, new_cert16, data)
+      if OPTIONS.verbose:
+        print "\tReplaced %d occurence(s) of %s.x509.pem with %s.x509.pem" % (num_subs, old, new)
+    except IOError, e:
+      # We have no prior knowledge of the certs in the MMAC files. So we
+      # open and parse each x509 specified from the command line and do a simple
+      # string substitution. This however means that the devkey.x509.pem is always
+      # checked while rarely existing; devkey is one of the 5 default key mappings
+      # used. Instead of reporting that error every time we ignore the reporting
+      # unless in verbose mode. We instead only report on errors with x509 keys
+      # of the 4 normal AOSP keys or those explicitly added with the -k option.
+      if (old.endswith("devkey") and e.errno == errno.ENOENT and not OPTIONS.verbose):
+        continue
+
+      print "\tError trying to access %s. %s. Skipping trying to replace " \
+          "%s.x509.pem with %s.x509.pem." % (e.filename, e.strerror, old, new)
+
+  return data
 
 
 def EditTags(tags):
