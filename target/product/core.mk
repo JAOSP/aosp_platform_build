@@ -51,7 +51,6 @@ PRODUCT_PACKAGES += \
     cacerts \
     com.android.location.provider \
     com.android.location.provider.xml \
-    conscrypt \
     core \
     core-junit \
     dalvikvm \
@@ -136,14 +135,14 @@ PRODUCT_PACKAGES += \
     file_contexts \
     seapp_contexts \
     property_contexts \
-    mac_permissions.xml
+    mac_permissions.xml \
+	sepolicy_revision
 
 # host-only dependencies
 ifeq ($(WITH_HOST_DALVIK),true)
     PRODUCT_PACKAGES += \
         apache-xml-hostdex \
         bouncycastle-hostdex \
-        conscrypt-hostdex \
         core-hostdex \
         okhttp-hostdex \
         libcrypto \
