@@ -136,7 +136,8 @@ PRODUCT_PACKAGES += \
     file_contexts \
     seapp_contexts \
     property_contexts \
-    mac_permissions.xml
+    mac_permissions.xml \
+    sepolicy_revision
 
 # host-only dependencies
 ifeq ($(WITH_HOST_DALVIK),true)
