@@ -1,0 +1,11 @@
+Code-Review+1: Douglas Leung <douglas.leung@imgtec.com>
+Code-Review+2: Ying Wang <wangying@android.com>
+Verified+1: Deckard Autoverifier <deckard@android.com>
+Code-Review+1: Iceberg Fu <Chao-Ying.Fu@imgtec.com>
+Code-Review+1: Piet Delaney <piet.delaney@imgtec.com>
+Code-Review+1: Lei Jia <ljia@ingenic.cn>
+Submitted-by: Ying Wang <wangying@android.com>
+Submitted-at: Tue, 21 May 2013 18:33:31 +0000
+Reviewed-on: https://android-review.googlesource.com/59060
+Project: platform/build
+Branch: refs/heads/master
