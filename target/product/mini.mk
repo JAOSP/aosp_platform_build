@@ -161,10 +161,14 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     Bluetooth \
     FusedLocation \
+    InCallUI \
     InputDevices \
     LatinIME \
     Phone \
     Provision \
+    Telephony \
+    com.android.telephony.client \
+    com.android.telephony.client.xml \
     hostapd \
     wpa_supplicant.conf
 

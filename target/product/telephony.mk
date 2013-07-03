@@ -18,7 +18,11 @@
 # to products that have telephony hardware.
 
 PRODUCT_PACKAGES := \
+    InCallUI \
     Mms \
+    Telephony \
+    com.android.telephony.client \
+    com.android.telephony.client.xml \
     rild
 
 PRODUCT_COPY_FILES := \

@@ -24,6 +24,7 @@ PRODUCT_PACKAGES := \
 	Exchange2 \
 	FusedLocation \
 	Gallery \
+	InCallUI \
 	Music \
 	Mms \
 	OpenWnn \
@@ -74,6 +75,12 @@ PRODUCT_PACKAGES += \
 	audio.primary.goldfish \
 	audio_policy.default \
 	local_time.default
+
+# telephony related
+PRODUCT_PACKAGES += \
+	Telephony
+	com.android.telephony.client \
+	com.android.telephony.client.xml
 
 PRODUCT_PACKAGE_OVERLAYS := development/sdk_overlay
 
