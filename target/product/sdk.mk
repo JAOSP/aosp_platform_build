@@ -24,6 +24,7 @@ PRODUCT_PACKAGES := \
 	Exchange2 \
 	FusedLocation \
 	Gallery \
+	InCallUI \
 	Music \
 	Mms \
 	OpenWnn \
