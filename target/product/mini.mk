@@ -161,6 +161,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     Bluetooth \
     FusedLocation \
+    InCallUI \
     InputDevices \
     LatinIME \
     Phone \
