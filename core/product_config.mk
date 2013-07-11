@@ -213,6 +213,9 @@ _cpm_word2 :=
 current_product_makefile := $(strip $(current_product_makefile))
 all_product_makefiles := $(strip $(all_product_makefiles))
 
+# Include base mixin definitions so they can be used ih the product Makefile(s).
+include $(BUILD_SYSTEM)/mixins.mk
+
 ifneq (,$(filter product-graph dump-products, $(MAKECMDGOALS)))
 # Import all product makefiles.
 $(call import-products, $(all_product_makefiles))

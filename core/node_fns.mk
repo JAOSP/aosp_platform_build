@@ -188,6 +188,7 @@ define _import-node
   $(eval LOCAL_PATH := $(patsubst %/,%,$(dir $(2))))
   $(eval MAKEFILE_LIST :=)
   $(eval include $(2))
+  $(if $(filter 1,$(words $(_include_stack))),$(check-mixin-selections))
   $(eval _included := $(filter-out $(2),$(MAKEFILE_LIST)))
   $(eval MAKEFILE_LIST :=)
   $(eval LOCAL_PATH :=)

@@ -313,6 +313,16 @@ endif
 DEFAULT_KEY_CERT_PAIR := $(DEFAULT_SYSTEM_DEV_CERTIFICATE)
 
 
+# -----------------------------------------------------------------
+
+# Create some composite files which are assembled from fragments
+# defined by the mix-ins
+$(call assemble-composite-file,init.rc,init.composite.rc)
+$(call assemble-composite-file,ueventd.rc,ueventd.composite.rc)
+$(call assemble-composite-file,init.recovery.rc,init.recovery.composite.rc)
+
+# -----------------------------------------------------------------
+
 # Rules that need to be present for the all targets, even
 # if they don't do anything.
 .PHONY: systemimage
@@ -1597,6 +1607,7 @@ $(INTERNAL_FINDBUGS_HTML_TARGET): $(INTERNAL_FINDBUGS_XML_TARGET)
 include $(sort $(wildcard $(BUILD_SYSTEM)/tasks/*.mk))
 -include $(sort $(wildcard vendor/*/build/tasks/*.mk))
 -include $(sort $(wildcard device/*/build/tasks/*.mk))
+$(call import-mixin-file,buildtask.mk)
 
 # -----------------------------------------------------------------
 # Create SDK repository packages. Must be done after tasks/* since

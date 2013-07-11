@@ -152,7 +152,11 @@ endif
 ifneq ($(words $(board_config_mk)),1)
   $(error Multiple board config files for TARGET_DEVICE $(TARGET_DEVICE): $(board_config_mk))
 endif
+
 include $(board_config_mk)
+# Include all the mixin BoardConfig.mk fragments
+$(call import-mixin-file,BoardConfig.mk)
+
 ifeq ($(TARGET_ARCH),)
   $(error TARGET_ARCH not defined by board config: $(board_config_mk))
 endif

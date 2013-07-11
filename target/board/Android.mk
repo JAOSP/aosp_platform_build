@@ -21,6 +21,7 @@ else
 endif
 
 -include $(TARGET_DEVICE_DIR)/AndroidBoard.mk
+$(call import-mixin-file,AndroidBoard.mk)
 
 # Generate a file that contains various information about the
 # device we're building for.  This file is typically packaged up
