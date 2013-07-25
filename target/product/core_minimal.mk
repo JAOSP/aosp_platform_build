@@ -53,6 +53,7 @@ PRODUCT_PACKAGES += \
     framework-res \
     hprof-conv \
     icu.dat \
+    idmap \
     installd \
     ip \
     ip-up-vpn \
