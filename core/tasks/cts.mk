@@ -35,6 +35,7 @@ CTS_CORE_CASE_LIST := \
 	android.core.tests.libcore.package.tests \
 	android.core.tests.libcore.package.org \
 	android.core.tests.libcore.package.libcore \
+	android.core.tests.libcore.package.jsr166 \
 	android.core.tests.runner
 
 # Depend on the full package paths rather than the phony targets to avoid
@@ -97,7 +98,8 @@ CTS_CORE_XMLS := \
 	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.sun.xml \
 	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.tests.xml \
 	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.org.xml \
-	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.libcore.xml
+	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.libcore.xml \
+	$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.jsr166.xml
 
 $(CTS_CORE_XMLS): PRIVATE_CLASSPATH:=$(GEN_CLASSPATH)
 # Why does this depend on javalib.jar instead of classes.jar?  Because
@@ -130,6 +132,10 @@ $(CTS_CORE_XMLS): $(CTS_CORE_CASES) $(HOST_OUT_JAVA_LIBRARIES)/descGen.jar $(COR
 	$(call generate-core-test-description,$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.libcore,\
 		cts/tests/core/libcore/libcore/AndroidManifest.xml,\
 		$(CORETESTS_INTERMEDIATES)/javalib.jar,libcore,\
+		libcore/expectations)
+	$(call generate-core-test-description,$(CTS_TESTCASES_OUT)/android.core.tests.libcore.package.jsr166,\
+		cts/tests/core/libcore/jsr166/AndroidManifest.xml,\
+		$(CORETESTS_INTERMEDIATES)/javalib.jar,jsr166,\
 		libcore/expectations)
 
 # ----- Generate the test descriptions for the vm-tests-tf -----
