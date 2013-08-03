@@ -47,6 +47,10 @@ HOST_GLOBAL_CFLAGS += -mstackrealign -msse3 -mfpmath=sse -m32
 HOST_GLOBAL_LDFLAGS += -m32
 endif # BUILD_HOST_64bit
 
+ifeq ($(strip $(HOST_TOOLCHAIN_LIB_ROOT)),)
+  HOST_TOOLCHAIN_LIB_ROOT := prebuilts/gcc/linux-x86/host/i686-linux-glibc2.7-4.6/lib
+endif
+
 ifneq ($(strip $(BUILD_HOST_static)),)
 # Statically-linked binaries are desirable for sandboxed environment
 HOST_GLOBAL_LDFLAGS += -static
@@ -59,3 +63,38 @@ HOST_GLOBAL_CFLAGS += -fPIC \
 HOST_GLOBAL_CFLAGS += -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
 
 HOST_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
+
+host_libgcov := $(HOST_TOOLCHAIN_LIB_ROOT)/gcc/i686-linux/4.6.x-google/libgcov.a
+
+# Define host FDO (Feedback Directed Optimization) options.
+
+HOST_FDO_CFLAGS:=
+HOST_FDO_LIB:=
+
+ifneq ($(strip $(BUILD_HOST_FDO_INSTRUMENT)),)
+  # Set BUILD_HOST_FDO_INSTRUMENT to turn on FDO instrumentation.
+  # The profile will be generated in $(ANDROID_HOST_OUT)/profile by default.
+  # Set HOST_FDO_PROFILE_GEN_PATH to an alternate profile
+  # generation path if preferred.
+  ifeq ($(strip $(HOST_FDO_PROFILE_GEN_PATH)),)
+    HOST_FDO_PROFILE_GEN_PATH := $(ANDROID_HOST_OUT)/profile
+  endif
+  HOST_FDO_CFLAGS := -fprofile-generate=$(HOST_FDO_PROFILE_GEN_PATH)
+  HOST_FDO_LIB := $(host_libgcov)
+else
+  # If BUILD_FDO_INSTRUMENT is turned off, then consider doing the FDO optimizations.
+  # Set HOST_FDO_PROFILE_PATH to set a custom profile directory for your build.
+  ifeq ($(strip $(TARGET_FDO_PROFILE_PATH)),)
+    HOST_FDO_PROFILE_PATH := fdo/profiles/host/$(HOST_ARCH)
+  else
+    ifeq ($(strip $(wildcard $(HOST_FDO_PROFILE_PATH))),)
+      $(warning Custom HOST_FDO_PROFILE_PATH supplied, but directory does not exist. Turn off FDO.)
+    endif
+  endif
+
+  # If the FDO profile directory can't be found, then FDO is off.
+  ifneq ($(strip $(wildcard $(HOST_FDO_PROFILE_PATH))),)
+    HOST_FDO_CFLAGS := -fprofile-use=$(HOST_FDO_PROFILE_PATH)
+    HOST_FDO_LIB := $(host_libgcov)
+  endif
+endif
