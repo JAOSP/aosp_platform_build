@@ -115,9 +115,15 @@ endif
 ## Add FDO flags if FDO is turned on and supported
 ####################################################
 ifeq ($(strip $(LOCAL_NO_FDO_SUPPORT)),)
-  LOCAL_CFLAGS += $(TARGET_FDO_CFLAGS)
-  LOCAL_CPPFLAGS += $(TARGET_FDO_CFLAGS)
-  LOCAL_LDFLAGS += $(TARGET_FDO_CFLAGS)
+  ifeq ($(strip $(LOCAL_IS_HOST_MODULE)),)
+    LOCAL_CFLAGS += $(TARGET_FDO_CFLAGS)
+    LOCAL_CPPFLAGS += $(TARGET_FDO_CFLAGS)
+    LOCAL_LDFLAGS += $(TARGET_FDO_CFLAGS)
+  else
+    LOCAL_CFLAGS += $(HOST_FDO_CFLAGS)
+    LOCAL_CPPFLAGS += $(HOST_FDO_CFLAGS)
+    LOCAL_LDFLAGS += $(HOST_FDO_CFLAGS)
+  endif
 endif
 
 ####################################################
