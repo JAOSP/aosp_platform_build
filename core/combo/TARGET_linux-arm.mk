@@ -245,7 +245,8 @@ $(hide) $(PRIVATE_CXX) \
 	$(call normalize-target-libraries,$(PRIVATE_ALL_STATIC_LIBRARIES)) \
 	$(if $(PRIVATE_GROUP_STATIC_LIBRARIES),-Wl$(comma)--end-group) \
 	$(if $(TARGET_BUILD_APPS),$(PRIVATE_TARGET_LIBGCC)) \
-	$(call normalize-target-libraries,$(PRIVATE_ALL_SHARED_LIBRARIES)) \
+    $(PRIVATE_TARGET_FDO_LIB) \
+    $(call normalize-target-libraries,$(PRIVATE_ALL_SHARED_LIBRARIES)) \
 	-o $@ \
 	$(PRIVATE_TARGET_GLOBAL_LDFLAGS) \
 	$(PRIVATE_LDFLAGS) \
@@ -270,7 +271,8 @@ $(hide) $(PRIVATE_CXX) -nostdlib -Bdynamic -fPIE -pie \
 	$(call normalize-target-libraries,$(PRIVATE_ALL_STATIC_LIBRARIES)) \
 	$(if $(PRIVATE_GROUP_STATIC_LIBRARIES),-Wl$(comma)--end-group) \
 	$(if $(TARGET_BUILD_APPS),$(PRIVATE_TARGET_LIBGCC)) \
-	$(call normalize-target-libraries,$(PRIVATE_ALL_SHARED_LIBRARIES)) \
+    $(PRIVATE_TARGET_FDO_LIB) \
+    $(call normalize-target-libraries,$(PRIVATE_ALL_SHARED_LIBRARIES)) \
 	-o $@ \
 	$(PRIVATE_TARGET_GLOBAL_LDFLAGS) \
 	$(PRIVATE_LDFLAGS) \
