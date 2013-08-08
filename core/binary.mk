@@ -123,6 +123,20 @@ ifeq ($(strip $(LOCAL_NO_FDO_SUPPORT)),)
 endif
 
 ####################################################
+## Add Auto FDO flags if Auto FDO is turned on and
+## supported
+####################################################
+ifeq ($(strip $(LOCAL_NO_AUTO_FDO_SUPPORT)),)
+  ifeq ($(string $(LOCAL_NO_FDO_SUPPORT)),)
+    ifeq ($(strip $(LOCAL_IS_HOST_MODULE)),)
+      LOCAL_CFLAGS += $(TARGET_AUTO_FDO_CFLAGS)
+      LOCAL_CPPFLAGS += $(TARGET_AUTO_FDO_CFLAGS)
+      LOCAL_LDFLAGS += $(TARGET_AUTO_FDO_CFLAGS)
+    endif
+  endif
+endif
+
+####################################################
 ## Add profiling flags if aprof is turned on
 ####################################################
 ifeq ($(strip $(LOCAL_ENABLE_APROF)),true)
