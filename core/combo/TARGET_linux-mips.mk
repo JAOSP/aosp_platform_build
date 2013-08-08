@@ -163,28 +163,72 @@ TARGET_FDO_CFLAGS:=
 TARGET_FDO_LIB:=
 
 ifneq ($(strip $(BUILD_FDO_INSTRUMENT)),)
-  # Set BUILD_FDO_INSTRUMENT=true to turn on FDO instrumentation.
+  # Set BUILD_FDO_INSTRUMENT to turn on FDO instrumentation.
   # The profile will be generated on /data/local/tmp/profile on the device.
   TARGET_FDO_CFLAGS := -fprofile-generate=/data/local/tmp/profile -DANDROID_FDO
   TARGET_FDO_LIB := $(target_libgcov)
 else
-  # If BUILD_FDO_INSTRUMENT is turned off, then consider doing the FDO optimizations.
-  # Set TARGET_FDO_PROFILE_PATH to set a custom profile directory for your build.
-  ifeq ($(strip $(TARGET_FDO_PROFILE_PATH)),)
-    TARGET_FDO_PROFILE_PATH := fdo/profiles/$(TARGET_ARCH)/$(TARGET_ARCH_VARIANT)
-  else
-    ifeq ($(strip $(wildcard $(TARGET_FDO_PROFILE_PATH))),)
-      $(warning Custom TARGET_FDO_PROFILE_PATH supplied, but directory does not exist. Turn off FDO.)
+  # Disable FDO optimizations if PREFER_BUILD_AUTO_FDO is set to enable Auto FDO
+  # optimizations.
+  ifeq ($(strip $(BUILD_PREFER_AUTO_FDO)),)
+    # If BUILD_FDO_INSTRUMENT is turned off, then consider doing the FDO optimizations.
+    # Set TARGET_FDO_PROFILE_PATH to set a custom profile directory for your build.
+    ifeq ($(strip $(TARGET_FDO_PROFILE_PATH)),)
+      TARGET_FDO_PROFILE_PATH := fdo/profiles/$(TARGET_ARCH)/$(TARGET_ARCH_VARIANT)
+    else
+      ifeq ($(strip $(wildcard $(TARGET_FDO_PROFILE_PATH))),)
+        $(warning Custom TARGET_FDO_PROFILE_PATH supplied, but directory does not exist. Turn off auto FDO.)
+      endif
     endif
-  endif
 
-  # If the FDO profile directory can't be found, then FDO is off.
-  ifneq ($(strip $(wildcard $(TARGET_FDO_PROFILE_PATH))),)
-    TARGET_FDO_CFLAGS := -fprofile-use=$(TARGET_FDO_PROFILE_PATH) -DANDROID_FDO
-    TARGET_FDO_LIB := $(target_libgcov)
+    # If the FDO profile directory can't be found, then FDO is off.
+    ifneq ($(strip $(wildcard $(TARGET_FDO_PROFILE_PATH))),)
+      TARGET_FDO_CFLAGS := -fprofile-use=$(TARGET_FDO_PROFILE_PATH) -DANDROID_FDO
+      TARGET_FDO_LIB := $(target_libgcov)
+    endif
   endif
 endif
 
+# Define AFDO (Auto Feedback Directed Optimization) options.
+ifneq ($(strip $(BUILD_PREFER_AUTO_FDO)),)
+  # Set BUILD_PREFER_AUTO_FDO to prefer Auto FDO optimizations over FDO optimizations.
+  ifeq ($(strip $(BUILD_FDO_INSTRUMENT)),)
+    # Do not enable auto FDO optimizations if FDO profile instrumentation is enabled.
+    TARGET_AUTO_FDO_CFLAGS:=
+    TARGET_AUTO_FDO_LIB:=
+
+    # If BUILD_FDO_INSTRUMENT is turned off, then consider doing the auto FDO optimizations.
+    # Set TARGET_AUTO_FDO_PROFILE_PATH to set a custom profile directory for your build.
+    #
+    # In the case of TARGET_FDO_PROFILE_PATH existing but not TARGET_AUTO_FDO_PROFILE_PATH,
+    # set TARGET_FDO_PROFILE_PATH as TARGET_AUTO_FDO_PROFILE_PATH.
+    ifeq ($(strip $(TARGET_AUTO_FDO_PROFILE_PATH)),)
+      ifneq ($(strip $(TARGET_FDO_PROFILE_PATH)),)
+         TARGET_AUTO_FDO_PROFILE_PATH := $(TARGET_FDO_PROFILE_PATH)
+      endif
+    endif
+
+    # Necessary duplication due to the possibility of the above profile path case existing.
+    ifeq ($(strip $(TARGET_AUTO_FDO_PROFILE_PATH)),)
+      TARGET_AUTO_FDO_PROFILE_PATH := afdo/profiles/$(TARGET_ARCH)/$(TARGET_ARCH_VARIANT)
+    else
+      ifeq ($(strip $(wildcard $(TARGET_AUTO_FDO_PROFILE_PATH))),)
+        $(warning Custom TARGET_AUTO_FDO_PROFILE_PATH supplied, but directory does not exist. Turn off FDO.)
+      endif
+    endif
+
+    # If the auto FDO profile directory can't be found, then auto FDO is off.
+    ifneq ($(strip $(wildcard $(TARGET_AUTO_FDO_PROFILE_PATH))),)
+      # Inline early to assist in auto FDO performance unless
+      # BUILD_DISABLE_AUTO_FDO_EARLY_INLINING exists in the environment.
+      ifeq ($(strip $(BUILD_DISABLE_AUTO_FDO_EARLY_INLINING)),)
+        TARGET_AUTO_FDO_CFLAGS += -fearly-inlining
+      endif
+      TARGET_AUTO_FDO_CFLAGS += -fprofile-use=$(TARGET_AUTO_FDO_PROFILE_PATH) -DANDROID_FDO
+      TARGET_AUTO_FDO_LIB := $(target_libgcov)
+    endif
+  endif
+endif
 
 # unless CUSTOM_KERNEL_HEADERS is defined, we're going to use
 # symlinks located in out/ to point to the appropriate kernel
