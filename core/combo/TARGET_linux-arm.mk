@@ -31,42 +31,18 @@
 # version.
 #
 ifeq ($(strip $(TARGET_ARCH_VARIANT)),)
-TARGET_ARCH_VARIANT := armv5te
+  TARGET_ARCH_VARIANT := armv5te
 endif
 
 ifeq ($(strip $(TARGET_GCC_VERSION_EXP)),)
-TARGET_GCC_VERSION := 4.7
-else
-TARGET_GCC_VERSION := $(TARGET_GCC_VERSION_EXP)
+  TARGET_GCC_VERSION_EXP := 4.8
 endif
-
-TARGET_ARCH_SPECIFIC_MAKEFILE := $(BUILD_COMBOS)/arch/$(TARGET_ARCH)/$(TARGET_ARCH_VARIANT).mk
-ifeq ($(strip $(wildcard $(TARGET_ARCH_SPECIFIC_MAKEFILE))),)
-$(error Unknown ARM architecture version: $(TARGET_ARCH_VARIANT))
-endif
-
-include $(TARGET_ARCH_SPECIFIC_MAKEFILE)
 
 # You can set TARGET_TOOLS_PREFIX to get gcc from somewhere else
 ifeq ($(strip $(TARGET_TOOLS_PREFIX)),)
-TARGET_TOOLCHAIN_ROOT := prebuilts/gcc/$(HOST_PREBUILT_TAG)/arm/arm-linux-androideabi-$(TARGET_GCC_VERSION)
-TARGET_TOOLS_PREFIX := $(TARGET_TOOLCHAIN_ROOT)/bin/arm-linux-androideabi-
+  TARGET_TOOLCHAIN_ROOT := prebuilts/gcc/$(HOST_PREBUILT_TAG)/arm/arm-linux-androideabi-$(TARGET_GCC_VERSION)
+  TARGET_TOOLS_PREFIX := $(TARGET_TOOLCHAIN_ROOT)/bin/arm-linux-androideabi-
 endif
-
-TARGET_CC := $(TARGET_TOOLS_PREFIX)gcc$(HOST_EXECUTABLE_SUFFIX)
-TARGET_CXX := $(TARGET_TOOLS_PREFIX)g++$(HOST_EXECUTABLE_SUFFIX)
-TARGET_AR := $(TARGET_TOOLS_PREFIX)ar$(HOST_EXECUTABLE_SUFFIX)
-TARGET_OBJCOPY := $(TARGET_TOOLS_PREFIX)objcopy$(HOST_EXECUTABLE_SUFFIX)
-TARGET_LD := $(TARGET_TOOLS_PREFIX)ld$(HOST_EXECUTABLE_SUFFIX)
-TARGET_STRIP := $(TARGET_TOOLS_PREFIX)strip$(HOST_EXECUTABLE_SUFFIX)
-ifeq ($(TARGET_BUILD_VARIANT),user)
-    TARGET_STRIP_COMMAND = $(TARGET_STRIP) --strip-all $< -o $@
-else
-    TARGET_STRIP_COMMAND = $(TARGET_STRIP) --strip-all $< -o $@ && \
-        $(TARGET_OBJCOPY) --add-gnu-debuglink=$< $@
-endif
-
-TARGET_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
 
 TARGET_arm_CFLAGS :=    -O2 \
                         -fomit-frame-pointer \
@@ -79,19 +55,13 @@ TARGET_thumb_CFLAGS :=  -mthumb \
                         -fomit-frame-pointer \
                         -fno-strict-aliasing
 
-# Set FORCE_ARM_DEBUGGING to "true" in your buildspec.mk
-# or in your environment to force a full arm build, even for
-# files that are normally built as thumb; this can make
-# gdb debugging easier.  Don't forget to do a clean build.
-#
+include $(BUILD_COMBOS)/TARGET_linux.mk
+
 # NOTE: if you try to build a -O0 build with thumb, several
 # of the libraries (libpv, libwebcore, libkjs) need to be built
 # with -mlong-calls.  When built at -O0, those libraries are
 # too big for a thumb "BL <label>" to go from one end to the other.
-ifeq ($(FORCE_ARM_DEBUGGING),true)
-  TARGET_arm_CFLAGS += -fno-omit-frame-pointer -fno-strict-aliasing
-  TARGET_thumb_CFLAGS += -marm -fno-omit-frame-pointer
-endif
+TARGET_thumb_CFLAGS += -marm
 
 TARGET_GLOBAL_CFLAGS += \
 			-msoft-float -fpic -fPIE \
@@ -108,26 +78,6 @@ TARGET_GLOBAL_CFLAGS += \
 android_config_h := $(call select-android-config-h,linux-arm)
 TARGET_ANDROID_CONFIG_CFLAGS := -include $(android_config_h) -I $(dir $(android_config_h))
 TARGET_GLOBAL_CFLAGS += $(TARGET_ANDROID_CONFIG_CFLAGS)
-
-# This warning causes dalvik not to build with gcc 4.6+ and -Werror.
-# We cannot turn it off blindly since the option is not available
-# in gcc-4.4.x.  We also want to disable sincos optimization globally
-# by turning off the builtin sin function.
-ifneq ($(filter 4.6 4.6.% 4.7 4.7.% 4.8, $(TARGET_GCC_VERSION)),)
-TARGET_GLOBAL_CFLAGS += -Wno-unused-but-set-variable -fno-builtin-sin \
-			-fno-strict-volatile-bitfields \
-			-Wno-unused-parameter -Wno-unused-but-set-parameter
-endif
-
-# This is to avoid the dreaded warning compiler message:
-#   note: the mangling of 'va_list' has changed in GCC 4.4
-#
-# The fact that the mangling changed does not affect the NDK ABI
-# very fortunately (since none of the exposed APIs used va_list
-# in their exported C++ functions). Also, GCC 4.5 has already
-# removed the warning from the compiler.
-#
-TARGET_GLOBAL_CFLAGS += -Wno-psabi
 
 TARGET_GLOBAL_LDFLAGS += \
 			-Wl,-z,noexecstack \
@@ -151,64 +101,6 @@ TARGET_RELEASE_CFLAGS := \
 			-frerun-cse-after-loop \
 			-frename-registers
 
-libc_root := bionic/libc
-libm_root := bionic/libm
-libstdc++_root := bionic/libstdc++
-libthread_db_root := bionic/libthread_db
-
-
-## on some hosts, the target cross-compiler is not available so do not run this command
-ifneq ($(wildcard $(TARGET_CC)),)
-# We compile with the global cflags to ensure that
-# any flags which affect libgcc are correctly taken
-# into account.
-TARGET_LIBGCC := $(shell $(TARGET_CC) $(TARGET_GLOBAL_CFLAGS) -print-libgcc-file-name)
-target_libgcov := $(shell $(TARGET_CC) $(TARGET_GLOBAL_CFLAGS) \
-        -print-file-name=libgcov.a)
-endif
-
-# Define FDO (Feedback Directed Optimization) options.
-
-TARGET_FDO_CFLAGS:=
-TARGET_FDO_LIB:=
-
-ifneq ($(strip $(BUILD_FDO_INSTRUMENT)),)
-  # Set BUILD_FDO_INSTRUMENT=true to turn on FDO instrumentation.
-  # The profile will be generated on /data/local/tmp/profile on the device.
-  TARGET_FDO_CFLAGS := -fprofile-generate=/data/local/tmp/profile -DANDROID_FDO
-  TARGET_FDO_LIB := $(target_libgcov)
-else
-  # If BUILD_FDO_INSTRUMENT is turned off, then consider doing the FDO optimizations.
-  # Set TARGET_FDO_PROFILE_PATH to set a custom profile directory for your build.
-  ifeq ($(strip $(TARGET_FDO_PROFILE_PATH)),)
-    TARGET_FDO_PROFILE_PATH := fdo/profiles/$(TARGET_ARCH)/$(TARGET_ARCH_VARIANT)
-  else
-    ifeq ($(strip $(wildcard $(TARGET_FDO_PROFILE_PATH))),)
-      $(warning Custom TARGET_FDO_PROFILE_PATH supplied, but directory does not exist. Turn off FDO.)
-    endif
-  endif
-
-  # If the FDO profile directory can't be found, then FDO is off.
-  ifneq ($(strip $(wildcard $(TARGET_FDO_PROFILE_PATH))),)
-    TARGET_FDO_CFLAGS := -fprofile-use=$(TARGET_FDO_PROFILE_PATH) -DANDROID_FDO
-    TARGET_FDO_LIB := $(target_libgcov)
-  endif
-endif
-
-
-# unless CUSTOM_KERNEL_HEADERS is defined, we're going to use
-# symlinks located in out/ to point to the appropriate kernel
-# headers. see 'config/kernel_headers.make' for more details
-#
-ifneq ($(CUSTOM_KERNEL_HEADERS),)
-    KERNEL_HEADERS_COMMON := $(CUSTOM_KERNEL_HEADERS)
-    KERNEL_HEADERS_ARCH   := $(CUSTOM_KERNEL_HEADERS)
-else
-    KERNEL_HEADERS_COMMON := $(libc_root)/kernel/common
-    KERNEL_HEADERS_ARCH   := $(libc_root)/kernel/arch-$(TARGET_ARCH)
-endif
-KERNEL_HEADERS := $(KERNEL_HEADERS_COMMON) $(KERNEL_HEADERS_ARCH)
-
 TARGET_C_INCLUDES := \
 	$(libc_root)/arch-arm/include \
 	$(libc_root)/include \
@@ -217,19 +109,6 @@ TARGET_C_INCLUDES := \
 	$(libm_root)/include \
 	$(libm_root)/include/arm \
 	$(libthread_db_root)/include
-
-TARGET_CRTBEGIN_STATIC_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtbegin_static.o
-TARGET_CRTBEGIN_DYNAMIC_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtbegin_dynamic.o
-TARGET_CRTEND_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtend_android.o
-
-TARGET_CRTBEGIN_SO_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtbegin_so.o
-TARGET_CRTEND_SO_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtend_so.o
-
-TARGET_STRIP_MODULE:=true
-
-TARGET_DEFAULT_SYSTEM_SHARED_LIBRARIES := libc libstdc++ libm
-
-TARGET_CUSTOM_LD_COMMAND := true
 
 define transform-o-to-shared-lib-inner
 $(hide) $(PRIVATE_CXX) \
