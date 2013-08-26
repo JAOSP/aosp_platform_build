@@ -1,0 +1,7 @@
+Code-Review+2: Ying Wang <wangying@android.com>
+Verified+1: Deckard Autoverifier <deckard@android.com>
+Submitted-by: Geremy Condra <gcondra@google.com>
+Submitted-at: Mon, 26 Aug 2013 21:16:34 +0000
+Reviewed-on: https://android-review.googlesource.com/58418
+Project: platform/build
+Branch: refs/heads/master
