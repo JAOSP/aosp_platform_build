@@ -684,6 +684,8 @@ function mmm()
                     ARGS="$ARGS snod"
                 elif [ "$DIR" = showcommands ]; then
                     ARGS="$ARGS showcommands"
+                elif [ "$DIR" = checksyntax ]; then
+                    ARGS="$ARGS checksyntax"
                 elif [ "$DIR" = dist ]; then
                     ARGS="$ARGS dist"
                 elif [ "$DIR" = incrementaljavac ]; then
@@ -738,7 +740,7 @@ function mmma()
         fi
       else
         case $DIR in
-          showcommands | snod | dist | incrementaljavac) ARGS="$ARGS $DIR";;
+          showcommands | checksyntax | snod | dist | incrementaljavac) ARGS="$ARGS $DIR";;
           *) echo "Couldn't find directory $DIR"; return 1;;
         esac
       fi

@@ -91,6 +91,12 @@ BUILD_NOTICE_FILE := $(BUILD_SYSTEM)/notice_files.mk
 # the kind of operation being done.
 SHOW_COMMANDS:= $(filter showcommands,$(MAKECMDGOALS))
 
+# The 'checksyntax' invokes toolchain wrapper to first
+# compile code with "clang -fsyntax-only" to take advantage of
+# better diagnostics in clang, then generate code using
+# gcc/clang as usual.
+CHECK_SYNTAX:= $(filter checksyntax,$(MAKECMDGOALS))
+
 
 # ###############################################################
 # Set common values

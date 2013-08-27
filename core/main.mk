@@ -209,7 +209,7 @@ endif
 # These are the modifier targets that don't do anything themselves, but
 # change the behavior of the build.
 # (must be defined before including definitions.make)
-INTERNAL_MODIFIER_TARGETS := showcommands all incrementaljavac
+INTERNAL_MODIFIER_TARGETS := checksyntax showcommands all incrementaljavac
 
 .PHONY: incrementaljavac
 incrementaljavac: ;
@@ -917,3 +917,7 @@ showcommands:
 .PHONY: nothing
 nothing:
 	@echo Successfully read the makefiles.
+
+.PHONY: checksyntax
+checksyntax:
+	@echo >/dev/null
