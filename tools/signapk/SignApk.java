@@ -52,6 +52,7 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Security;
@@ -64,6 +65,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.jar.Attributes;
@@ -82,12 +84,25 @@ import javax.crypto.spec.PBEKeySpec;
  * a way compatible with the mincrypt verifier, using SHA1 and RSA keys.
  */
 class SignApk {
+    private static final String[] MESSAGE_DIGEST_NAMES = new String[] { "SHA1", "SHA-256" };
     private static final String CERT_SF_NAME = "META-INF/CERT.SF";
     private static final String CERT_RSA_NAME = "META-INF/CERT.RSA";
     private static final String CERT_SF_MULTI_NAME = "META-INF/CERT%d.SF";
     private static final String CERT_RSA_MULTI_NAME = "META-INF/CERT%d.RSA";
 
     private static final String OTACERT_NAME = "META-INF/com/android/otacert";
+
+    private static final MessageDigest[] sMessageDigests =
+            new MessageDigest[MESSAGE_DIGEST_NAMES.length];
+    static {
+        for (int i = 0; i < sMessageDigests.length; i++) {
+            try {
+                sMessageDigests[i] = MessageDigest.getInstance(MESSAGE_DIGEST_NAMES[i]);
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(MESSAGE_DIGEST_NAMES[i] + " must be supported", e);
+            }
+        }
+    }
 
     private static Provider sBouncyCastleProvider;
 
@@ -182,7 +197,7 @@ class SignApk {
         }
     }
 
-    /** Add the SHA1 of every file to the manifest, creating it if necessary. */
+    /** Add the digest of every file to the manifest, creating it if necessary. */
     private static Manifest addDigestsToManifest(JarFile jar)
         throws IOException, GeneralSecurityException {
         Manifest input = jar.getManifest();
@@ -195,9 +210,7 @@ class SignApk {
             main.putValue("Created-By", "1.0 (Android SignApk)");
         }
 
-        MessageDigest md = MessageDigest.getInstance("SHA1");
         byte[] buffer = new byte[4096];
-        int num;
 
         // We sort the input entries by name, and add them to the
         // output manifest in sorted order.  We expect that the output
@@ -213,22 +226,58 @@ class SignApk {
         for (JarEntry entry: byName.values()) {
             String name = entry.getName();
             if (!entry.isDirectory() &&
-                (stripPattern == null || !stripPattern.matcher(name).matches())) {
-                InputStream data = jar.getInputStream(entry);
-                while ((num = data.read(buffer)) > 0) {
-                    md.update(buffer, 0, num);
-                }
-
+                    (stripPattern == null || !stripPattern.matcher(name).matches())) {
                 Attributes attr = null;
                 if (input != null) attr = input.getAttributes(name);
                 attr = attr != null ? new Attributes(attr) : new Attributes();
-                attr.putValue("SHA1-Digest",
-                              new String(Base64.encode(md.digest()), "ASCII"));
+                addDigestsForEntry(attr, jar.getInputStream(entry), buffer);
                 output.getEntries().put(name, attr);
             }
         }
 
         return output;
+    }
+
+    /**
+     * Computes a Base64-encoded hash of {@code data} for all the supported
+     * digests.
+     */
+    private static void addDigestsForEntry(Attributes attr, InputStream data, byte[] buffer)
+            throws IOException {
+        for (int i = 0; i < sMessageDigests.length; i++) {
+            sMessageDigests[i].reset();
+        }
+        int num;
+        while ((num = data.read(buffer)) > 0) {
+            for (int i = 0; i < sMessageDigests.length; i++) {
+                sMessageDigests[i].update(buffer, 0, num);
+            }
+        }
+        for (int i = 0; i < sMessageDigests.length; i++) {
+            attr.putValue(MESSAGE_DIGEST_NAMES[i] + "-Digest",
+                    new String(Base64.encode(sMessageDigests[i].digest()), "ASCII"));
+        }
+    }
+
+    /**
+     * Computes a Base64-encoded hash of {@code data} for all the supported
+     * digests.
+     */
+    private static void addDigestsForEntry(Attributes attr, MessageDigest[] messageDigests,
+            String suffix) throws IOException {
+        for (int i = 0; i < MESSAGE_DIGEST_NAMES.length; i++) {
+            final MessageDigest md = messageDigests[i];
+            attr.putValue(MESSAGE_DIGEST_NAMES[i] + suffix,
+                    new String(Base64.encode(md.digest()), "ASCII"));
+        }
+    }
+
+    /** Clear all message digests. */
+    private static MessageDigest[] resetDigests() {
+        for (MessageDigest md : sMessageDigests) {
+            md.reset();
+        }
+        return sMessageDigests;
     }
 
     /**
@@ -243,26 +292,55 @@ class SignApk {
                                    long timestamp,
                                    Manifest manifest)
         throws IOException, GeneralSecurityException {
-        MessageDigest md = MessageDigest.getInstance("SHA1");
 
         JarEntry je = new JarEntry(OTACERT_NAME);
         je.setTime(timestamp);
         outputJar.putNextEntry(je);
+
+        MultiDigestOutputStream mdStream = new MultiDigestOutputStream(outputJar, resetDigests());
         FileInputStream input = new FileInputStream(publicKeyFile);
         byte[] b = new byte[4096];
         int read;
         while ((read = input.read(b)) != -1) {
-            outputJar.write(b, 0, read);
-            md.update(b, 0, read);
+            mdStream.write(b, 0, read);
         }
         input.close();
 
         Attributes attr = new Attributes();
-        attr.putValue("SHA1-Digest",
-                      new String(Base64.encode(md.digest()), "ASCII"));
+        addDigestsForEntry(attr, mdStream.getMessageDigests(), "-Digest");
         manifest.getEntries().put(OTACERT_NAME, attr);
     }
 
+    private static class MultiDigestOutputStream extends FilterOutputStream {
+        private MessageDigest[] mds;
+
+        public MultiDigestOutputStream(OutputStream out, MessageDigest[] mds) {
+            super(out);
+            this.mds = mds;
+        }
+
+        @Override
+        public void write(byte[] buffer, int offset, int length) throws IOException {
+            super.write(buffer, offset, length);
+
+            for (MessageDigest md : mds) {
+                md.update(buffer, offset, length);
+            }
+        }
+
+        @Override
+        public void write(int oneByte) throws IOException {
+            super.write(oneByte);
+
+            for (MessageDigest md : mds) {
+                md.update((byte) oneByte);
+            }
+        }
+
+        public MessageDigest[] getMessageDigests() {
+            return mds;
+        }
+    }
 
     /** Write to another stream and track how many bytes have been
      *  written.
@@ -300,16 +378,14 @@ class SignApk {
         main.putValue("Signature-Version", "1.0");
         main.putValue("Created-By", "1.0 (Android SignApk)");
 
-        MessageDigest md = MessageDigest.getInstance("SHA1");
-        PrintStream print = new PrintStream(
-            new DigestOutputStream(new ByteArrayOutputStream(), md),
-            true, "UTF-8");
+        MultiDigestOutputStream mdStream = new MultiDigestOutputStream(
+                new ByteArrayOutputStream(), resetDigests());
+        PrintStream print = new PrintStream(mdStream, true, "UTF-8");
 
         // Digest of the entire manifest
         manifest.write(print);
         print.flush();
-        main.putValue("SHA1-Digest-Manifest",
-                      new String(Base64.encode(md.digest()), "ASCII"));
+        addDigestsForEntry(main, mdStream.getMessageDigests(), "-Digest-Manifest");
 
         Map<String, Attributes> entries = manifest.getEntries();
         for (Map.Entry<String, Attributes> entry : entries.entrySet()) {
@@ -322,8 +398,7 @@ class SignApk {
             print.flush();
 
             Attributes sfAttr = new Attributes();
-            sfAttr.putValue("SHA1-Digest",
-                            new String(Base64.encode(md.digest()), "ASCII"));
+            addDigestsForEntry(sfAttr, mdStream.getMessageDigests(), "-Digest");
             sf.getEntries().put(entry.getKey(), sfAttr);
         }
 
