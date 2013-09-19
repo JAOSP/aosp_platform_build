@@ -84,11 +84,13 @@ import javax.crypto.spec.PBEKeySpec;
  * a way compatible with the mincrypt verifier, using SHA1 and RSA keys.
  */
 class SignApk {
+    /** SDK level corresponding to Jelly Bean MR2. */
+    private static final int JELLY_BEAN_MR2 = 18;
     private static final String[] MESSAGE_DIGEST_NAMES = new String[] { "SHA1", "SHA-256" };
     private static final String CERT_SF_NAME = "META-INF/CERT.SF";
-    private static final String CERT_RSA_NAME = "META-INF/CERT.RSA";
+    private static final String CERT_SIG_NAME = "META-INF/CERT.%s";
     private static final String CERT_SF_MULTI_NAME = "META-INF/CERT%d.SF";
-    private static final String CERT_RSA_MULTI_NAME = "META-INF/CERT%d.RSA";
+    private static final String CERT_SIG_MULTI_NAME = "META-INF/CERT%d.%s";
 
     private static final String OTACERT_NAME = "META-INF/com/android/otacert";
 
@@ -108,8 +110,11 @@ class SignApk {
 
     // Files matching this pattern are not copied to the output.
     private static Pattern stripPattern =
-        Pattern.compile("^(META-INF/((.*)[.](SF|RSA|DSA)|com/android/otacert))|(" +
+        Pattern.compile("^(META-INF/((.*)[.](SF|RSA|DSA|EC)|com/android/otacert))|(" +
                         Pattern.quote(JarFile.MANIFEST_NAME) + ")$");
+
+    /** Used as a hint about what can be supported. */
+    private static int sMinSdkVersion = 1;
 
     private static X509Certificate readPublicKey(File file)
         throws IOException, GeneralSecurityException {
@@ -174,7 +179,7 @@ class SignApk {
         }
     }
 
-    /** Read a PKCS 8 format private key. */
+    /** Read a PKCS#8 format private key. */
     private static PrivateKey readPrivateKey(File file)
         throws IOException, GeneralSecurityException {
         DataInputStream input = new DataInputStream(new FileInputStream(file));
@@ -187,13 +192,39 @@ class SignApk {
                 spec = new PKCS8EncodedKeySpec(bytes);
             }
 
-            try {
-                return KeyFactory.getInstance("RSA").generatePrivate(spec);
-            } catch (InvalidKeySpecException ex) {
-                return KeyFactory.getInstance("DSA").generatePrivate(spec);
+            PrivateKey key;
+            key = decodeAsKeyType(spec, "RSA");
+            if (key != null) {
+                return key;
             }
+
+            key = decodeAsKeyType(spec, "DSA");
+            if (key != null) {
+                return key;
+            }
+
+            if (sMinSdkVersion < JELLY_BEAN_MR2) {
+                throw new NoSuchAlgorithmException("Must specify an RSA or DSA key when -minsdk " +
+                        sMinSdkVersion);
+            }
+
+            key = decodeAsKeyType(spec, "EC");
+            if (key != null) {
+                return key;
+            }
+
+            throw new NoSuchAlgorithmException("Must be an RSA, DSA, or EC key");
         } finally {
             input.close();
+        }
+    }
+
+    private static PrivateKey decodeAsKeyType(KeySpec spec, String keyType)
+            throws GeneralSecurityException {
+        try {
+            return KeyFactory.getInstance(keyType).generatePrivate(spec);
+        } catch (InvalidKeySpecException e) {
+            return null;
         }
     }
 
@@ -428,7 +459,7 @@ class SignApk {
         JcaCertStore certs = new JcaCertStore(certList);
 
         CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
-        ContentSigner sha1Signer = new JcaContentSignerBuilder("SHA1withRSA")
+        ContentSigner sha1Signer = new JcaContentSignerBuilder(getSigAlgoForKeyType(privateKey))
             .setProvider(sBouncyCastleProvider)
             .build(privateKey);
         gen.addSignerInfoGenerator(
@@ -444,6 +475,23 @@ class SignApk {
         ASN1InputStream asn1 = new ASN1InputStream(sigData.getEncoded());
         DEROutputStream dos = new DEROutputStream(out);
         dos.writeObject(asn1.readObject());
+    }
+
+    /** Returns the expected signature algorithm for this key type. */
+    private static String getSigAlgoForKeyType(PrivateKey privateKey) {
+        if ("RSA".equalsIgnoreCase(privateKey.getAlgorithm())) {
+            if (sMinSdkVersion < JELLY_BEAN_MR2) {
+                return "SHA1withRSA";
+            } else {
+                return "SHA256withRSA";
+            }
+        } else if ("DSA".equalsIgnoreCase(privateKey.getAlgorithm())) {
+            return "SHA256withDSA";
+        } else if ("EC".equalsIgnoreCase(privateKey.getAlgorithm())) {
+            return "SHA256withECDSA";
+        } else {
+            throw new RuntimeException("Unknown key type supplied: " + privateKey.getAlgorithm());
+        }
     }
 
     /**
@@ -695,7 +743,7 @@ class SignApk {
         for (int k = 0; k < numKeys; ++k) {
             // CERT.SF / CERT#.SF
             je = new JarEntry(numKeys == 1 ? CERT_SF_NAME :
-                              (String.format(CERT_SF_MULTI_NAME, k)));
+                              String.format(CERT_SF_MULTI_NAME, k));
             je.setTime(timestamp);
             outputJar.putNextEntry(je);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -704,8 +752,9 @@ class SignApk {
             outputJar.write(signedData);
 
             // CERT.RSA / CERT#.RSA
-            je = new JarEntry(numKeys == 1 ? CERT_RSA_NAME :
-                              (String.format(CERT_RSA_MULTI_NAME, k)));
+            je = new JarEntry(numKeys == 1 ?
+                              String.format(CERT_SIG_NAME, privateKey[k].getAlgorithm()) :
+                              String.format(CERT_SIG_MULTI_NAME, k, "RSA"));
             je.setTime(timestamp);
             outputJar.putNextEntry(je);
             writeSignatureBlock(new CMSProcessableByteArray(signedData),
@@ -729,9 +778,23 @@ class SignApk {
 
         boolean signWholeFile = false;
         int argstart = 0;
-        if (args[0].equals("-w")) {
-            signWholeFile = true;
-            argstart = 1;
+        while (args.length > argstart && args[argstart].charAt(0) == '-') {
+            if (args[argstart].equals("-w")) {
+                signWholeFile = true;
+                argstart++;
+            } else if (args[argstart].equalsIgnoreCase("-minsdk")) {
+                try {
+                    sMinSdkVersion = Integer.valueOf(args[++argstart]);
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid SDK version number: " + args[argstart]);
+                    System.exit(2);
+                }
+                argstart++;
+            } else {
+                System.err.println("Invalid argument " + args[argstart]);
+                usage();
+                System.exit(2);
+            }
         }
 
         if ((args.length - argstart) % 2 == 1) usage();
