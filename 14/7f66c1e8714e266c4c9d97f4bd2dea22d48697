@@ -1,0 +1,9 @@
+Code-Review+1: Elliott Hughes <enh@google.com>
+Code-Review+2: Ying Wang <wangying@android.com>
+Verified+1: Ying Wang <wangying@android.com>
+Code-Review+1: Pavel Chupin <pavel.v.chupin@intel.com>
+Submitted-by: Ying Wang <wangying@android.com>
+Submitted-at: Wed, 02 Oct 2013 22:00:26 +0000
+Reviewed-on: https://android-review.googlesource.com/67000
+Project: platform/build
+Branch: refs/heads/master
