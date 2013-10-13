@@ -18,7 +18,7 @@
 # Included by combo/select.mk
 
 # You can set TARGET_ARCH_VARIANT to use an arch version other
-# than ARMv5TE. Each value should correspond to a file named
+# than ARMv7-A. Each value should correspond to a file named
 # $(BUILD_COMBOS)/arch/<name>.mk which must contain
 # makefile variable definitions similar to the preprocessor
 # defines in build/core/combo/include/arch/<combo>/AndroidConfig.h. Their
@@ -31,7 +31,7 @@
 # version.
 #
 ifeq ($(strip $(TARGET_ARCH_VARIANT)),)
-TARGET_ARCH_VARIANT := armv5te
+TARGET_ARCH_VARIANT := armv7-a
 endif
 
 ifeq ($(strip $(TARGET_GCC_VERSION_EXP)),)
