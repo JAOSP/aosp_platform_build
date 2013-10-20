@@ -45,6 +45,10 @@ ifeq ($(strip $(wildcard $(TARGET_ARCH_SPECIFIC_MAKEFILE))),)
 $(error Unknown ARM architecture version: $(TARGET_ARCH_VARIANT))
 endif
 
+#TODOAArch64: enable clang
+#For the time being disable clang
+WITHOUT_CLANG := true
+
 include $(TARGET_ARCH_SPECIFIC_MAKEFILE)
 
 # You can set TARGET_TOOLS_PREFIX to get gcc from somewhere else
@@ -133,11 +137,13 @@ libthread_db_root := bionic/libthread_db
 ifneq ($(CUSTOM_KERNEL_HEADERS),)
     KERNEL_HEADERS_COMMON := $(CUSTOM_KERNEL_HEADERS)
     KERNEL_HEADERS_ARCH   := $(CUSTOM_KERNEL_HEADERS)
+    KERNEL_HEADERS_AUX    := $(CUSTOM_KERNEL_HEADERS)
 else
     KERNEL_HEADERS_COMMON := $(libc_root)/kernel/uapi
     KERNEL_HEADERS_ARCH   := $(libc_root)/kernel/uapi/asm-$(TARGET_ARCH)
+    KERNEL_HEADERS_AUX    := $(libc_root)/kernel/common
 endif
-KERNEL_HEADERS := $(KERNEL_HEADERS_COMMON) $(KERNEL_HEADERS_ARCH)
+KERNEL_HEADERS := $(KERNEL_HEADERS_COMMON) $(KERNEL_HEADERS_ARCH) $(KERNEL_HEADERS_AUX)
 
 TARGET_C_INCLUDES := \
 	$(libc_root)/arch-aarch64/include \
@@ -148,20 +154,20 @@ TARGET_C_INCLUDES := \
 	$(libm_root)/include/aarch64 \
 	$(libthread_db_root)/include
 
-# FIXME
-# CRT* objects to be added later
-TARGET_CRTBEGIN_STATIC_O :=
-TARGET_CRTBEGIN_DYNAMIC_O :=
-TARGET_CRTEND_O :=
+TARGET_CRTBEGIN_STATIC_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtbegin_static.o
+TARGET_CRTBEGIN_DYNAMIC_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtbegin_dynamic.o
+TARGET_CRTEND_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtend_android.o
 
-TARGET_CRTBEGIN_SO_O :=
-TARGET_CRTEND_SO_O :=
+TARGET_CRTBEGIN_SO_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtbegin_so.o
+TARGET_CRTEND_SO_O := $(TARGET_OUT_INTERMEDIATE_LIBRARIES)/crtend_so.o
 
 TARGET_STRIP_MODULE:=true
 
 TARGET_DEFAULT_SYSTEM_SHARED_LIBRARIES := libc libstdc++ libm
 
 TARGET_CUSTOM_LD_COMMAND := true
+
+TARGET_LIBGCC := $(shell $(TARGET_CC) $(TARGET_GLOBAL_CFLAGS) -print-libgcc-file-name)
 
 define transform-o-to-shared-lib-inner
 $(hide) $(PRIVATE_CXX) \
