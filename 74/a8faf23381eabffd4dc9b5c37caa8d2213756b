@@ -1,0 +1,8 @@
+Code-Review+2: Ben Cheng <bccheng@android.com>
+Verified+1: Ben Cheng <bccheng@android.com>
+Code-Review+1: Serban Constantinescu <serban.arm@gmail.com>
+Submitted-by: Ben Cheng <bccheng@android.com>
+Submitted-at: Wed, 30 Oct 2013 17:27:17 +0000
+Reviewed-on: https://android-review.googlesource.com/68313
+Project: platform/build
+Branch: refs/heads/master
