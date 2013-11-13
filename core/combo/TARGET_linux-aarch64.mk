@@ -130,6 +130,11 @@ libthread_db_root := bionic/libthread_db
 
 TARGET_LIBGCC := $(shell $(TARGET_CC) $(TARGET_GLOBAL_CFLAGS) \
 	-print-libgcc-file-name)
+target_libgcov := $(shell $(TARGET_CC) $(TARGET_GLOBAL_CFLAGS) \
+	-print-file-name=libgcov.a)
+
+# inherit profiling options
+include $(BUILD_SYSTEM)/profiling_config.mk
 
 # unless CUSTOM_KERNEL_HEADERS is defined, we're going to use
 # symlinks located in out/ to point to the appropriate kernel
