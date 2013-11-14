@@ -88,6 +88,7 @@ OPTIONS.omit_prereq = False
 OPTIONS.extra_script = None
 OPTIONS.aslr_mode = True
 OPTIONS.worker_threads = 3
+OPTIONS.no_signing = False
 
 def MostPopularKey(d, default):
   """Given a dict, return the key corresponding to the largest
@@ -760,6 +761,8 @@ def main(argv):
         OPTIONS.aslr_mode = False
     elif o in ("--worker_threads"):
       OPTIONS.worker_threads = int(a)
+    elif o in ("--no_signing"):
+      OPTIONS.no_signing = True
     else:
       return False
     return True
@@ -834,7 +837,12 @@ def main(argv):
 
   output_zip.close()
 
-  SignOutput(temp_zip_file.name, args[1])
+  if OPTIONS.no_signing:
+    import shutil
+    shutil.copyfile(temp_zip_file.name, args[1])
+  else:
+    SignOutput(temp_zip_file.name, args[1])
+
   temp_zip_file.close()
 
   common.Cleanup()
