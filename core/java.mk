@@ -250,6 +250,8 @@ endif
 include $(BUILD_SYSTEM)/base_rules.mk
 #######################################
 
+$(eval $(call dexpreopt-odex-install)) # defines built_odex along with rule to install odex
+
 java_alternative_checked_module :=
 
 # Make sure there's something to build.
