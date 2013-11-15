@@ -146,23 +146,6 @@ endif # all_resources
 endif # !custom
 LOCAL_PROGUARD_FLAGS := $(addprefix -include ,$(proguard_options_file)) $(LOCAL_PROGUARD_FLAGS)
 
-ifneq (true,$(WITH_DEXPREOPT))
-LOCAL_DEX_PREOPT :=
-else
-ifeq (,$(TARGET_BUILD_APPS))
-ifeq (,$(LOCAL_APK_LIBRARIES))
-ifneq (,$(LOCAL_SRC_FILES))
-ifndef LOCAL_DEX_PREOPT
-LOCAL_DEX_PREOPT := $(DEX_PREOPT_DEFAULT)
-endif
-endif
-endif
-endif
-endif
-ifeq (false,$(LOCAL_DEX_PREOPT))
-LOCAL_DEX_PREOPT :=
-endif
-
 ifeq (true,$(EMMA_INSTRUMENT))
 ifndef LOCAL_EMMA_INSTRUMENT
 # No emma for test apks.
@@ -392,7 +375,8 @@ $(LOCAL_BUILT_MODULE): PRIVATE_ADDITIONAL_CERTIFICATES := $(foreach c,\
 $(LOCAL_BUILT_MODULE): $(AAPT) | $(ZIPALIGN)
 ifdef LOCAL_DEX_PREOPT
 # Make sure the boot jars get dexpreopt-ed first
-$(LOCAL_BUILT_MODULE): $(DEXPREOPT_BOOT_ODEXS) | $(DEXPREOPT) $(DEXOPT)
+$(LOCAL_BUILT_MODULE): $(DEXPREOPT_BOOT_ODEXS)
+$(LOCAL_BUILT_MODULE): $(DEXPREOPT_ONE_FILE_DEPENDENCY)
 endif
 $(LOCAL_BUILT_MODULE): PRIVATE_JNI_SHARED_LIBRARIES := $(jni_shared_libraries)
 $(LOCAL_BUILT_MODULE): PRIVATE_JNI_SHARED_LIBRARIES_ABI := $(jni_shared_libraries_abi)
@@ -407,7 +391,10 @@ else
     $(LOCAL_BUILT_MODULE): PRIVATE_PRODUCT_AAPT_CONFIG := $(PRODUCT_AAPT_CONFIG)
     $(LOCAL_BUILT_MODULE): PRIVATE_PRODUCT_AAPT_PREF_CONFIG := $(PRODUCT_AAPT_PREF_CONFIG)
 endif
-$(LOCAL_BUILT_MODULE): $(all_res_assets) $(jni_shared_libraries) $(full_android_manifest)
+$(LOCAL_BUILT_MODULE): PRIVATE_DEX_LOCATION := /$(subst $(PRODUCT_OUT)/,,$(LOCAL_INSTALLED_MODULE))
+$(LOCAL_BUILT_MODULE): PRIVATE_BUILT_ODEX := $(built_odex)
+$(LOCAL_BUILT_MODULE): PRIVATE_DEX_PREOPT_IMAGE := $(LOCAL_DEX_PREOPT_IMAGE)
+$(LOCAL_BUILT_MODULE): $(all_res_assets) $(jni_shared_libraries) $(full_android_manifest) $(LOCAL_DEX_PREOPT_IMAGE)
 	@echo "target Package: $(PRIVATE_MODULE) ($@)"
 	$(create-empty-package)
 	$(add-assets-to-package)
@@ -423,8 +410,7 @@ ifneq ($(extra_jar_args),)
 endif
 	$(sign-package)
 ifdef LOCAL_DEX_PREOPT
-	$(hide) rm -f $(patsubst %.apk,%.odex,$@)
-	$(call dexpreopt-one-file,$@,$(patsubst %.apk,%.odex,$@))
+	$(call dexpreopt-one-file,$(PRIVATE_DEX_PREOPT_IMAGE),$@,$(PRIVATE_DEX_LOCATION),$(PRIVATE_BUILT_ODEX))
 ifneq (nostripping,$(LOCAL_DEX_PREOPT))
 	$(call dexpreopt-remove-classes.dex,$@)
 endif
@@ -433,7 +419,6 @@ endif
 	$(align-package)
 
 ifdef LOCAL_DEX_PREOPT
-built_odex := $(basename $(LOCAL_BUILT_MODULE)).odex
 $(built_odex): $(LOCAL_BUILT_MODULE)
 endif
 
