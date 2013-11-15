@@ -266,6 +266,15 @@ $(call clear-var-list, $(_product_var_list))
 # Now we can assign to PRODUCT_RUNTIMES
 PRODUCT_RUNTIMES := $(product_runtimes)
 product_runtimes :=
+
+ifeq ($(words $(PRODUCT_RUNTIMES)),1)
+  # If we only have one runtime, we can strip classes.dex by default during dex_preopt
+  DEX_PREOPT_DEFAULT := true
+else
+  # If we have more than one, we leave the classes.dex alone for post-boot analysis
+  DEX_PREOPT_DEFAULT := nostripping
+endif
+
 #############################################################################
 
 # A list of module names of BOOTCLASSPATH (jar files)
