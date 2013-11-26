@@ -35,6 +35,7 @@ PRODUCT_PACKAGES += \
     com.android.location.provider.xml \
     drmserver \
     framework-res \
+    idmap \
     installd \
     ip \
     ip-up-vpn \
