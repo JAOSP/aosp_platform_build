@@ -136,6 +136,10 @@ endif
 # are specific to the user's build configuration.
 include $(BUILD_SYSTEM)/envsetup.mk
 
+# ---------------------------------------------------------------
+# Macros to allow checking for compiler features
+include $(BUILD_SYSTEM)/compilerchecks.mk
+
 # Boards may be defined under $(SRC_TARGET_DIR)/board/$(TARGET_DEVICE)
 # or under vendor/*/$(TARGET_DEVICE).  Search in both places, but
 # make sure only one exists.
