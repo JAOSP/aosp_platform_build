@@ -52,7 +52,11 @@ include $(BUILD_SYSTEM)/dynamic_binary.mk
 
 # Define PRIVATE_ variables from global vars
 my_target_global_ld_dirs := $(TARGET_GLOBAL_LD_DIRS)
+ifeq ($(LOCAL_CLANG),true)
+my_target_global_ldflags := $(call get-clang-global-flags,LDFLAGS)
+else
 my_target_global_ldflags := $(TARGET_GLOBAL_LDFLAGS)
+endif
 my_target_fdo_lib := $(TARGET_FDO_LIB)
 my_target_libgcc := $(TARGET_LIBGCC)
 my_target_crtbegin_so_o := $(TARGET_CRTBEGIN_SO_O)
@@ -67,6 +71,9 @@ my_target_global_ld_dirs := \
 my_target_global_ldflags := $(my_ndk_stl_shared_lib) $(my_target_global_ldflags)
 my_target_crtbegin_so_o := $(wildcard $(my_ndk_version_root)/usr/lib/crtbegin_so.o)
 my_target_crtend_so_o := $(wildcard $(my_ndk_version_root)/usr/lib/crtend_so.o)
+endif
+ifeq ($(LOCAL_CLANG),true)
+my_target_global_ldflags := $(call convert-to-clang-flags,$(my_target_global_ldflags))
 endif
 $(linked_module): PRIVATE_TARGET_GLOBAL_LD_DIRS := $(my_target_global_ld_dirs)
 $(linked_module): PRIVATE_TARGET_GLOBAL_LDFLAGS := $(my_target_global_ldflags)
