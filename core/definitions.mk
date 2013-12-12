@@ -1352,7 +1352,7 @@ endef
 ###########################################################
 
 ifneq ($(HOST_CUSTOM_LD_COMMAND),true)
-define transform-host-o-to-executable-inner
+define transform-host-o-to-executable-inner-no-pie
 $(hide) $(PRIVATE_CXX) \
 	$(PRIVATE_ALL_OBJECTS) \
 	-Wl,--whole-archive \
@@ -1374,9 +1374,28 @@ $(hide) $(PRIVATE_CXX) \
 endef
 endif
 
+define transform-host-o-to-executable-no-pie
+@mkdir -p $(dir $@)
+@echo "host Executable (no PIE): $(PRIVATE_MODULE) ($@)"
+$(transform-host-o-to-executable-inner-no-pie)
+endef
+
+
+###########################################################
+## Commands for running gcc to link a host executable with
+## Position Independent Execution (PIE) binary support
+###########################################################
+
+ifneq ($(HOST_CUSTOM_LD_COMMAND),true)
+define transform-host-o-to-executable-inner
+$(transform-host-o-to-executable-inner-no-pie) \
+	-fPIE -pie
+endef
+endif
+
 define transform-host-o-to-executable
 @mkdir -p $(dir $@)
-@echo "host Executable: $(PRIVATE_MODULE) ($@)"
+@echo "host Executable (PIE): $(PRIVATE_MODULE) ($@)"
 $(transform-host-o-to-executable-inner)
 endef
 

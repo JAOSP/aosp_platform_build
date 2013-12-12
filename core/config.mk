@@ -66,6 +66,7 @@ BUILD_SHARED_LIBRARY:= $(BUILD_SYSTEM)/shared_library.mk
 BUILD_EXECUTABLE:= $(BUILD_SYSTEM)/executable.mk
 BUILD_RAW_EXECUTABLE:= $(BUILD_SYSTEM)/raw_executable.mk
 BUILD_HOST_EXECUTABLE:= $(BUILD_SYSTEM)/host_executable.mk
+BUILD_HOST_EXECUTABLE_NO_PIE:= $(BUILD_SYSTEM)/host_executable_no_pie.mk
 BUILD_PACKAGE:= $(BUILD_SYSTEM)/package.mk
 BUILD_PHONY_PACKAGE:= $(BUILD_SYSTEM)/phony_package.mk
 BUILD_HOST_PREBUILT:= $(BUILD_SYSTEM)/host_prebuilt.mk
