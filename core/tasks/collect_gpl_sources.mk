@@ -14,6 +14,9 @@
 
 gpl_source_tgz := $(call intermediates-dir-for,PACKAGING,gpl_source,HOST,COMMON)/gpl_source.tgz
 
+# Declared phony since we can't know whether any of the sources changed,
+# so force rebuild each time we need this
+.PHONY: $(gpl_source_tgz)
 $(gpl_source_tgz): PRIVATE_PATHS := $(sort $(patsubst %/, %, $(dir $(ALL_GPL_MODULE_LICENSE_FILES))))
 $(gpl_source_tgz) : $(ALL_GPL_MODULE_LICENSE_FILES)
 	@echo Package gpl sources: $@
