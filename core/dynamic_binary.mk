@@ -15,7 +15,12 @@ endif
 LOCAL_UNSTRIPPED_PATH := $(strip $(LOCAL_UNSTRIPPED_PATH))
 ifeq ($(LOCAL_UNSTRIPPED_PATH),)
   ifeq ($(LOCAL_MODULE_PATH),)
-    LOCAL_UNSTRIPPED_PATH := $(TARGET_OUT_$(LOCAL_MODULE_CLASS)_UNSTRIPPED)
+    ifeq (true,$(LOCAL_PROPRIETARY_MODULE))
+      partition_tag := _VENDOR
+    else
+      partition_tag :=
+    endif
+    LOCAL_UNSTRIPPED_PATH := $(TARGET_OUT$(partition_tag)_$(LOCAL_MODULE_CLASS)_UNSTRIPPED)
   else
     # We have to figure out the corresponding unstripped path if LOCAL_MODULE_PATH is customized.
     LOCAL_UNSTRIPPED_PATH := $(TARGET_OUT_UNSTRIPPED)/$(patsubst $(PRODUCT_OUT)/%,%,$(LOCAL_MODULE_PATH))
