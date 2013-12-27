@@ -67,6 +67,7 @@ PRODUCT_PACKAGES += \
     servicemanager \
     sh \
     surfaceflinger \
+    e2fsck \
     toolbox
 
 # SELinux packages
