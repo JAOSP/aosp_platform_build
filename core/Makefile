@@ -114,6 +114,20 @@ endif
 ifneq ($(words $(BUILD_FINGERPRINT)),1)
   $(error BUILD_FINGERPRINT cannot contain spaces: "$(BUILD_FINGERPRINT)")
 endif
+# Check fingerprint length.
+# Terminator(\0) added into the provided value of fingerpointer.
+# Total length (including terminator) will be no greater that PROP_VALUE_MAX(92).
+BUILD_FINGERPRINT_LENGTH := $(shell echo ${BUILD_FINGERPRINT} | awk '{print length}')
+BUILD_FINGERPRINT_CHECK := $(shell if [ $(BUILD_FINGERPRINT_LENGTH) -gt 91 ]; then echo gt; else echo le; fi)
+ifeq ($(BUILD_FINGERPRINT_CHECK),gt)
+  # If dev build, show a warning message, otherwise fail the build with error message
+  ifneq "" "$(filter eng.%,$(BUILD_NUMBER))"
+    $(warning warning: BUILD_FINGERPRINT exceeds 91 symbols: "$(BUILD_FINGERPRINT) ($(BUILD_FINGERPRINT_LENGTH))")
+    $(warning warning: This will cause the fingerprint property return as empty at runtime)
+  else
+    $(error error: BUILD_FINGERPRINT symbols cannot exceed 91: "$(BUILD_FINGERPRINT) ($(BUILD_FINGERPRINT_LENGTH))")
+  endif
+endif
 
 # Display parameters shown under Settings -> About Phone
 ifeq ($(TARGET_BUILD_VARIANT),user)
