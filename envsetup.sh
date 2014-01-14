@@ -932,6 +932,7 @@ function gdbclient()
        x86) GDB=x86_64-linux-android-gdb;;
        arm) GDB=arm-linux-androideabi-gdb;;
        mips) GDB=mipsel-linux-android-gdb;;
+       aarch64) GDB=aarch64-linux-android-gdb;;
        *) echo "Unknown arch $ARCH"; return 1;;
    esac
 
