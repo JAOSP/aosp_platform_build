@@ -143,6 +143,14 @@ LOCAL_HAL_STATIC_LIBRARIES:=
 LOCAL_NO_SYNTAX_CHECK:=
 LOCAL_NO_STATIC_ANALYZER:=
 
+# Run-on-host
+RUN_ON_HOST_DEPS:=
+RUN_ON_HOST_EXEC:=
+RUN_ON_HOST_FLAGS:=
+RUN_ON_HOST_DIRS:=
+RUN_ON_HOST_PREPARE:=
+RUN_ON_HOST_FINISH:=
+
 # Trim MAKEFILE_LIST so that $(call my-dir) doesn't need to
 # iterate over thousands of entries every time.
 # Leave the current makefile to make sure we don't break anything
