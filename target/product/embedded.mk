@@ -75,6 +75,7 @@ PRODUCT_PACKAGES += \
     file_contexts \
     seapp_contexts \
     property_contexts \
+    serestorecons \
     mac_permissions.xml
 
 
