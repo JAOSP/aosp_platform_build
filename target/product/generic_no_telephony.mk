@@ -49,6 +49,7 @@ PRODUCT_PACKAGES := \
 
 PRODUCT_PACKAGES += \
     audio \
+    bcc \
     clatd \
     clatd.conf \
     dhcpcd.conf \
