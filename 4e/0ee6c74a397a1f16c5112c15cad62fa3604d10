@@ -1,0 +1,9 @@
+Code-Review+1: David Turner <digit@android.com>
+Verified+1: David Turner <digit@android.com>
+Code-Review+2: Ying Wang <wangying@android.com>
+Code-Review+1: David Wagner <david.wagner@intel.com>
+Submitted-by: David Turner <digit@android.com>
+Submitted-at: Fri, 24 Jan 2014 05:33:08 +0000
+Reviewed-on: https://android-review.googlesource.com/74253
+Project: platform/build
+Branch: refs/heads/master
