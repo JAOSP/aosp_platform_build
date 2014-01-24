@@ -10,6 +10,10 @@ $(warning $(LOCAL_MODULE): LOCAL_UNSTRIPPED_PATH for shared libraries is unsuppo
 endif
 endif
 
+ifeq ($(TARGET_IS_64_BIT)|$(call directory_is_64_bit_blacklisted,$(LOCAL_PATH)),true|true)
+LOCAL_32_BIT_ONLY := true
+endif
+
 ifneq ($(TARGET_IS_64_BIT)|$(LOCAL_32_BIT_ONLY),true|true)
 # Build for TARGET_ARCH
 LOCAL_2ND_ARCH_VAR_PREFIX :=
