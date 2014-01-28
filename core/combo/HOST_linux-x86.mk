@@ -34,11 +34,17 @@ HOST_CXX := $(HOST_TOOLCHAIN_PREFIX)/g++
 HOST_AR  := $(HOST_TOOLCHAIN_PREFIX)/ar
 endif # $(HOST_TOOLCHAIN_PREFIX)/gcc exists
 
+# By default we build everything in 32-bit if the target is 32-bit or
+# in 64-bit if the target is 64-bit. This gives more consistency
+# between the host tools and the target.
+# BUILD_HOST_64bit can also be set to 1 to override this behaviour
+# for tools like the emulator which can benefit from 64-bit host arch
+# (even when emulating 32-bit targets).
+ifneq ($(filter %64,$(TARGET_ARCH)),)
+BUILD_HOST_64bit=1
+endif
+
 ifneq ($(strip $(BUILD_HOST_64bit)),)
-# By default we build everything in 32-bit, because it gives us
-# more consistency between the host tools and the target.
-# BUILD_HOST_64bit=1 overrides it for tool like emulator
-# which can benefit from 64-bit host arch.
 HOST_GLOBAL_CFLAGS += -m64 -Wa,--noexecstack
 HOST_GLOBAL_LDFLAGS += -m64 -Wl,-z,noexecstack
 else
