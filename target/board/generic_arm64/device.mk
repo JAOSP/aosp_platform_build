@@ -30,3 +30,4 @@ PRODUCT_COPY_FILES := \
 PRODUCT_PACKAGES := \
     audio.primary.goldfish \
     vibrator.goldfish
+PRODUCT_RUNTIMES := runtime_libart_default
