@@ -3,6 +3,18 @@ CLANG_CXX := $(HOST_OUT_EXECUTABLES)/clang++$(HOST_EXECUTABLE_SUFFIX)
 LLVM_AS := $(HOST_OUT_EXECUTABLES)/llvm-as$(HOST_EXECUTABLE_SUFFIX)
 LLVM_LINK := $(HOST_OUT_EXECUTABLES)/llvm-link$(HOST_EXECUTABLE_SUFFIX)
 
+CLANG_CONFIG_arm_TARGET_TRIPLE := arm-linux-androideabi
+CLANG_CONFIG_mips_TARGET_TRIPLE := mipsel-linux-android
+CLANG_CONFIG_x86_TARGET_TRIPLE := i686-linux-android
+CLANG_CONFIG_x86_64_TARGET_TRIPLE := x86_64-linux-android
+
+CLANG_CONFIG_$(TARGET_ARCH)_TARGET_TOOLCHAIN_PREFIX := \
+  $(TARGET_TOOLCHAIN_ROOT)/$(CLANG_CONFIG_$(TARGET_ARCH)_TARGET_TRIPLE)/bin
+ifdef TARGET_2ND_ARCH
+CLANG_CONFIG_$(TARGET_2ND_ARCH)_TARGET_TOOLCHAIN_PREFIX := \
+  $($(TARGET_2ND_ARCH_VAR_PREFIX)TARGET_TOOLCHAIN_ROOT)/$(CLANG_CONFIG_$(TARGET_2ND_ARCH)_TARGET_TRIPLE)/bin
+endif
+
 # Clang flags for all host or target rules
 CLANG_CONFIG_EXTRA_ASFLAGS :=
 CLANG_CONFIG_EXTRA_CPPFLAGS :=
@@ -46,7 +58,6 @@ CLANG_CONFIG_arm_UNKNOWN_CFLAGS := \
   -Wa,--noexecstack
 
 CLANG_CONFIG_arm_HOST_TRIPLE :=
-CLANG_CONFIG_arm_TARGET_TRIPLE := arm-linux-androideabi
 
 include $(BUILD_SYSTEM)/llvm_config_define_clang_flags.mk
 
@@ -72,7 +83,6 @@ CLANG_CONFIG_mips_UNKNOWN_CFLAGS := \
   -mno-fused-madd
 
 CLANG_CONFIG_mips_HOST_TRIPLE :=
-CLANG_CONFIG_mips_TARGET_TRIPLE := mipsel-linux-android
 
 include $(BUILD_SYSTEM)/llvm_config_define_clang_flags.mk
 
@@ -98,7 +108,6 @@ ifeq ($(HOST_OS),windows)
 CLANG_CONFIG_x86_HOST_TRIPLE := i686-pc-mingw32
 endif
 
-CLANG_CONFIG_x86_TARGET_TRIPLE := i686-linux-android
 CLANG_CONFIG_x86_TARGET_TOOLCHAIN_PREFIX := \
   $(TARGET_TOOLCHAIN_ROOT)/x86_64-linux-android/bin
 
@@ -124,7 +133,6 @@ endif
 ifeq ($(HOST_OS),windows)
 CLANG_CONFIG_x86_64_HOST_TRIPLE := x86_64-pc-mingw64
 endif
-CLANG_CONFIG_x86_64_TARGET_TRIPLE := x86_64-linux-android
 
 include $(BUILD_SYSTEM)/llvm_config_define_clang_flags.mk
 
@@ -160,7 +168,7 @@ endef
 define convert-to-clang-flags
   $(strip \
   $(call subst-clang-incompatible-flags,\
-  $(filter-out $(CLANG_CONFIG_$(TARGET_ARCH)_UNKNOWN_CFLAGS),\
+  $(filter-out $(CLANG_CONFIG_$(TARGET_$(llvm_2nd_arch_prefix)ARCH)_UNKNOWN_CFLAGS),\
   $(1))))
 endef
 
@@ -170,27 +178,27 @@ define get-clang-host-global-flags
 endef
 
 define get-clang-global-flags
-  $(call convert-to-clang-flags,$(TARGET_GLOBAL_$(1))) $(CLANG_CONFIG_$(TARGET_ARCH)_TARGET_EXTRA_$(1))
+  $(call convert-to-clang-flags,$($(llvm_2nd_arch_prefix)TARGET_GLOBAL_$(1))) $(CLANG_CONFIG_$(TARGET_$(llvm_2nd_arch_prefix)ARCH)_TARGET_EXTRA_$(1))
 endef
 
 CLANG_HOST_GLOBAL_CFLAGS := $(call get-clang-host-global-flags,CFLAGS)
 CLANG_HOST_GLOBAL_CPPFLAGS := $(call get-clang-host-global-flags,CPPFLAGS)
 CLANG_HOST_GLOBAL_LDFLAGS := $(call get-clang-host-global-flags,LDFLAGS)
 
-CLANG_TARGET_GLOBAL_CFLAGS := $(call get-clang-global-flags,CFLAGS)
-CLANG_TARGET_GLOBAL_CPPFLAGS := $(call get-clang-global-flags,CPPFLAGS)
-CLANG_TARGET_GLOBAL_LDFLAGS := $(call get-clang-global-flags,LDFLAGS)
+$(llvm_2nd_arch_prefix)CLANG_TARGET_GLOBAL_CFLAGS := $(call get-clang-global-flags,CFLAGS)
+$(llvm_2nd_arch_prefix)CLANG_TARGET_GLOBAL_CPPFLAGS := $(call get-clang-global-flags,CPPFLAGS)
+$(llvm_2nd_arch_prefix)CLANG_TARGET_GLOBAL_LDFLAGS := $(call get-clang-global-flags,LDFLAGS)
 
 # Renderscript clang target triple
-ifeq ($(TARGET_ARCH),arm)
+ifeq ($(TARGET_$(llvm_2nd_arch_prefix)ARCH),arm)
   RS_TRIPLE := armv7-none-linux-gnueabi
 endif
-ifeq ($(TARGET_ARCH),mips)
+ifeq ($(TARGET_$(llvm_2nd_arch_prefix)ARCH),mips)
   RS_TRIPLE := mipsel-unknown-linux
 endif
-ifeq ($(TARGET_ARCH),x86)
+ifeq ($(TARGET_$(llvm_2nd_arch_prefix)ARCH),x86)
   RS_TRIPLE := i686-unknown-linux
 endif
-ifeq ($(TARGET_ARCH),x86_64)
+ifeq ($(TARGET_$(llvm_2nd_arch_prefix)ARCH),x86_64)
   RS_TRIPLE := x86_64-unknown-linux
 endif
