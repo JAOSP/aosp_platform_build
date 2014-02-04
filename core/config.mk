@@ -431,6 +431,9 @@ HOST_GLOBAL_CPPFLAGS += $(HOST_RELEASE_CPPFLAGS)
 TARGET_GLOBAL_CFLAGS += $(TARGET_RELEASE_CFLAGS)
 TARGET_GLOBAL_CPPFLAGS += $(TARGET_RELEASE_CPPFLAGS)
 
+# define llvm tools and global flags
+include $(BUILD_SYSTEM)/llvm_config.mk
+
 ifdef TARGET_2ND_ARCH
 $(combo_2nd_arch_prefix)TARGET_GLOBAL_CFLAGS += $(COMMON_GLOBAL_CFLAGS)
 $(combo_2nd_arch_prefix)TARGET_RELEASE_CFLAGS += $(COMMON_RELEASE_CFLAGS)
@@ -442,15 +445,15 @@ $(combo_2nd_arch_prefix)TARGET_GLOBAL_CFLAGS += $(TARGET_ERROR_FLAGS)
 $(combo_2nd_arch_prefix)TARGET_GLOBAL_CPPFLAGS += $(TARGET_ERROR_FLAGS)
 $(combo_2nd_arch_prefix)TARGET_GLOBAL_CFLAGS += $($(combo_2nd_arch_prefix)TARGET_RELEASE_CFLAGS)
 $(combo_2nd_arch_prefix)TARGET_GLOBAL_CPPFLAGS += $($(combo_2nd_arch_prefix)TARGET_RELEASE_CPPFLAGS)
+# define llvm tools and global flags
+llvm_2nd_arch_prefix := $(combo_2nd_arch_prefix)
+include $(BUILD_SYSTEM)/llvm_config.mk
 endif
 
 # allow overriding default Java libraries on a per-target basis
 ifeq ($(TARGET_DEFAULT_JAVA_LIBRARIES),)
   TARGET_DEFAULT_JAVA_LIBRARIES := core core-junit ext framework framework2
 endif
-
-# define llvm tools and global flags
-include $(BUILD_SYSTEM)/llvm_config.mk
 
 # ###############################################################
 # Collect a list of the SDK versions that we could compile against
