@@ -55,12 +55,11 @@ PRODUCT_PACKAGES := \
 	QuickSearchBox \
 	WidgetPreview \
 	librs_jni \
-	ConnectivityTest \
-	GpsLocationTest \
 	CalendarProvider \
 	Calendar \
 	SmokeTest \
 	SmokeTestApp \
+	EmulatorSmokeTests \
 	rild \
 	LegacyCamera
 
