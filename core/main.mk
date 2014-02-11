@@ -383,6 +383,10 @@ ifneq ($(filter ro.setupwizard.mode=ENABLED, $(call collapse-pairs, $(ADDITIONAL
           $(call collapse-pairs, $(ADDITIONAL_BUILD_PROPERTIES))) \
           ro.setupwizard.mode=OPTIONAL
 endif
+# Don't compile the image on eng builds to speed startup
+ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.image-dex2oat-flags=--compiler-filter=interpret-only
+# Don't compile apps on eng builds to speed startup
+ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.dex2oat-flags=--compiler-filter=interpret-only
 endif
 
 ## sdk ##
