@@ -19,7 +19,31 @@ import sys
 # Put the modifications that you need to make into the /system/build.prop into this
 # function. The prop object has get(name) and put(name,value) methods.
 def mangle_build_prop(prop):
-  pass
+  buildprops=prop.get_build_props()
+  check_pass=True
+  for key in buildprops:
+    # Check build properties' length.
+    # Terminator(\0) added into the provided value of properties
+    # Total length (including terminator) will be no greater that PROP_VALUE_MAX(92).
+    if len(buildprops[key]) > 91:
+      # If dev build, show a warning message, otherwise fail the build with error message
+      if prop.get("ro.build.type") == "eng":
+        sys.stderr.write("warning: " + key + " exceeds 91 symbols: ")
+        sys.stderr.write(buildprops[key])
+        sys.stderr.write("(" + str(len(buildprops[key])) + ") \n")
+        sys.stderr.write("warning: This will cause the " + key + " ")
+        sys.stderr.write("property return as empty at runtime\n")
+      else:
+        check_pass=False
+        sys.stderr.write("error: " + key + " cannot exceed 91 symbols: ")
+        sys.stderr.write(buildprops[key])
+        sys.stderr.write("(" + str(len(buildprops[key])) + ") \n")
+    else:
+      continue
+  if not check_pass:
+    sys.exit(1)
+  else:
+    pass
 
 # Put the modifications that you need to make into the /system/build.prop into this
 # function. The prop object has get(name) and put(name,value) methods.
@@ -49,6 +73,21 @@ class PropFile:
       if line.startswith(key):
         return line[len(key):]
     return ""
+
+  def get_build_props(self):
+    buildprops = {}
+    for line in self.lines:
+      line=line.strip()
+      if not line.strip():
+        continue
+      if not line.startswith("#"):
+        index=line.find("=")
+        key=line[0:index]
+        value=line[index+1:]
+        buildprops[key]=value
+      else:
+        continue
+    return buildprops
 
   def put(self, name, value):
     key = name + "="
