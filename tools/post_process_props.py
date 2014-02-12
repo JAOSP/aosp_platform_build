@@ -19,29 +19,9 @@ import sys
 # Put the modifications that you need to make into the /system/build.prop into this
 # function. The prop object has get(name) and put(name,value) methods.
 def mangle_build_prop(prop):
-  buildprops=prop.buildprops
-  check_pass=True
-  for key in buildprops:
-    # Check build properties' length.
-    # Terminator(\0) added into the provided value of properties
-    # Total length (including terminator) will be no greater that PROP_VALUE_MAX(92).
-    if len(buildprops[key]) > 91:
-      # If dev build, show a warning message, otherwise fail the build with error message
-      if prop.get("ro.build.version.incremental").startswith("eng"):
-        sys.stderr.write("warning: " + key + " exceeds 91 symbols: ")
-        sys.stderr.write(buildprops[key])
-        sys.stderr.write("(" + str(len(buildprops[key])) + ") \n")
-        sys.stderr.write("warning: This will cause the " + key + " ")
-        sys.stderr.write("property return as empty at runtime\n")
-      else:
-        check_pass=False
-        sys.stderr.write("error: " + key + " cannot exceed 91 symbols: ")
-        sys.stderr.write(buildprops[key])
-        sys.stderr.write("(" + str(len(buildprops[key])) + ") \n")
-  if not check_pass:
-    sys.exit(1)
+  pass
 
-# Put the modifications that you need to make into the /system/build.prop into this
+# Put the modifications that you need to make into the /default.prop into this
 # function. The prop object has get(name) and put(name,value) methods.
 def mangle_default_prop(prop):
   # If ro.debuggable is 1, then enable adb on USB by default
@@ -59,20 +39,51 @@ def mangle_default_prop(prop):
   if not prop.get("persist.sys.usb.config"):
     prop.put("persist.sys.usb.config", "none");
 
-class PropFile:
+def validate(prop):
+  """Validate the properties.
 
-  buildprops={}
+  Returns:
+    True if nothing is wrong.
+  """
+  check_pass = True
+  buildprops = prop.to_dict()
+  for key, value in buildprops.iteritems():
+    # Check build properties' length.
+    # Terminator(\0) added into the provided value of properties
+    # Total length (including terminator) will be no greater that
+    # PROP_VALUE_MAX(92).
+    if len(value) > 91:
+      # If dev build, show a warning message, otherwise fail the
+      # build with error message
+      if buildprops.get("ro.build.type") == "eng":
+        sys.stderr.write("warning: " + key + " exceeds 91 symbols: ")
+        sys.stderr.write(value)
+        sys.stderr.write("(" + str(len(value)) + ") \n")
+        sys.stderr.write("warning: This will cause the " + key + " ")
+        sys.stderr.write("property return as empty at runtime\n")
+      else:
+        check_pass=False
+        sys.stderr.write("error: " + key + " cannot exceed 91 symbols: ")
+        sys.stderr.write(value)
+        sys.stderr.write("(" + str(len(value)) + ") \n")
+  return check_pass
+
+class PropFile:
 
   def __init__(self, lines):
     self.lines = [s[:-1] for s in lines]
+
+  def to_dict(self):
+    props = {}
     for line in self.lines:
-      line=line.strip()
+      line = line.strip()
       if not line.strip() or line.startswith("#"):
         continue
-      index=line.find("=")
-      key=line[0:index]
-      value=line[index+1:]
-      self.buildprops[key]=value
+      index = line.find("=")
+      key = line[0:index]
+      value = line[index+1:]
+      props[key]=value
+    return props
 
   def get(self, name):
     key = name + "="
@@ -100,12 +111,16 @@ def main(argv):
   f.close()
 
   properties = PropFile(lines)
+
   if filename.endswith("/build.prop"):
     mangle_build_prop(properties)
   elif filename.endswith("/default.prop"):
     mangle_default_prop(properties)
   else:
     sys.stderr.write("bad command line: " + str(argv) + "\n")
+    sys.exit(1)
+
+  if not validate(properties):
     sys.exit(1)
 
   f = open(filename, 'w+')
