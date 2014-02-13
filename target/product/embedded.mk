@@ -76,6 +76,11 @@ PRODUCT_PACKAGES += \
     property_contexts \
     mac_permissions.xml
 
+ifdef TARGET_IS_64_BIT
+PRODUCT_PACAKGES += \
+    debuggerd64 \
+    linker64
+endif
 
 PRODUCT_COPY_FILES += \
     system/core/rootdir/init.usb.rc:root/init.usb.rc \
