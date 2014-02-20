@@ -1045,3 +1045,30 @@ showcommands:
 .PHONY: nothing
 nothing:
 	@echo Successfully read the makefiles.
+
+.PHONY: nanodroid
+NANODROID_MODULES :=  toolbox       \
+        sh                          \
+        adb                         \
+        adbd                        \
+        init                        \
+        logcat                      \
+        bionic-unit-tests           \
+        bionic-unit-tests-static    \
+        no-elf-hash-table-library   \
+        icu.dat                     \
+
+ifeq ($(TARGET_IS_64_BIT),true)
+NANODROID_MODULES += linker64 debuggerd64
+else
+NANODROID_MODULES += linker debuggerd
+endif
+
+NANODROID_MODULES := $(call module-installed-files, $(NANODROID_MODULES))
+
+FILTER_OUT = $(foreach v,$(2),$(if $(findstring $(1),$(v)),,$(v)))
+NANODROID_MODULES := $(call FILTER_OUT,odex, $(NANODROID_MODULES))
+
+nanodroid: $(NANODROID_MODULES)
+	@cp -a $(BUILD_SYSTEM)/../target/board/nanodroid/* $(PRODUCT_OUT)/root
+	@chmod 644 $(PRODUCT_OUT)/root/*.rc $(PRODUCT_OUT)/root/*.prop
