@@ -1,0 +1,9 @@
+Code-Review+2: Ying Wang <wangying@android.com>
+Code-Review+1: Andrew Hsieh <andrewhsieh@google.com>
+Code-Review+1: Pavel Chupin <pavel.v.chupin@intel.com>
+Verified+1: Sean Young <csyoung@google.com>
+Submitted-by: Ying Wang <wangying@android.com>
+Submitted-at: Thu, 20 Feb 2014 18:31:07 +0000
+Reviewed-on: https://android-review.googlesource.com/82745
+Project: platform/build
+Branch: refs/heads/master
