@@ -754,6 +754,10 @@ $(normal_objects) : | $(my_generated_sources)
 $(all_objects) : | $(import_includes)
 ALL_C_CPP_ETC_OBJECTS += $(all_objects)
 
+###########################################################
+## Manage dependencies on compilation flags
+###########################################################
+include $(BUILD_SYSTEM)/flags_deps.mk
 
 ###########################################################
 # Standard library handling.
