@@ -401,6 +401,10 @@ else
   DEFAULT_SYSTEM_DEV_CERTIFICATE := build/target/product/security/testkey
 endif
 
+ifeq ($(ENABLE_GCOV),true)
+  TARGET_GLOBAL_CFLAGS += -fprofile-arcs -ftest-coverage
+endif
+
 # ###############################################################
 # Set up final options.
 # ###############################################################
