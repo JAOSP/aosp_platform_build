@@ -272,7 +272,9 @@ endif
 include $(BUILD_SYSTEM)/definitions.mk
 
 # Bring in dex_preopt.mk
+ifeq (true,$(WITH_DEXPREOPT))
 include $(BUILD_SYSTEM)/dex_preopt.mk
+endif
 
 ifneq ($(filter user userdebug eng,$(MAKECMDGOALS)),)
 $(info ***************************************************************)
