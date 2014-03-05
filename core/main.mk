@@ -271,8 +271,24 @@ endif
 # Bring in standard build system definitions.
 include $(BUILD_SYSTEM)/definitions.mk
 
+user_variant := $(filter user userdebug,$(TARGET_BUILD_VARIANT))
+ifneq (,$(user_variant))
+  # Turn on Dalvik preoptimization for user builds, but only if not
+  # explicitly disabled and the build is running on Linux (since host
+  # Dalvik isn't built for non-Linux hosts).
+  ifneq (true,$(DISABLE_DEXPREOPT))
+    ifeq ($(user_variant),user)
+      ifeq ($(HOST_OS),linux)
+        WITH_DEXPREOPT := true
+      endif
+    endif
+  endif
+endif
+
 # Bring in dex_preopt.mk
+ifeq (true,$(WITH_DEXPREOPT))
 include $(BUILD_SYSTEM)/dex_preopt.mk
+endif
 
 ifneq ($(filter user userdebug eng,$(MAKECMDGOALS)),)
 $(info ***************************************************************)
@@ -322,7 +338,6 @@ endif
 
 ## user/userdebug ##
 
-user_variant := $(filter user userdebug,$(TARGET_BUILD_VARIANT))
 enable_target_debugging := true
 tags_to_install :=
 ifneq (,$(user_variant))
@@ -338,17 +353,6 @@ ifneq (,$(user_variant))
   else
     # Disable debugging in plain user builds.
     enable_target_debugging :=
-  endif
-
-  # Turn on Dalvik preoptimization for user builds, but only if not
-  # explicitly disabled and the build is running on Linux (since host
-  # Dalvik isn't built for non-Linux hosts).
-  ifneq (true,$(DISABLE_DEXPREOPT))
-    ifeq ($(user_variant),user)
-      ifeq ($(HOST_OS),linux)
-        WITH_DEXPREOPT := true
-      endif
-    endif
   endif
 
   # Disallow mock locations by default for user builds
