@@ -15,8 +15,25 @@ _64_bit_directory_blacklist += \
 	frameworks/webview \
 
 # misc build errors
+#
+# not simply frameworks/av/media/libstagefright because
+# we don't want to blacklist frameworks/av/media/libstagefright/foundation
 _64_bit_directory_blacklist += \
-	frameworks/av \
+	frameworks/av/media/libstagefright/chromium_http \
+	frameworks/av/media/libstagefright/codecs \
+	frameworks/av/media/libstagefright/colorconversion \
+	frameworks/av/media/libstagefright/httplive \
+	frameworks/av/media/libstagefright/id3 \
+	frameworks/av/media/libstagefright/include \
+	frameworks/av/media/libstagefright/matroska \
+	frameworks/av/media/libstagefright/mp4 \
+	frameworks/av/media/libstagefright/mpeg2ts \
+	frameworks/av/media/libstagefright/omx \
+	frameworks/av/media/libstagefright/rtsp \
+	frameworks/av/media/libstagefright/tests \
+	frameworks/av/media/libstagefright/timedtext \
+	frameworks/av/media/libstagefright/wifi-display \
+	frameworks/av/media/libstagefright/yuv \
 	frameworks/base \
 	device/generic/goldfish/opengl \
 	device/generic/goldfish/camera \
@@ -26,9 +43,12 @@ _64_bit_directory_blacklist += \
 	external/srec \
 	hardware/libhardware_legacy/audio \
 	hardware/libhardware/modules/audio_remote_submix \
-	frameworks/wilhelm \
 	frameworks/opt \
 	frameworks/ex \
+
+# not needed yet, and too many directories to blacklist individually
+_64_bit_directory_blacklist += \
+	frameworks/av/media/libeffects \
 
 _64_bit_directory_blacklist_pattern := $(addsuffix %,$(_64_bit_directory_blacklist))
 
