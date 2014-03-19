@@ -801,6 +801,9 @@ endif
 modules_to_check := $(sort $(modules_to_check))
 #$(error modules_to_check $(modules_to_check))
 
+# All the apps that are privileged (i.e. live under system/priv-app/)
+$(SEPOLICY_BUILT_MAC_PERMISSIONS_XML): $(filter $(TARGET_OUT_APPS_PRIVILEGED)/%.apk, $(modules_to_install))
+
 # -------------------------------------------------------------------
 # This is used to to get the ordering right, you can also use these,
 # but they're considered undocumented, so don't complain if their
