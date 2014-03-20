@@ -15,7 +15,10 @@ CLANG_CONFIG_x86_HOST_EXTRA_ASFLAGS := \
   $(CLANG_CONFIG_EXTRA_ASFLAGS) \
   $(CLANG_CONFIG_HOST_EXTRA_ASFLAGS) \
   $(CLANG_CONFIG_x86_EXTRA_ASFLAGS) \
+  --sysroot=prebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/sysroot \
+  --gcc-toolchain=prebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6 \
   -target $(CLANG_CONFIG_x86_HOST_TRIPLE) \
+  -m32
 
 CLANG_CONFIG_x86_HOST_EXTRA_CFLAGS := \
   $(CLANG_CONFIG_EXTRA_CFLAGS) \
@@ -27,13 +30,25 @@ CLANG_CONFIG_x86_HOST_EXTRA_CPPFLAGS := \
   $(CLANG_CONFIG_EXTRA_CPPFLAGS) \
   $(CLANG_CONFIG_HOST_EXTRA_CPPFLAGS) \
   $(CLANG_CONFIG_x86_EXTRA_CPPFLAGS) \
+  --sysroot=prebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/sysroot \
+  --gcc-toolchain=prebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6 \
+  -isystem prebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/i686-linux/include/c++/4.6.x-google \
+  -isystem prebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/i686-linux/include/c++/4.6.x-google/i686-linux \
+  -isystem prebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/i686-linux/include/c++/4.6.x-google/backward \
+  -m32
 
 CLANG_CONFIG_x86_HOST_EXTRA_LDFLAGS := \
   $(CLANG_CONFIG_EXTRA_LDFLAGS) \
   $(CLANG_CONFIG_HOST_EXTRA_LDFLAGS) \
   $(CLANG_CONFIG_x86_EXTRA_LDFLAGS) \
   -target $(CLANG_CONFIG_x86_HOST_TRIPLE) \
-
+  --sysroot=prebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/sysroot \
+  --gcc-toolchain=prebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6 \
+  -Bprebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/i686-linux/bin \
+  -Bprebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/lib/gcc/i686-linux/4.6.x-google/ \
+  -Lprebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/lib/gcc/i686-linux/4.6.x-google/ \
+  -Lprebuilts/gcc/$(BUILD_OS)-x86/host/i686-linux-glibc2.7-4.6/i686-linux/lib/ \
+  -m32
 
 define convert-to-host-clang-flags
   $(strip \
