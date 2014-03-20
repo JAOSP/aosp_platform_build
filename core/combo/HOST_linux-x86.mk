@@ -41,10 +41,18 @@ ifneq ($(strip $(BUILD_HOST_64bit)),)
 # which can benefit from 64-bit host arch.
 HOST_GLOBAL_CFLAGS += -m64 -Wa,--noexecstack
 HOST_GLOBAL_LDFLAGS += -m64 -Wl,-z,noexecstack
+
+# Needs to be updated along with gcc
+HOST_TOOLCHAIN_FOR_CLANG := prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.7-4.6/
+HOST_ARCH_DESCRIPTOR_FOR_CLANG := x86_64-linux
 else
 # We expect SSE3 floating point math.
 HOST_GLOBAL_CFLAGS += -mstackrealign -msse3 -mfpmath=sse -m32 -Wa,--noexecstack
 HOST_GLOBAL_LDFLAGS += -m32 -Wl,-z,noexecstack
+
+# Needs to be updated along with gcc
+HOST_TOOLCHAIN_FOR_CLANG := prebuilts/gcc/linux-x86/host/i686-linux-glibc2.7-4.6/
+HOST_ARCH_DESCRIPTOR_FOR_CLANG := i686-linux
 endif # BUILD_HOST_64bit
 
 ifneq ($(strip $(BUILD_HOST_static)),)
@@ -63,3 +71,27 @@ HOST_GLOBAL_CFLAGS += -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
 HOST_GLOBAL_CFLAGS += -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS
 
 HOST_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
+
+CLANG_CONFIG_x86_LINUX_HOST_EXTRA_ASFLAGS := \
+  --sysroot=$(HOST_TOOLCHAIN_FOR_CLANG)/sysroot
+
+CLANG_CONFIG_x86_LINUX_HOST_EXTRA_CFLAGS :=
+
+CLANG_CONFIG_x86_LINUX_HOST_EXTRA_CPPFLAGS :=   \
+  --sysroot=$(HOST_TOOLCHAIN_FOR_CLANG)/sysroot \
+  -isystem $(HOST_TOOLCHAIN_FOR_CLANG)/$(HOST_ARCH_DESCRIPTOR_FOR_CLANG)/include/c++/4.6.x-google \
+  -isystem $(HOST_TOOLCHAIN_FOR_CLANG)/$(HOST_ARCH_DESCRIPTOR_FOR_CLANG)/include/c++/4.6.x-google/$(HOST_ARCH_DESCRIPTOR_FOR_CLANG) \
+  -isystem $(HOST_TOOLCHAIN_FOR_CLANG)/$(HOST_ARCH_DESCRIPTOR_FOR_CLANG)/include/c++/4.6.x-google/backward \
+
+CLANG_CONFIG_x86_LINUX_HOST_EXTRA_LDFLAGS := \
+  --sysroot=$(HOST_TOOLCHAIN_FOR_CLANG)/sysroot \
+  -B$(HOST_TOOLCHAIN_FOR_CLANG)/$(HOST_ARCH_DESCRIPTOR_FOR_CLANG)/bin \
+  -B$(HOST_TOOLCHAIN_FOR_CLANG)/lib/gcc/$(HOST_ARCH_DESCRIPTOR_FOR_CLANG)/4.6.x-google \
+  -L$(HOST_TOOLCHAIN_FOR_CLANG)/lib/gcc/$(HOST_ARCH_DESCRIPTOR_FOR_CLANG)/4.6.x-google
+
+ifneq ($(strip $(BUILD_HOST_64bit)),)
+# need to add lib64 if building 64-bit, otherwise lib
+CLANG_CONFIG_x86_LINUX_HOST_EXTRA_LDFLAGS += -L$(HOST_TOOLCHAIN_FOR_CLANG)/$(HOST_ARCH_DESCRIPTOR_FOR_CLANG)/lib64/
+else
+CLANG_CONFIG_x86_LINUX_HOST_EXTRA_LDFLAGS += -L$(HOST_TOOLCHAIN_FOR_CLANG)/$(HOST_ARCH_DESCRIPTOR_FOR_CLANG)/lib/
+endif

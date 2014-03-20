@@ -62,7 +62,7 @@ mac_sdk_path := $(shell xcode-select -print-path)
 #  or /Volume/Xcode/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.?.sdk
 mac_sdk_root := $(mac_sdk_path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(mac_sdk_version).sdk
 ifeq ($(wildcard $(mac_sdk_root)),)
-# try legacy /Developer/SDKs/MacOSX10.?.sdk
+# try legacy /Developer/SDKs/MacOSX10.?.sdkzxb
 mac_sdk_root := /Developer/SDKs/MacOSX$(mac_sdk_version).sdk
 endif
 ifeq ($(wildcard $(mac_sdk_root)),)
@@ -80,7 +80,7 @@ endif
 
 HOST_TOOLCHAIN_ROOT := prebuilts/gcc/darwin-x86/host/i686-apple-darwin-4.2.1
 HOST_TOOLCHAIN_PREFIX := $(HOST_TOOLCHAIN_ROOT)/bin/i686-apple-darwin$(gcc_darwin_version)
-# Don't do anything if the toolchain is not there
+0# Don't do anything if the toolchain is not there
 ifneq (,$(strip $(wildcard $(HOST_TOOLCHAIN_PREFIX)-gcc)))
 HOST_CC  := $(HOST_TOOLCHAIN_PREFIX)-gcc
 HOST_CXX := $(HOST_TOOLCHAIN_PREFIX)-g++
@@ -156,3 +156,7 @@ endef
 define get-file-size
 stat -f "%z" $(1)
 endef
+
+# Needs to be updated along with gcc
+# HOST_TOOLCHAIN_ROOT is Darwin-specific
+HOST_TOOLCHAIN_FOR_CLANG := $(HOST_TOOLCHAIN_ROOT)
