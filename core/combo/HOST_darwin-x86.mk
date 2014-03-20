@@ -156,3 +156,7 @@ endef
 define get-file-size
 stat -f "%z" $(1)
 endef
+
+# Needs to be updated along with gcc
+# HOST_TOOLCHAIN_ROOT is Darwin-specific
+HOST_TOOLCHAIN_FOR_CLANG := $(HOST_TOOLCHAIN_ROOT)
