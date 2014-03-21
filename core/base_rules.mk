@@ -100,7 +100,12 @@ ifneq ($(words $(LOCAL_MODULE_CLASS)),1)
 endif
 
 ifneq (true,$(LOCAL_UNINSTALLABLE_MODULE))
+my_multilib_module_path := $(strip $(LOCAL_MODULE_PATH_$(my_32_64_bit_suffix)))
+ifdef my_multilib_module_path
+my_module_path := $(my_multilib_module_path)
+else
 my_module_path := $(strip $(LOCAL_MODULE_PATH))
+endif
 my_module_relative_path := $(strip $(LOCAL_MODULE_RELATIVE_PATH))
 ifeq ($(my_module_path),)
   ifdef LOCAL_IS_HOST_MODULE
