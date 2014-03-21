@@ -1,7 +1,14 @@
 # We don't automatically set up rules to build packages for both
 # TARGET_ARCH and TARGET_2ND_ARCH.
 # By default, an package is built for TARGET_ARCH.
-# To build it for TARGET_2ND_ARCH in a 64bit product, use "LOCAL_32_BIT_ONLY := true".
+# To build it for TARGET_2ND_ARCH in a 64bit product, use "LOCAL_BUILD_MULTILIB := 32".
+
+include $(BUILD_SYSTEM)/multilib.mk
+
+ifndef my_module_build_multilib
+# packages default to building for the primary architecture
+my_module_build_multilib := primary
+endif
 
 LOCAL_NO_2ND_ARCH_MODULE_SUFFIX := true
 
