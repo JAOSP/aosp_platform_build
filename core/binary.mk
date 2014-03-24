@@ -168,8 +168,14 @@ ifeq (,$(LOCAL_SDK_VERSION)$(LOCAL_IS_HOST_MODULE)$(WITHOUT_LIBCOMPILER_RT))
 endif
 
 my_compiler_dependencies :=
+# Don't depend on clang/LLVM if we're building clang/LLVM
+ifneq ($(FORCE_BUILD_LLVM_COMPONENTS), true)
+# also don't depend if we're specifically attempting to use non-prebuilt clang/LLVM
+ifneq ($(USE_BUILT_LLVM_COMPONENTS), true)
 ifeq ($(strip $(LOCAL_CLANG)),true)
   my_compiler_dependencies := $(CLANG) $(CLANG_CXX)
+endif
+endif
 endif
 
 ####################################################
