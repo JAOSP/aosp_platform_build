@@ -5,4 +5,6 @@
 
 include $(BUILD_SYSTEM)/target_test_internal.mk
 
+LOCAL_BUILD_MULTILIB := true
+
 include $(BUILD_EXECUTABLE)
