@@ -5,4 +5,6 @@
 
 include $(BUILD_SYSTEM)/target_test_internal.mk
 
+LOCAL_EXECUTABLE_BUILD_BOTH := true
+
 include $(BUILD_EXECUTABLE)

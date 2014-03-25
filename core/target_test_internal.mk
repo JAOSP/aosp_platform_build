@@ -14,6 +14,17 @@ LOCAL_C_INCLUDES += bionic \
 LOCAL_SHARED_LIBRARIES += libstlport
 endif
 
-ifndef LOCAL_MODULE_PATH
-LOCAL_MODULE_PATH := $(TARGET_OUT_DATA_NATIVE_TESTS)/$(LOCAL_MODULE)
+ifdef LOCAL_MODULE_PATH
+$(error Do not set LOCAL_MODULE_PATH when building tests)
 endif
+
+ifdef LOCAL_MODULE_PATH_32
+$(error Do not set LOCAL_MODULE_PATH_32 when building tests)
+endif
+
+ifdef LOCAL_MODULE_PATH_64
+$(error Do not set LOCAL_MODULE_PATH_64 when building tests)
+endif
+
+LOCAL_MODULE_PATH_32 := $(TARGET_OUT_DATA_NATIVE_TESTS)/$(LOCAL_MODULE)
+LOCAL_MODULE_PATH_64 := $(TARGET_OUT_DATA_NATIVE_TESTS)64/$(LOCAL_MODULE)
