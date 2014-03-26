@@ -20,10 +20,34 @@ echo "ro.product.brand=$PRODUCT_BRAND"
 echo "ro.product.name=$PRODUCT_NAME"
 echo "ro.product.device=$TARGET_DEVICE"
 echo "ro.product.board=$TARGET_BOOTLOADER_BOARD_NAME"
+
+# These values are deprecated, use "ro.product.cpu.abilist"
+# instead (see below).
+echo "# ro.product.cpu.abi and ro.product.cpu.abi2 are obsolete,"
+echo "# use ro.product.cpu.abilist instead."
 echo "ro.product.cpu.abi=$TARGET_CPU_ABI"
 if [ -n "$TARGET_CPU_ABI2" ] ; then
   echo "ro.product.cpu.abi2=$TARGET_CPU_ABI2"
 fi
+
+# "ro.product.cpu.abilist" is a comma separated list of ABIs (in order
+# of preference) that the target supports. If a TARGET_CPU_ABI_LIST
+# is specified by the board configuration, we use that. If not, we
+# build a list out of the TARGET_CPU_ABIs specified by the config.
+if [ -z "$TARGET_CPU_ABI_LIST" ] ; then
+  TARGET_CPU_ABI_LIST=$TARGET_CPU_ABI;
+  if [ -n "$TARGET_CPU_ABI2" ] ; then
+    TARGET_CPU_ABI_LIST+=","$TARGET_CPU_ABI2
+  fi
+  if [ -n "$TARGET_2ND_CPU_ABI" ] ; then
+    TARGET_CPU_ABI_LIST+=","$TARGET_2ND_CPU_ABI
+  fi
+  if [ -n "$TARGET_2ND_CPU_ABI2" ] ; then
+    TARGET_CPU_ABI_LIST+=","$TARGET_2ND_CPU_ABI2
+  fi
+fi
+echo "ro.product.cpu.abilist=$TARGET_CPU_ABI_LIST"
+
 echo "ro.product.manufacturer=$PRODUCT_MANUFACTURER"
 if [ -n "$PRODUCT_DEFAULT_LANGUAGE" ] ; then
   echo "ro.product.locale.language=$PRODUCT_DEFAULT_LANGUAGE"
