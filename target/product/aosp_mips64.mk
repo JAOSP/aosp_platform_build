@@ -16,3 +16,6 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_mips64.mk)
 
 PRODUCT_NAME := aosp_mips64
+
+include $(SRC_TARGET_DIR)/product/64_bit_product.mk
+

@@ -1,5 +1,5 @@
 #
-# Copyright 2013 The Android Open-Source Project
+# Copyright (C) 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-$(call inherit-product, $(SRC_TARGET_DIR)/product/full_x86_64.mk)
 
-PRODUCT_NAME := aosp_x86_64
+# Provides a functioning 64 bit zygote and related properties.
 
-include $(SRC_TARGET_DIR)/product/64_bit_product.mk
-
+PRODUCT_PACKAGES += app_process64
