@@ -22,6 +22,7 @@ PRODUCT_PACKAGES += \
     android.policy \
     android.test.runner \
     app_process \
+    app_process64 \
     applypatch \
     blkid \
     bmgr \
