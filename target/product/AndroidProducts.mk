@@ -50,6 +50,7 @@ PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/generic_x86.mk \
     $(LOCAL_DIR)/generic_mips.mk \
     $(LOCAL_DIR)/aosp_arm.mk \
+    $(LOCAL_DIR)/aosp_krait.mk \
     $(LOCAL_DIR)/full.mk \
     $(LOCAL_DIR)/aosp_x86.mk \
     $(LOCAL_DIR)/full_x86.mk \
