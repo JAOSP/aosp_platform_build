@@ -83,3 +83,6 @@ PRODUCT_COPY_FILES += \
     system/core/rootdir/init.trace.rc:root/init.trace.rc \
     system/core/rootdir/ueventd.rc:root/ueventd.rc \
     system/core/rootdir/etc/hosts:system/etc/hosts
+
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    ro.zygote.primary=/system/bin/app_process
