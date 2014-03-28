@@ -77,4 +77,7 @@ PRODUCT_BOOT_JARS := \
 PRODUCT_RUNTIMES := runtime_libart_default
 PRODUCT_RUNTIMES += runtime_libdvm
 
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    ro.zygote.primary=/system/bin/app_process
+
 $(call inherit-product, $(SRC_TARGET_DIR)/product/base.mk)
