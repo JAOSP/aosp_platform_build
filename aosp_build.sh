@@ -10,7 +10,7 @@ BUILD_INFO=$2
 BUILD_TYPE=$3
 PARALLEL_NUM=$4
 
-source /opt/config/android-build.sh
+source ~/bin/android-env.sh
 source build/envsetup.sh
 export USE_CCACHE=1
 ./prebuilts/misc/linux-x86/ccache/ccache -M 100G
