@@ -61,6 +61,13 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
       Specifies the number of worker-threads that will be used when
       generating patches for incremental updates (defaults to 3).
 
+  --backup <boolean>
+      Enable or disable the execution of backuptool.sh.
+      Disabled by default.
+
+  --override_device <device>
+      Override device-specific asserts. Can be a comma-separated list.
+
 """
 
 import sys
@@ -99,6 +106,8 @@ OPTIONS.aslr_mode = True
 OPTIONS.worker_threads = 3
 OPTIONS.two_step = False
 OPTIONS.no_signing = False
+OPTIONS.backuptool = False
+OPTIONS.override_device = 'auto'
 
 def MostPopularKey(d, default):
   """Given a dict, return the key corresponding to the largest
@@ -112,7 +121,7 @@ def MostPopularKey(d, default):
 def IsSymlink(info):
   """Return true if the zipfile.ZipInfo object passed in represents a
   symlink."""
-  return (info.external_attr >> 16) == 0120777
+  return (info.external_attr >> 16) & 0770000 == 0120000
 
 def IsRegular(info):
   """Return true if the zipfile.ZipInfo object passed in represents a
@@ -351,9 +360,9 @@ def SignOutput(temp_zip_name, output_zip_name):
                   whole_file=True)
 
 
-def AppendAssertions(script, info_dict):
-  device = GetBuildProp("ro.product.device", info_dict)
-  script.AssertDevice(device)
+#def AppendAssertions(script, info_dict):
+#  device = GetBuildProp("ro.product.device", info_dict)
+#  script.AssertDevice(device)
 
 
 def MakeRecoveryPatch(input_tmp, output_zip, recovery_img, boot_img):
@@ -433,13 +442,13 @@ def WriteFullOTAPackage(input_zip, output_zip):
       metadata=metadata,
       info_dict=OPTIONS.info_dict)
 
-  if not OPTIONS.omit_prereq:
-    ts = GetBuildProp("ro.build.date.utc", OPTIONS.info_dict)
-    ts_text = GetBuildProp("ro.build.date", OPTIONS.info_dict)
-    script.AssertOlderBuild(ts, ts_text)
+#  if not OPTIONS.omit_prereq:
+#    ts = GetBuildProp("ro.build.date.utc", OPTIONS.info_dict)
+#    ts_text = GetBuildProp("ro.build.date", OPTIONS.info_dict)
+#    script.AssertOlderBuild(ts, ts_text)
 
-  AppendAssertions(script, OPTIONS.info_dict)
-  device_specific.FullOTA_Assertions()
+#  AppendAssertions(script, OPTIONS.info_dict)
+#  device_specific.FullOTA_Assertions()
 
   # Two-step package strategy (in chronological order, which is *not*
   # the order in which the generated script has things):
@@ -460,8 +469,8 @@ def WriteFullOTAPackage(input_zip, output_zip):
   #       set up system to update recovery partition on first boot
   #    complete script normally (allow recovery to mark itself finished and reboot)
 
-  recovery_img = common.GetBootableImage("recovery.img", "recovery.img",
-                                         OPTIONS.input_tmp, "RECOVERY")
+#  recovery_img = common.GetBootableImage("recovery.img", "recovery.img",
+#                                         OPTIONS.input_tmp, "RECOVERY")
   if OPTIONS.two_step:
     if not OPTIONS.info_dict.get("multistage_support", None):
       assert False, "two-step packages not supported by this build"
@@ -480,7 +489,12 @@ reboot_now("%(bcb_dev)s", "recovery");
 else if get_stage("%(bcb_dev)s", "stage") == "3/3" then
 """ % bcb_dev)
 
-  device_specific.FullOTA_InstallBegin()
+#  device_specific.FullOTA_InstallBegin()
+
+  if OPTIONS.backuptool:
+    script.Mount("/system")
+    script.RunBackup("backup")
+    script.Unmount("/system")
 
   script.ShowProgress(0.5, 0)
 
@@ -492,7 +506,7 @@ else if get_stage("%(bcb_dev)s", "stage") == "3/3" then
 
   script.FormatPartition("/system")
   script.Mount("/system")
-  script.UnpackPackageDir("recovery", "/system")
+#  script.UnpackPackageDir("recovery", "/system")
   script.UnpackPackageDir("system", "/system")
 
   symlinks = CopySystemFiles(input_zip, output_zip)
@@ -500,7 +514,7 @@ else if get_stage("%(bcb_dev)s", "stage") == "3/3" then
 
   boot_img = common.GetBootableImage("boot.img", "boot.img",
                                      OPTIONS.input_tmp, "BOOT")
-  MakeRecoveryPatch(OPTIONS.input_tmp, output_zip, recovery_img, boot_img)
+#  MakeRecoveryPatch(OPTIONS.input_tmp, output_zip, recovery_img, boot_img)
 
   Item.GetMetadata(input_zip)
   Item.Get("system").SetPermissions(script)
@@ -508,6 +522,10 @@ else if get_stage("%(bcb_dev)s", "stage") == "3/3" then
   common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
   common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
   script.ShowProgress(0.2, 0)
+
+  if OPTIONS.backuptool:
+    script.ShowProgress(0.2, 10)
+    script.RunBackup("restore")  
 
   script.ShowProgress(0.2, 10)
   script.WriteRawImage("/boot", "boot.img")
@@ -687,12 +705,12 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   updating_boot = (not OPTIONS.two_step and
                    (source_boot.data != target_boot.data))
 
-  source_recovery = common.GetBootableImage(
-      "/tmp/recovery.img", "recovery.img", OPTIONS.source_tmp, "RECOVERY",
-      OPTIONS.source_info_dict)
-  target_recovery = common.GetBootableImage(
-      "/tmp/recovery.img", "recovery.img", OPTIONS.target_tmp, "RECOVERY")
-  updating_recovery = (source_recovery.data != target_recovery.data)
+#  source_recovery = common.GetBootableImage(
+#      "/tmp/recovery.img", "recovery.img", OPTIONS.source_tmp, "RECOVERY",
+#      OPTIONS.source_info_dict)
+#  target_recovery = common.GetBootableImage(
+#      "/tmp/recovery.img", "recovery.img", OPTIONS.target_tmp, "RECOVERY")
+#  updating_recovery = (source_recovery.data != target_recovery.data)
 
   # Here's how we divide up the progress bar:
   #  0.1 for verifying the start state (PatchCheck calls)
@@ -700,8 +718,8 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   #  0.1 for unpacking verbatim files, symlinking, and doing the
   #      device-specific commands.
 
-  AppendAssertions(script, OPTIONS.target_info_dict)
-  device_specific.IncrementalOTA_Assertions()
+#  AppendAssertions(script, OPTIONS.target_info_dict)
+#  device_specific.IncrementalOTA_Assertions()
 
   # Two-step incremental package strategy (in chronological order,
   # which is *not* the order in which the generated script has
@@ -893,9 +911,9 @@ else
     script.Print("Unpacking new files...")
     script.UnpackPackageDir("system", "/system")
 
-  if updating_recovery:
-    script.Print("Unpacking new recovery...")
-    script.UnpackPackageDir("recovery", "/system")
+#  if updating_recovery:
+#    script.Print("Unpacking new recovery...")
+#    script.UnpackPackageDir("recovery", "/system")
 
   if len(renames) > 0:
     script.Print("Renaming files...")
@@ -977,6 +995,10 @@ def main(argv):
                          "integers are allowed." % (a, o))
     elif o in ("-2", "--two_step"):
       OPTIONS.two_step = True
+    elif o in ("--backup"):
+      OPTIONS.backuptool = bool(a.lower() == 'true')
+    elif o in ("--override_device"):
+      OPTIONS.override_device = a
     elif o in ("--no_signing"):
       OPTIONS.no_signing = True
     else:
@@ -995,6 +1017,8 @@ def main(argv):
                                               "aslr_mode=",
                                               "two_step",
                                               "no_signing",
+                                              "backup=",
+                                              "override_device==",
                                               ],
                              extra_option_handler=option_handler)
 
