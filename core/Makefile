@@ -256,13 +256,21 @@ build_desc :=
 ifdef BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE
 INSTALLED_VENDOR_BUILD_PROP_TARGET := $(TARGET_OUT_VENDOR)/build.prop
 ALL_DEFAULT_INSTALLED_MODULES += $(INSTALLED_VENDOR_BUILD_PROP_TARGET)
+#$(INSTALLED_VENDOR_BUILD_PROP_TARGET): $(INSTALLED_BUILD_PROP_TARGET)
+#	@echo Target vendor buildinfo: $@
+#	@mkdir -p $(dir $@)
+#	$(hide) echo > $@
+#	$(hide) echo ro.vendor.build.date=`date`>>$@
+#	$(hide) echo ro.vendor.build.date.utc=`date +%s`>>$@
+#	$(hide) echo ro.vendor.build.fingerprint="$(BUILD_FINGERPRINT)">>$@
+
+VENDORINFO_SH := build/tools/vendorinfo.sh
+
 $(INSTALLED_VENDOR_BUILD_PROP_TARGET): $(INSTALLED_BUILD_PROP_TARGET)
 	@echo Target vendor buildinfo: $@
 	@mkdir -p $(dir $@)
-	$(hide) echo > $@
-	$(hide) echo ro.vendor.build.date=`date`>>$@
-	$(hide) echo ro.vendor.build.date.utc=`date +%s`>>$@
-	$(hide) echo ro.vendor.build.fingerprint="$(BUILD_FINGERPRINT)">>$@
+	$(PRODUCT_BUILD_PROP_OVERRIDES) bash $(VENDORINFO_SH) >> $@
+
 endif
 
 # -----------------------------------------------------------------
