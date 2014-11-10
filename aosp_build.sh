@@ -42,4 +42,8 @@ cd device/${VENDOR_NAME}/${TARGET_NAME}/
 cd -
 fi
 
+if [ ${TARGET_NAME} = "grouper" ]; then
+rm -rf vendor/nvidia/grouper/keymaster
+fi
+
 make otapackage -j${PARALLEL_NUM}
