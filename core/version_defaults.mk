@@ -134,5 +134,5 @@ ifeq "" "$(BUILD_NUMBER)"
   # from this date/time" value.  Make it start with a non-digit so that
   # anyone trying to parse it as an integer will probably get "0".
   # BUILD_NUMBER := eng.$(USER).$(shell LANG=en date +%Y%m%d.%H%M%S)
-  BUILD_NUMBER := $(shell LANG=en date +%Y%m%d.%H%M%S)
+  BUILD_NUMBER := $(shell LANG=en date +%Y%m%d)
 endif
