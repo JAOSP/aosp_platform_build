@@ -278,7 +278,7 @@ VENDORINFO_SH := build/tools/vendorinfo.sh
 $(INSTALLED_VENDOR_BUILD_PROP_TARGET): $(INSTALLED_BUILD_PROP_TARGET)
 	@echo Target vendor buildinfo: $@
 	@mkdir -p $(dir $@)
-	$(PRODUCT_BUILD_PROP_OVERRIDES) bash $(VENDORINFO_SH) >> $@
+	$(PRODUCT_BUILD_PROP_OVERRIDES) bash $(VENDORINFO_SH) > $@
 
 endif
 
