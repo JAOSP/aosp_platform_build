@@ -13,6 +13,13 @@ else
   FILE_NAME_TAG := $(BUILD_NUMBER)
 endif
 
+ifeq ($(JAOSP_SYMLINK),true)
+include vendor/aosp/$(JAOSP_VENDOR_NAME)/$(JAOSP_DEVICE_NAME)/symlink.mk
+else
+define create-jaosp-symlink
+endef
+endif
+
 # -----------------------------------------------------------------
 # Define rules to copy PRODUCT_COPY_FILES defined by the product.
 # PRODUCT_COPY_FILES contains words like <source file>:<dest file>[:<owner>].
@@ -987,6 +994,7 @@ $(hide) if [ -d $(TARGET_OUT)/vendor ] && [ ! -h $(TARGET_OUT)/vendor ]; then \
   exit 1; \
 fi
 $(hide) ln -sf /vendor $(TARGET_OUT)/vendor
+$(call create-jaosp-symlink)
 endef
 else
 define create-system-vendor-symlink
