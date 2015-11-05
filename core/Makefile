@@ -994,7 +994,7 @@ $(hide) if [ -d $(TARGET_OUT)/vendor ] && [ ! -h $(TARGET_OUT)/vendor ]; then \
   exit 1; \
 fi
 $(hide) ln -sf /vendor $(TARGET_OUT)/vendor
-$(call create-jaosp-symlink)
+$(call create-jaosp-system-symlink)
 endef
 else
 define create-system-vendor-symlink
@@ -1279,6 +1279,7 @@ define build-vendorimage-target
   $(call pretty,"Target vendor fs image: $(INSTALLED_VENDORIMAGE_TARGET)")
   @mkdir -p $(TARGET_OUT_VENDOR)
   @mkdir -p $(vendorimage_intermediates) && rm -rf $(vendorimage_intermediates)/vendor_image_info.txt
+  $(call create-jaosp-vendor-symlink)
   $(call generate-userimage-prop-dictionary, $(vendorimage_intermediates)/vendor_image_info.txt, skip_fsck=true)
   $(hide) PATH=$(foreach p,$(INTERNAL_USERIMAGES_BINARY_PATHS),$(p):)$$PATH \
       ./build/tools/releasetools/build_image.py \
