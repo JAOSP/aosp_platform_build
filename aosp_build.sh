@@ -24,6 +24,10 @@ elif [ ${TARGET_NAME} = "shamu" ]; then
     VENDOR_NAME="moto"
 elif [ ${TARGET_NAME} = "flounder" ]; then
     VENDOR_NAME="htc"
+elif [ ${TARGET_NAME} = "bullhead" ]; then
+    VENDOR_NAME="lge"
+elif [ ${TARGET_NAME} = "angler" ]; then
+    VENDOR_NAME="huawei"
 fi
 
 cd device/${VENDOR_NAME}/${TARGET_NAME}/
